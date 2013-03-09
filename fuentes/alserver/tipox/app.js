@@ -1,7 +1,13 @@
 ﻿"use strict";
 
 function Aplicacion(){
+    this.paginaActual='default';
 }
+
+Aplicacion.prototype.paginas={
+    'default':{tipox:'h1', innerText:'¡en preparación!'},
+    'tipox':{tipox:'p', innerText:'tipox versión $Revision'},
+};
 
 Aplicacion.prototype.domCreator=function(tipox){
     return {
@@ -23,19 +29,32 @@ Aplicacion.prototype.domCreator=function(tipox){
 
 Aplicacion.prototype.grab=function(elemento,definicion){
     var nuevoElemento;
-    if(typeof(definicion)=='string'){
+    if(definicion===null || definicion===undefined){
+        return;
+    }else if(typeof(definicion)=='string'){
         nuevoElemento=document.createTextNode(definicion);
+    }else if(definicion instanceof Array){
+        for(var i=0; i<definicion.length; i++){
+            this.grab(elemento,definicion[i]);
+        }
+        return; 
     }else{
         var tipox=definicion.tipox;
         var creador=this.domCreator(tipox);
         nuevoElemento=creador.nuevo(tipox);
         creador.asignarAtributos(nuevoElemento,definicion);
+        this.grab(nuevoElemento,definicion.nodes);
     }
     elemento.appendChild(nuevoElemento);
 }
 
+Aplicacion.prototype.contenidoPaginaActual=function(){
+    return this.paginas[this.paginaActual];
+}
+
 Aplicacion.prototype.mostrarPaginaActual=function(){
-    this.grab(document.body,{tipox:'h1', innerText:'¡en preparación!'});
+    document.body.innerHTML=''; 
+    this.grab(document.body,this.contenidoPaginaActual());
 }
 
 Aplicacion.prototype.controlarParametros=function(){}
