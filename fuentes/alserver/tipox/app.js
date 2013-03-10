@@ -377,12 +377,19 @@ Aplicacion.prototype.Futuro.prototype.alFallar=function(hacer){
 }
 
 Aplicacion.prototype.requiereJs=function(nombreJs){
+    var futuro=this.newFuturo();
     if(!this.jsCargados[nombreJs]){
         var s = document.createElement("script");
         s.src = nombreJs+'.js';
+        s.onload = function () {
+            futuro.recibirListo({recienCargado:true});
+        }
         document.getElementsByTagName("head")[0].appendChild(s);
         this.jsCargados[nombreJs]=true;
+    }else{
+        futuro.recibirListo({recienCargado:false});
     }
+    return futuro;
 }
 
 Aplicacion.prototype.enviarPaquete=function(params){

@@ -72,7 +72,9 @@ Aplicacion.prototype.paginasSinUsuario={tipox:'aplicacion', id:'menu', paginas:{
 }
 
 Aplicacion.prototype.eventos.entrar_aplicacion=function(app,evento){
-    app.requiereJs('almacen');
+    app.requiereJs('almacen').luego(function(respuesta){
+        alert(respuesta.recienCargado?'cargado ok':'estaba cargado previamente');
+    });
 }
 
 Aplicacion.prototype.paginas={};
