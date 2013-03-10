@@ -40,13 +40,15 @@ Aplicacion.prototype.grab=function(elemento,definicion){
         return; 
     }else{
         var creador=this.domCreator(definicion.tipox);
-        while('translate' in creador){
-            definicion=creador.translate(definicion);
-            creador=this.domCreator(definicion.tipox);
+        if('translate' in creador){
+            var definicion_traducida=creador.translate(definicion);
+            this.grab(elemento,definicion_traducida);
+            return;
+        }else{
+            nuevoElemento=creador.nuevo(definicion.tipox);
+            creador.asignarAtributos(nuevoElemento,definicion);
+            this.grab(nuevoElemento,definicion.nodes);
         }
-        nuevoElemento=creador.nuevo(definicion.tipox);
-        creador.asignarAtributos(nuevoElemento,definicion);
-        this.grab(nuevoElemento,definicion.nodes);
     }
     elemento.appendChild(nuevoElemento);
 }
@@ -256,25 +258,6 @@ Aplicacion.prototype.creadores.app_alternativa={tipo:'tipox', descripcion:'menú
     complejo:true
 }}
 
-Aplicacion.prototype.contenidoPaginaActual=function(){
-    return this.paginas;
-}
-
-Aplicacion.prototype.mostrarPaginaActual=function(){
-    document.body.innerHTML=''; 
-    this.grab(document.body,this.contenidoPaginaActual());
-}
-
-Aplicacion.prototype.cambiarPaginaLocationHash=function(){
-    if(location.hash.substr(0,2)==='#!'){
-        var nuevoDestino=JSON.parse(location.hash.substr(2));
-    }else{
-        var nuevoDestino={};
-    }
-    this.cursorActual=nuevoDestino;
-    this.mostrarPaginaActual();
-}
-
 ///////////////// FORMULARIOS ////////////////////
 
 Aplicacion.prototype.creadores.formulario_simple={tipo:'tipox', descripcion:'formulario simple basado en una tabla de 3 columnas, label, input, aclaraciones', creador:{
@@ -309,6 +292,51 @@ Aplicacion.prototype.creadores.parametro_boton={tipo:'tipox', descripcion:'botó
 }}
 
 ///////////////// fin-FORMULARIOS //////////////////
+Aplicacion.prototype.creadores.aplicacion={tipo:'tipox', descripcion:'estructura de pantallas/procesos de la aplicación', creador:{
+    translate:function(definicion){
+        var menu={tipox:'app_menu_principal', 'for':definicion.id, elementos:{}};
+        var secciones={tipox:'app_alternativa', 'default':'intr', id:definicion.id};
+        var divSecciones={tipox:'section', className:'div_aplicacion', nodes:secciones};
+        for(var id in definicion.paginas){
+            var estaSeccion=definicion.paginas[id];
+            if(id!='tipox'){
+                menu.elementos[id]=estaSeccion.labelMenu||id;
+                secciones[id]=estaSeccion.nodes;
+            }
+        }
+        return [menu, divSecciones];
+    },
+}}
+
+Aplicacion.prototype.contenidoPaginaActual=function(){
+    return this.paginas;
+}
+
+Aplicacion.prototype.mostrarPaginaActual=function(){
+    document.body.innerHTML=''; 
+    this.grab(document.body,this.contenidoPaginaActual());
+}
+
+Aplicacion.prototype.validarUsuario=function(){
+    if(!this.usuario){
+        this.paginas=this.paginasSinUsuario;
+    }
+}
+
+Aplicacion.prototype.cambiarPaginaLocationHash=function(){
+    this.validarUsuario();
+    if(location.hash.substr(0,2)==='#!'){
+        var hash=location.hash.substr(2);
+        if(hash[0]=='%'){
+            hash=decodeURI(hash);
+        }
+        var nuevoDestino=JSON.parse(hash);
+    }else{
+        var nuevoDestino={};
+    }
+    this.cursorActual=nuevoDestino;
+    this.mostrarPaginaActual();
+}
 
 Aplicacion.prototype.controlarParametros=function(){}
 
