@@ -1,6 +1,6 @@
 ﻿// Por $Author Revisión $Revision del $Date
 
-Aplicacion.prototype.paginas={
+Aplicacion.prototype.paginas={tipox:'app_alternativa',
     'default':[
         {tipox:'h1', innerText:'Primer página de Ejemplo'},
         {tipox:'tipox_logo'},
