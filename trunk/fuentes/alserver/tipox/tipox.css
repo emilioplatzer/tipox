@@ -5,3 +5,12 @@
     display:block;
     background-color:yellow;
 }
+
+.tipox_logo{
+    font-family:comic;
+    font-style:italic;
+    font-weight:bold;
+    text-decoration:none;
+    font-size:110%;
+    color:brown;
+}
