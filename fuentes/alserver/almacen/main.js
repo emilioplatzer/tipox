@@ -63,14 +63,16 @@ Aplicacion.prototype.paginasSinUsuario={tipox:'aplicacion', id:'menu', paginas:{
             {tipox:'p', nodes:['Especificaciones técnicas ']},
             {tipox:'p', nodes:['framework: ',{tipox:'tipox_logo'}]},
             {tipox:'p', nodes:[
-                "fuentes: ", {tipox:'a', href:'https://code.google.com/p/tipox', innerText:'code.google.com/p/tipox'}
+                "para hacer sugerencias o reportar errores sobre este programa entrar a: ", 
+                {tipox:'a', href:'https://code.google.com/p/tipox/issues/entry', innerText:'"New Issues"'},
+                ' (se necesita tener una cuenta en gmail para poder acceder)'
             ]}
         ]
     }}
 }
 
-Aplicacion.prototype.eventos.entrar_aplicacion=function(){
-    alert('entró');
+Aplicacion.prototype.eventos.entrar_aplicacion=function(app,evento){
+    app.requiereJs('almacen');
 }
 
 Aplicacion.prototype.paginas={};

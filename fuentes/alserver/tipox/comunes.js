@@ -1,4 +1,23 @@
+﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
+
+function trim(esto) {
+"use strict";
+    if(esto==null || esto==undefined || typeof esto!="string"){
+        return esto;
+    }
+    return esto.replace(/^\s+|\s+$/g, '');  
+}
+
+function descripciones_de_error(err){
+"use strict";
+    /* usado para mostrar el mensaje de error de cualquier excepción */
+    var mensaje=' '+(err.description||'')+' '+(err.message||'')+' '+(err.type_error||'');
+    if(!trim(mensaje)){
+        mensaje=JSON.stringify(err);
+    }
+    return mensaje;
+}
 
 function cambiandole(destino,cambios,borrando,borrar_si_es_este_valor){
 "use strict";

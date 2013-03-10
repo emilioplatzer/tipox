@@ -1,9 +1,10 @@
-﻿// Por $Author Revisión $Revision del $Date
+﻿// Por $Author: emilioplatzer@gmail.com $ Revisión $Revision: 11 $ del $Date: 2013-03-10 11:46:30 -0300 (dom 10 de mar de 2013) $
 "use strict";
 
 function Aplicacion(){
     this.cursorActual=[];
     this.cursorNuevo=[];
+    this.jsCargados={};
 }
 
 Aplicacion.prototype.paginas={
@@ -20,8 +21,9 @@ Aplicacion.prototype.creadorElementoDOM={
             case 'tipox': 
                 break;
             case 'eventos': 
-                for(var evento in definicion.eventos) if(definicion.eventos.hasOwnProperty(evento)){
-                    destino.addEventListener(evento,this.app.eventos[definicion.eventos[evento]]);
+                for(var id_evento in definicion.eventos) if(definicion.eventos.hasOwnProperty(id_evento)){
+                    var app=this.app;
+                    destino.addEventListener(id_evento,function(evento){return app.eventos[definicion.eventos[id_evento]](app,evento);});
                 }
             default:
                 if(atributo instanceof Object){
@@ -325,6 +327,115 @@ Aplicacion.prototype.validarUsuario=function(){
     if(!this.usuario){
         this.paginas=this.paginasSinUsuario;
     }
+}
+
+Aplicacion.prototype.newFuturo=function(){
+    return new this.Futuro(this.app);
+}
+
+Aplicacion.prototype.Futuro=function(app){
+    this.app=app;
+    this.luegos=[];
+    this.manejadoresError=[];
+}
+
+Aplicacion.prototype.Futuro.prototype.sincronizar=function(){
+    if('respuesta' in this){
+        while(this.luegos.length>0){
+            var hacer=this.luegos.shift();
+            hacer(this.respuesta,this.app);
+        }
+    }
+    if('mensajeError' in this){
+        while(this.manejadoresError.length>0){
+            var hacer=this.manejadoresError.shift();
+            hacer(this.mensajeError,this.app);
+        }
+    }
+}
+
+Aplicacion.prototype.Futuro.prototype.recibirListo=function(respuesta){
+    this.respuesta=respuesta;
+    this.sincronizar();
+}
+
+Aplicacion.prototype.Futuro.prototype.recibirError=function(mensajeError){
+    this.mensajeError=mensajeError;
+    this.sincronizar();
+}
+
+Aplicacion.prototype.Futuro.prototype.luego=function(hacer){
+    this.luegos.push(hacer);
+    this.sincronizar();
+    return this;
+}
+
+Aplicacion.prototype.Futuro.prototype.alFallar=function(hacer){
+    this.manejadoresError.push(hacer);
+    this.sincronizar();
+    return this;
+}
+
+Aplicacion.prototype.requiereJs=function(nombreJs){
+    if(!this.jsCargados[nombreJs]){
+        this.enviarPaquete({destino:nombreJs+'.js', tipoRta:'texto'}).luego(function(respuesta){
+            eval(respuesta);
+        }).alFallar(function(mensaje){
+            alert(mensaje);
+        });
+    }
+}
+
+Aplicacion.prototype.enviarPaquete=function(params){
+    var peticion=new XMLHttpRequest();
+    var futuro=this.newFuturo();
+    var ifDebug=function(x){ return x; };
+    peticion.onreadystatechange=function(){
+        switch(peticion.readyState) {
+        case 4: 
+            try{
+                var rta = peticion.responseText;
+                if(peticion.status!=200){
+                    futuro.recibirError('Error de status '+peticion.status+' '+peticion.statusText);
+                }else if(rta){
+                    try{
+                        var obtenido;
+                        if(params.tipoRta=='texto'){
+                            obtenido={tipox:'rtaOk', respuesta:rta};
+                        }else{
+                            obtenido=JSON.parse(rta);
+                        }
+                        if(obtenido.tipox=='rtaOk'){
+                            try{
+                                futuro.recibirListo(obtenido.respuesta);
+                            }catch(err_llamador){
+                                futuro.recibirError(descripciones_de_error(err_llamador)+' al procesar la recepcion de la peticion AJAX');
+                            }
+                        }else if('tipox' in obtenido){
+                            futuro.recibirError(obtenido.mensaje);
+                        }else{
+                            futuro.recibirError('ERROR la respuesta recibida no es tipox '+ifDebug(rta));
+                        }
+                    }catch(err_json){
+                        futuro.recibirError('ERROR PARSEANDO EL JSON '+':'+descripciones_de_error(err_json)+' '+ifDebug(rta));
+                    }
+                }else{
+                    futuro.recibirError('ERROR sin respuesta en la peticion AJAX');
+                }
+            }catch(err){
+                futuro.recibirError('ERROR en el proceso de transmision AJAX '+descripciones_de_error(err),6);
+            }
+        }
+    }
+    try{
+        peticion.open('POST', params.destino, !params.sincronico); // !sincronico);
+        peticion.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
+        var parametros="paquete="+encodeURIComponent(JSON.stringify(params.paquete));
+        peticion.send(parametros);
+    }catch(err){
+        futuro.recibirError(descripciones_de_error(err));
+    }
+    return futuro;
 }
 
 Aplicacion.prototype.cambiarPaginaLocationHash=function(){
