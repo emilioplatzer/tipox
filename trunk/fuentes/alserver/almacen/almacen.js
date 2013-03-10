@@ -1,6 +1,14 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
 
-Aplicacion.prototype.almacen_instalado="sí lo está";
+var Almacen={};
 
-alert('Ingresado lo nuevo: '+Aplicacion.prototype.almacen_instalado);
+Almacen.adaptarAplicacion=function(app){
+    app.paginas.paginas.misArchivos={
+        labelMenu:'mis archivos',
+        nodes:[
+            {tipox:'h1', innerText:'mis archivos'},
+            {tipox:'p', innerText:'acá están'},
+        ]
+    }
+}
