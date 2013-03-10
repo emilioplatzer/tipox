@@ -1,5 +1,9 @@
 /* tipox.css */
 
+body{
+    margin:0px;
+}
+
 .debug_excepcion{
     display:none;
     display:block;
@@ -14,17 +18,37 @@
     font-size:110%;
     color:brown;
 }
+
+.i_logo{
+    font-family:comic;
+    font-style:italic;
+    font-weight:bold;
+    text-decoration:none;
+    font-size:110%;
+    color:brown;
+    border:2px solid brown;
+    background-color:#DD0;
+    padding-left:7px;
+    padding-right:7px;
+    border-radius:50%;
+}
+
 .app_menu_principal{
-    padding:3px;
+    padding-top:8px;
+    padding-bottom:8px;
     margin:0px;
     border-bottom:1px solid #040;
-    background-color:#DDE;
+    background-color:#CCD;
 }
 
 .app_elemento_menu_principal{
     border:1px solid gray;
     border-radius:3px;
-    background-color:#CCD;
+    background-color:#BBC;
     padding:3px;
     margin:3px;
+}
+
+.div_aplicacion{
+    margin:8px;
 }

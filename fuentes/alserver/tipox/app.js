@@ -40,9 +40,9 @@ Aplicacion.prototype.grab=function(elemento,definicion){
         return; 
     }else{
         var creador=this.domCreator(definicion.tipox);
-        if('translate' in creador){
+        while('translate' in creador){
             definicion=creador.translate(definicion);
-            creador=creador.creador||this.creadorElementoDOM;
+            creador=this.domCreator(definicion.tipox);
         }
         nuevoElemento=creador.nuevo(definicion.tipox);
         creador.asignarAtributos(nuevoElemento,definicion);
@@ -274,6 +274,41 @@ Aplicacion.prototype.cambiarPaginaLocationHash=function(){
     this.cursorActual=nuevoDestino;
     this.mostrarPaginaActual();
 }
+
+///////////////// FORMULARIOS ////////////////////
+
+Aplicacion.prototype.creadores.formulario_simple={tipo:'tipox', descripcion:'formulario simple basado en una tabla de 3 columnas, label, input, aclaraciones', creador:{
+    translate:function(definicion){
+        var nuevo=cambiandole(definicion, {tipox:'form', className:'form_simple3'});
+        var tabla={tipox:'table'};
+        nuevo.nodes=tabla;
+        tabla.nodes=definicion.nodes;
+        return nuevo;
+    },
+}}
+
+Aplicacion.prototype.creadores.parametro={tipo:'tipox', descripcion:'parámetro de formulario simple con autolabel', creador:{
+    translate:function(definicion){
+        var input=cambiandole(definicion, {tipox:definicion.tipox_parametro||'input', name:definicion.name||definicion.id, label:null, aclaracion:null, tipox_parametro:null},null);
+        var label={tipox:'label', 'forHTML':definicion.id, nodes:('label' in definicion?definicion.label:input.name)};
+        var nuevo={tipox:'tr', nodes:[
+            {tipox:'td', nodes:label},
+            {tipox:'td', nodes:input}
+        ]};
+        if('aclaracion' in definicion){
+            nuevo.nodes.push({tipox:'td', nodes:definicion.aclaracion});
+        }
+        return nuevo;
+    },
+}}
+
+Aplicacion.prototype.creadores.parametro_boton={tipo:'tipox', descripcion:'botón para el formulario simple encolumnado a segunda columna', creador:{
+    translate:function(definicion){
+        return cambiandole(definicion, {tipox:'parametro', tipox_parametro:'button', type:'button', label:'', innerText:!('nodes' in definicion) && !('innerText' in definicion)?definicion.id:definicion.innerText});
+    },
+}}
+
+///////////////// fin-FORMULARIOS //////////////////
 
 Aplicacion.prototype.controlarParametros=function(){}
 
