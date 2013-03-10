@@ -73,7 +73,13 @@ Aplicacion.prototype.paginasSinUsuario={tipox:'aplicacion', id:'menu', paginas:{
 
 Aplicacion.prototype.eventos.entrar_aplicacion=function(app,evento){
     app.requiereJs('almacen').luego(function(respuesta){
-        alert(respuesta.recienCargado?'cargado ok':'estaba cargado previamente');
+        if(respuesta.recienCargado){
+            Almacen.adaptarAplicacion(app);
+            app.mostrarPaginaActual();
+            alert('carga ok');
+        }
+    }).alFallar(function(mensaje){
+        alert('ERROR CARGANDO almacen '+mensaje);
     });
 }
 
