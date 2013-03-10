@@ -207,7 +207,7 @@ Aplicacion.prototype.creadores={
 
 Aplicacion.prototype.creadores.tipox_logo={tipo:'tipox', descripcion:'el logo de tipox', creador:{
     translate:function(definicion){
-        return {tipox:'a', className:'tipox_logo', innerText:'tipox', href:'tipox.net'};
+        return {tipox:'a', className:'tipox_logo', innerText:'tipox', href:'//tipox.net'};
     }
 }}
 
@@ -330,7 +330,7 @@ Aplicacion.prototype.validarUsuario=function(){
 }
 
 Aplicacion.prototype.newFuturo=function(){
-    return new this.Futuro(this.app);
+    return new this.Futuro(this);
 }
 
 Aplicacion.prototype.Futuro=function(app){
@@ -378,11 +378,10 @@ Aplicacion.prototype.Futuro.prototype.alFallar=function(hacer){
 
 Aplicacion.prototype.requiereJs=function(nombreJs){
     if(!this.jsCargados[nombreJs]){
-        this.enviarPaquete({destino:nombreJs+'.js', tipoRta:'texto'}).luego(function(respuesta){
-            eval(respuesta);
-        }).alFallar(function(mensaje){
-            alert(mensaje);
-        });
+        var s = document.createElement("script");
+        s.src = nombreJs+'.js';
+        document.getElementsByTagName("head")[0].appendChild(s);
+        this.jsCargados[nombreJs]=true;
     }
 }
 
