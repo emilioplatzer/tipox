@@ -1,7 +1,9 @@
-﻿"use strict";
+﻿// Por $Author Revisión $Revision del $Date
+"use strict";
 
 function Aplicacion(){
-    this.paginaActual='default';
+    this.cursorActual=[];
+    this.cursorNuevo=[];
 }
 
 Aplicacion.prototype.paginas={
@@ -49,14 +51,23 @@ Aplicacion.prototype.grab=function(elemento,definicion){
     elemento.appendChild(nuevoElemento);
 }
 
+Aplicacion.prototype.cantidadExcepciones=10;
+
 Aplicacion.prototype.nuevaExcepcion=function(mensaje){
-    this.grab(document.body,{tipox:'div', className:'debug_excepcion', innerText:mensaje});
+    this.cantidadExcepciones--;
+    if(this.cantidadExcepciones>0){
+        this.grab(document.body,{tipox:'div', className:'debug_excepcion', innerText:mensaje});
+    }
     throw new Error(mensaje);
 }
 
 Aplicacion.prototype.domCreator=function(tipox){
     if(tipox in this.creadores){
-        return this.creadores[tipox].creador;
+        var creador=this.creadores[tipox].creador;
+        if('complejo' in creador){
+            creador.app=this;
+        }
+        return creador;
     }
     this.nuevaExcepcion('no existe el tipox '+tipox);
 }
@@ -191,14 +202,62 @@ Aplicacion.prototype.creadores.tipox_logo={tipo:'tipox', descripcion:'el logo de
     }
 }}
 
-Aplicacion.prototype.creadores.app_vinculo={tipo:'tipox_logo', descripcion:'vínculo que cambia a una página interna', creador:{
+Aplicacion.prototype.creadores.app_vinculo={tipo:'tipox', descripcion:'vínculo que cambia a una página interna', creador:{
     translate:function(definicion){
-        return cambiandole(definicion, {tipox:'a', className:'app_vinculo', href:'#!'+JSON.stringify(definicion.destino)});
+        return cambiandole(definicion, {tipox:'a', className:(definicion.className||'app_vinculo'), href:'#!'+JSON.stringify(definicion.destino)});
     },
 }}
 
+Aplicacion.prototype.creadores.lista={tipo:'tipox', descripcion:'lista genérica <tagList> de elementos <tagElement> ', creador:{
+    translate:function(definicion){
+        var nuevo=cambiandole(definicion, {tipox:definicion.tagList});
+        delete nuevo.elementos;
+        nuevo.nodes=[];
+        for(var i in definicion.elementos) if(definicion.elementos.hasOwnProperty(i)){
+            nuevo.nodes.push({tipox:definicion.tagElement, nodes:definicion.elementos[i]});
+        }
+        return nuevo;
+    },
+}}
+
+Aplicacion.prototype.creadores.app_menu_principal={tipo:'tipox', descripcion:'menú principal', creador:{
+    translate:function(definicion){
+        var nuevo=cambiandole(definicion, {tipox:'header', className:'app_menu_principal'});
+        delete nuevo.elementos;
+        nuevo.nodes=[];
+        for(var i in definicion.elementos) if(definicion.elementos.hasOwnProperty(i)){
+            var destino={};
+            destino[definicion['for']]=i;
+            nuevo.nodes.push({tipox:'app_vinculo', className:'app_elemento_menu_principal', destino:destino, nodes:definicion.elementos[i]});
+        }
+        return nuevo;
+    },
+}}
+
+Aplicacion.prototype.assert=function(revisar,mensaje){
+    if(!revisar){
+        this.excepcion('Falló un assert con '+mensaje);
+    }
+}
+
+Aplicacion.prototype.creadores.app_alternativa={tipo:'tipox', descripcion:'menú principal', creador:{
+    nuevo:function(tipox){
+        var nuevo=document.createElement('div');
+        nuevo.className='app_alternativa';
+        return nuevo;
+    },
+    asignarAtributos:function(nuevoElemento,definicion){
+        this.app.assert(!definicion.nodes, '!definicion.nodes en app_alternativa');
+        nuevoElemento.id=definicion.id;
+        var alternativa=this.app.cursorActual[definicion.id]||definicion['default'];
+        this.app.cursorNuevo[definicion.id]=alternativa;
+        this.app.grab(nuevoElemento,definicion[alternativa]);
+    },
+    complejo:true
+}}
+
 Aplicacion.prototype.contenidoPaginaActual=function(){
-    return this.paginas[this.paginaActual];
+    return this.paginas;
 }
 
 Aplicacion.prototype.mostrarPaginaActual=function(){
@@ -210,9 +269,9 @@ Aplicacion.prototype.cambiarPaginaLocationHash=function(){
     if(location.hash.substr(0,2)==='#!'){
         var nuevoDestino=JSON.parse(location.hash.substr(2));
     }else{
-        var nuevoDestino='default';
+        var nuevoDestino={};
     }
-    this.paginaActual=nuevoDestino;
+    this.cursorActual=nuevoDestino;
     this.mostrarPaginaActual();
 }
 

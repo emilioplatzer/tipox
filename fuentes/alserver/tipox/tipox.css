@@ -14,3 +14,17 @@
     font-size:110%;
     color:brown;
 }
+.app_menu_principal{
+    padding:3px;
+    margin:0px;
+    border-bottom:1px solid #040;
+    background-color:#DDE;
+}
+
+.app_elemento_menu_principal{
+    border:1px solid gray;
+    border-radius:3px;
+    background-color:#CCD;
+    padding:3px;
+    margin:3px;
+}
