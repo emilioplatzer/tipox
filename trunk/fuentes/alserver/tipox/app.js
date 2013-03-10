@@ -16,7 +16,14 @@ Aplicacion.prototype.creadorElementoDOM={
     asignarAtributos:function(destino,definicion){
         for(var atributo in definicion) if(definicion.hasOwnProperty(atributo)){
             var valor=definicion[atributo];
-            if(atributo!='tipox'){
+            switch(atributo){
+            case 'tipox': 
+                break;
+            case 'eventos': 
+                for(var evento in definicion.eventos) if(definicion.eventos.hasOwnProperty(evento)){
+                    destino.addEventListener(evento,this.app.eventos[definicion.eventos[evento]]);
+                }
+            default:
                 if(atributo instanceof Object){
                     this.asignarAtributos(destino[atributo],valor);
                 }else{
@@ -66,9 +73,7 @@ Aplicacion.prototype.nuevaExcepcion=function(mensaje){
 Aplicacion.prototype.domCreator=function(tipox){
     if(tipox in this.creadores){
         var creador=this.creadores[tipox].creador;
-        if('complejo' in creador){
-            creador.app=this;
-        }
+        creador.app=this;
         return creador;
     }
     this.nuevaExcepcion('no existe el tipox '+tipox);
@@ -255,7 +260,6 @@ Aplicacion.prototype.creadores.app_alternativa={tipo:'tipox', descripcion:'menú
         this.app.cursorNuevo[definicion.id]=alternativa;
         this.app.grab(nuevoElemento,definicion[alternativa]);
     },
-    complejo:true
 }}
 
 ///////////////// FORMULARIOS ////////////////////
@@ -339,6 +343,8 @@ Aplicacion.prototype.cambiarPaginaLocationHash=function(){
 }
 
 Aplicacion.prototype.controlarParametros=function(){}
+
+Aplicacion.prototype.eventos={};
 
 Aplicacion.run=function(app){
     app.controlarParametros({app:app},{app:{validar:function(app){ return app instanceof Aplicacion; }}});

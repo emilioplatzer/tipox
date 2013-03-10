@@ -53,7 +53,7 @@ Aplicacion.prototype.paginasSinUsuario={tipox:'aplicacion', id:'menu', paginas:{
             {tipox:'formulario_simple', nodes:[
                 {tipox:'parametro', id:'usuario', aclaracion:'probablemente el mail donde recibió el aviso'},
                 {tipox:'parametro', id:'contraseña', type:'password'},
-                {tipox:'parametro_boton', id:'entrar'}
+                {tipox:'parametro_boton', id:'entrar', eventos:{click:'entrar_aplicacion'}}
             ]}
         ]
     },
@@ -67,6 +67,10 @@ Aplicacion.prototype.paginasSinUsuario={tipox:'aplicacion', id:'menu', paginas:{
             ]}
         ]
     }}
+}
+
+Aplicacion.prototype.eventos.entrar_aplicacion=function(){
+    alert('entró');
 }
 
 Aplicacion.prototype.paginas={};
