@@ -1,10 +1,10 @@
 ﻿// Por $Author $ Revisión $Revision $ del $Date $
 "use strict";
 
-Aplicacion.prototype.paginas={tipox:"app_alternativas", 
-    'default':[
-        {tipox:'app_menu_principal', elementos:{intr:'Introducción', entrar:'Entrar', info:'Info/ayuda'}},
-        {tipox:'app_alternativas',
+Aplicacion.prototype.paginas={tipox:"app_alternativa", 'default':'menu', id:'alfa', 
+    'menu':[
+        {tipox:'app_menu_principal', 'for':'menu', elementos:{intr:'Introducción', entrar:'Entrar', info:['Info/ayuda ',{tipox:'tipox_logo'}]}},
+        {tipox:'app_alternativa', 'default':'intr', id:'menu', 
             intr:["Este es el armario virtual de ", "FULANO DE TAL", ". Acá subimos la información para que otros la bajen. Las ",
                 {tipox: 'b', innerText: 'ventajas'}, ' son ',
                 {tipox: 'lista', tagList:'ol', tagElement:'li', elementos:[

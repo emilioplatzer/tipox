@@ -1,2 +1,6 @@
 Options -Indexes
 DirectoryIndex launch.html
+
+# Solo para desarrollo:
+ExpiresActive On
+ExpiresDefault "access"
