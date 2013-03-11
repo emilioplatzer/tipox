@@ -10,6 +10,10 @@ body{
     background-color:yellow;
 }
 
+.mensaje_error{
+    background-color:yellow;
+}
+
 .tipox_logo{
     font-family:comic;
     font-style:italic;

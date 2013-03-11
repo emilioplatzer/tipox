@@ -37,6 +37,13 @@ Aplicacion.prototype.creadorElementoDOM={
 }
 
 Aplicacion.prototype.grab=function(elemento,definicion){
+    var elementoDestino;
+    if(typeof(elemento)=='string'){
+        elementoDestino=document.getElementById(elemento);
+        this.lanzarExcepcion('No existe el elemento con id '+elemento);
+    }else{
+        elementoDestino=elemento;
+    }
     var nuevoElemento;
     if(definicion===null || definicion===undefined){
         return;
@@ -44,14 +51,14 @@ Aplicacion.prototype.grab=function(elemento,definicion){
         nuevoElemento=document.createTextNode(definicion);
     }else if(definicion instanceof Array){
         for(var i=0; i<definicion.length; i++){
-            this.grab(elemento,definicion[i]);
+            this.grab(elementoDestino,definicion[i]);
         }
         return; 
     }else{
         var creador=this.domCreator(definicion.tipox);
         if('translate' in creador){
             var definicion_traducida=creador.translate(definicion);
-            this.grab(elemento,definicion_traducida);
+            this.grab(elementoDestino,definicion_traducida);
             return;
         }else{
             nuevoElemento=creador.nuevo(definicion.tipox);
@@ -59,12 +66,15 @@ Aplicacion.prototype.grab=function(elemento,definicion){
             this.grab(nuevoElemento,definicion.nodes);
         }
     }
-    elemento.appendChild(nuevoElemento);
+    elementoDestino.appendChild(nuevoElemento);
+    if('ongrab' in nuevoElemento){
+        nuevoElemento.ongrab(app);
+    }
 }
 
 Aplicacion.prototype.cantidadExcepciones=10;
 
-Aplicacion.prototype.nuevaExcepcion=function(mensaje){
+Aplicacion.prototype.lanzarExcepcion=function(mensaje){
     this.cantidadExcepciones--;
     if(this.cantidadExcepciones>0){
         this.grab(document.body,{tipox:'div', className:'debug_excepcion', innerText:mensaje});
@@ -78,7 +88,7 @@ Aplicacion.prototype.domCreator=function(tipox){
         creador.app=this;
         return creador;
     }
-    this.nuevaExcepcion('no existe el tipox '+tipox);
+    this.lanzarExcepcion('no existe el tipox '+tipox);
 }
 
 Aplicacion.prototype.creadores={
@@ -245,7 +255,7 @@ Aplicacion.prototype.creadores.app_menu_principal={tipo:'tipox', descripcion:'me
 
 Aplicacion.prototype.assert=function(revisar,mensaje){
     if(!revisar){
-        this.excepcion('Falló un assert con '+mensaje);
+        this.lanzarExcepcion('Falló un assert con '+mensaje);
     }
 }
 
@@ -305,7 +315,7 @@ Aplicacion.prototype.creadores.aplicacion={tipo:'tipox', descripcion:'estructura
         var divSecciones={tipox:'section', className:'div_aplicacion', nodes:secciones};
         for(var id in definicion.paginas){
             var estaSeccion=definicion.paginas[id];
-            if(id!='tipox'){
+            if(id!='tipox' && !estaSeccion.ocultar){
                 menu.elementos[id]=estaSeccion.labelMenu||id;
                 secciones[id]=estaSeccion.nodes;
             }
@@ -423,7 +433,7 @@ Aplicacion.prototype.enviarPaquete=function(params){
                             futuro.recibirError('ERROR la respuesta recibida no es tipox '+ifDebug(rta));
                         }
                     }catch(err_json){
-                        futuro.recibirError('ERROR PARSEANDO EL JSON '+':'+descripciones_de_error(err_json)+' '+ifDebug(rta));
+                        futuro.recibirError('ERROR PARSEANDO EL JSON '+':'+descripciones_de_error(err_json)+' => '+ifDebug(rta));
                     }
                 }else{
                     futuro.recibirError('ERROR sin respuesta en la peticion AJAX');
@@ -465,11 +475,14 @@ Aplicacion.prototype.eventos={};
 
 Aplicacion.run=function(app){
     app.controlarParametros({app:app},{app:{validar:function(app){ return app instanceof Aplicacion; }}});
+    var futuro=app.newFuturo();
     window.addEventListener('load',function(){
         app.cambiarPaginaLocationHash();
+        futuro.recibirListo(true);
     });    
     window.addEventListener("hashchange", function(){
         app.cambiarPaginaLocationHash();
     }
     , false);
+    return futuro;
 }
