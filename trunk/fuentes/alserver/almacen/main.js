@@ -85,4 +85,8 @@ Aplicacion.prototype.eventos.entrar_aplicacion=function(app,evento){
 
 Aplicacion.prototype.paginas={};
 
-Aplicacion.run(new Aplicacion());
+var app=new Aplicacion();
+Aplicacion.run(app).luego(function(){
+    Almacen.adaptarAplicacion(app);
+    app.mostrarPaginaActual();
+});
