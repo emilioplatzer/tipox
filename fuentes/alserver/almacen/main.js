@@ -71,22 +71,12 @@ Aplicacion.prototype.paginasSinUsuario={tipox:'aplicacion', id:'menu', paginas:{
     }}
 }
 
-Aplicacion.prototype.eventos.entrar_aplicacion=function(app,evento){
-    app.requiereJs('almacen').luego(function(respuesta){
-        if(respuesta.recienCargado){
-            Almacen.adaptarAplicacion(app);
-            app.mostrarPaginaActual();
-            alert('carga ok');
-        }
-    }).alFallar(function(mensaje){
-        alert('ERROR CARGANDO almacen '+mensaje);
-    });
-}
+Aplicacion.prototype.jsRequeridos.push('almacen');
 
 Aplicacion.prototype.paginas={};
 
 var app=new Aplicacion();
 Aplicacion.run(app).luego(function(){
-    Almacen.adaptarAplicacion(app);
+    // Almacen.adaptarAplicacion(app);
     app.mostrarPaginaActual();
 });
