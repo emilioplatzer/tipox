@@ -76,7 +76,7 @@ class AplicacionBase{
     function proceso_entrada(){
         $db=$this->baseDeDatos();
         $sentencia=$db->prepare($this->configuracion->sql->validar_usuario);
-        $sentencia->execute(array(':usuario'=>$this->argumentos->usuario,':clave'=>$this->argumentos->clave));
+        $sentencia->execute(array(':usuario'=>$this->argumentos->usuario,':password'=>$this->argumentos->password));
         $datos_usuario=$sentencia->fecthObject();
         if(!$datos_usuario){
             return array('tipox'=>'rtaError','mensaje'=>'el usuario o la clave no corresponden a un usuario activo');

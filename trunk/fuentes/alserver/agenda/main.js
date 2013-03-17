@@ -19,7 +19,7 @@ Aplicacion.prototype.paginasSinUsuario={tipox:'aplicacion', id:'menu', paginas:{
             {tipox:'h2', innerText:"Entrada"},
             {tipox:'formulario_simple', nodes:[
                 {tipox:'parametro', id:'usuario', aclaracion:'probablemente el mail donde recibió el aviso'},
-                {tipox:'parametro', id:'contraseña', type:'password'},
+                {tipox:'parametro', id:'password', label:'contraseña', type:'password'},
                 {tipox:'parametro_boton', id:'entrar', eventos:{click:'entrar_aplicacion'}}
             ]}
         ]
@@ -42,6 +42,5 @@ Aplicacion.prototype.paginas={};
 
 var app=new Aplicacion();
 Aplicacion.run(app).luego(function(){
-    Almacen.adaptarAplicacion(app);
     app.mostrarPaginaActual();
 });
