@@ -12,6 +12,8 @@ Aplicacion.prototype.paginas={
     'tipox':{tipox:'p', innerText:'tipox versión $Revision'},
 };
 
+Aplicacion.prototype.eventos={};
+
 Aplicacion.prototype.creadorElementoDOM={
     nuevo:function(tagName){ return document.createElement(tagName); },
     asignarAtributos:function(destino,definicion){
@@ -333,11 +335,30 @@ Aplicacion.prototype.mostrarPaginaActual=function(){
     this.grab(document.body,this.contenidoPaginaActual());
 }
 
+Aplicacion.prototype.jsRequeridos=[];
+
+Aplicacion.prototype.eventos.entrar_aplicacion=function(app,evento){
+    var cargoAlguno=false;
+    app.mapLuego(app.jsRequeridos.slice(0),app.requiereJs,function(respuesta){
+        cargoAlguno=cargoAlguno || respuesta.recienCargado;
+    }).luego(function(){
+        if(cargoAlguno){
+            Almacen.adaptarAplicacion(app);
+            app.mostrarPaginaActual();
+            alert('carga ok alguno');
+        }
+    }).alFallar(function(mensaje){
+        alert('ERROR CARGANDO requeridos '+mensaje);
+    });
+}
+
 Aplicacion.prototype.validarUsuario=function(){
     if(!this.usuario){
         this.paginas=this.paginasSinUsuario;
     }
 }
+
+////////////////////////// Futuros //////////////////////////
 
 Aplicacion.prototype.newFuturo=function(){
     return new this.Futuro(this);
@@ -384,6 +405,22 @@ Aplicacion.prototype.Futuro.prototype.alFallar=function(hacer){
     this.manejadoresError.push(hacer);
     this.sincronizar();
     return this;
+}
+
+Aplicacion.prototype.mapLuego=function(arreglo,funcionParaCadaElemento,funcionParaElLuego){
+    var futuro=this.newFuturo();
+    if(arreglo.length==0){
+        futuro.recibirListo(null);
+    }else{
+        var elementoActual=arreglo.shift();
+        funcionParaCadaElemento.call(this,elementoActual).luego(function(respuesta,app){
+            funcionParaElLuego(respuesta,app);
+            app.mapLuego(arreglo,funcionParaCadaElemento,funcionParaElLuego).luego(function(respuesta,app){
+                futuro.recibirListo(null);
+            });
+        });
+    }
+    return futuro;
 }
 
 Aplicacion.prototype.requiereJs=function(nombreJs){
@@ -470,8 +507,6 @@ Aplicacion.prototype.cambiarPaginaLocationHash=function(){
 }
 
 Aplicacion.prototype.controlarParametros=function(){}
-
-Aplicacion.prototype.eventos={};
 
 Aplicacion.run=function(app){
     app.controlarParametros({app:app},{app:{validar:function(app){ return app instanceof Aplicacion; }}});
