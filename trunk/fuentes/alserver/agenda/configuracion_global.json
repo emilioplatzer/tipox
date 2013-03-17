@@ -1,0 +1,11 @@
+{
+    "pdo":{
+        "dsn":"sqlite:esta_agenda.db",
+        "username":null,
+        "password":null,
+        "driver_options":null
+    },
+    "sql":{
+        "validar_usuario":"select activo from usuarios where usuario=:usuario and clave=:clave"
+    }
+}
