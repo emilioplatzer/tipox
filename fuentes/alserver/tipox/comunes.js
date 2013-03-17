@@ -47,3 +47,7 @@ function cambiandole(destino,cambios,borrando,borrar_si_es_este_valor){
         }
     }
 }
+
+function estoMismo(estoMismoDevuelvo){
+    return estoMismoDevuelvo;
+}

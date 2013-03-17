@@ -338,13 +338,21 @@ Aplicacion.prototype.mostrarPaginaActual=function(){
 Aplicacion.prototype.jsRequeridos=[];
 
 Aplicacion.prototype.eventos.entrar_aplicacion=function(app,evento){
+    app.enviarPaquete({proceso:'entrada',paquete:{usuario:usuario.value.toLowerCase(),password:usuario.value.toLowerCase()+hex_md5(password.value)}}).luego(function(respuesta){
+        alert('ok '+JSON.stringify(respuesta));
+    }).alFallar(function(mensaje){
+        alert('fallo '+mensaje);
+    });
+}
+
+Aplicacion.prototype.cargarJsRequeridos=function(){
     var cargoAlguno=false;
-    app.mapLuego(app.jsRequeridos.slice(0),app.requiereJs,function(respuesta){
+    this.mapLuego(this.jsRequeridos.slice(0),this.requiereJs,function(respuesta){
         cargoAlguno=cargoAlguno || respuesta.recienCargado;
     }).luego(function(){
         if(cargoAlguno){
-            Almacen.adaptarAplicacion(app);
-            app.mostrarPaginaActual();
+            Almacen.adaptarAplicacion(this);
+            this.mostrarPaginaActual();
             alert('carga ok alguno');
         }
     }).alFallar(function(mensaje){
@@ -481,9 +489,17 @@ Aplicacion.prototype.enviarPaquete=function(params){
         }
     }
     try{
-        peticion.open('POST', params.destino, !params.sincronico); // !sincronico);
+        peticion.open('POST', params.destino||'app.php', !params.sincronico); // !sincronico);
         peticion.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-        var parametros="paquete="+encodeURIComponent(JSON.stringify(params.paquete));
+        var parametros='';
+        var parametrosTipo={paquete:JSON.stringify, proceso:estoMismo};
+        var separador='';
+        for(var nombreParametro in parametrosTipo) if(parametrosTipo.hasOwnProperty(nombreParametro)){
+            if(nombreParametro in params){
+                parametros+=separador+'proceso='+encodeURIComponent(parametrosTipo[nombreParametro](params[nombreParametro]));
+                separador='&';
+            }
+        }
         peticion.send(parametros);
     }catch(err){
         futuro.recibirError(descripciones_de_error(err));
