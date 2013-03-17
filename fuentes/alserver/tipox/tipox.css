@@ -57,3 +57,14 @@ body{
 .div_aplicacion{
     margin:8px;
 }
+
+.TDD_menu{
+    font-size:80%;
+    opacity:80%;
+}
+
+.TDD_resultados{
+    min-height:80px;
+    border:1px solid gray;
+    background-color:#CCF;
+}

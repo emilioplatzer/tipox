@@ -1,22 +1,48 @@
-﻿// Por $Author: emilioplatzer@gmail.com $ Revisión $Revision: 11 $ del $Date: 2013-03-10 11:46:30 -0300 (dom 10 de mar de 2013) $
+﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
 
 function Aplicacion(){
     this.cursorActual=[];
     this.cursorNuevo=[];
     this.jsCargados={};
+    this.autoIdDom=0;
+    this.entornoDesarrollo=true;
 }
 
-Aplicacion.prototype.paginas={
-    'default':{tipox:'h1', innerText:'¡en preparación!'},
-    'tipox':{tipox:'p', innerText:'tipox versión $Revision'},
+Aplicacion.prototype.paginas={};
+Aplicacion.prototype.paginas.intr={ 
+    labelMenu:'Introducción',
+    nodes:'¡en preparación!'
+};
+Aplicacion.prototype.paginas.info={
+    labelMenu:[{tipox:'span', className:'i_logo', innerText:'i'}],
+    nodes:[
+        {tipox:'p', nodes:['Especificaciones técnicas ']},
+        {tipox:'p', nodes:['framework: ',{tipox:'tipox_logo'}]},
+        {tipox:'p', nodes:[
+            "para hacer sugerencias o reportar errores sobre este programa entrar a: ", 
+            {tipox:'a', href:'https://code.google.com/p/tipox/issues/entry', innerText:'"New Issues"'},
+            ' (se necesita tener una cuenta en gmail para poder acceder)'
+        ]}
+    ]
+};
+Aplicacion.prototype.paginas.entrar={
+    labelMenu:'entrar',
+    nodes:[
+        {tipox:'h2', innerText:"Entrada"},
+        {tipox:'formulario_simple', nodes:[
+            {tipox:'parametro', id:'usuario', aclaracion:'probablemente el mail donde recibió el aviso'},
+            {tipox:'parametro', id:'password', label:'contraseña', type:'password'},
+            {tipox:'parametro_boton', id:'entrar', eventos:{click:'entrar_aplicacion'}}
+        ]}
+    ]
 };
 
 Aplicacion.prototype.eventos={};
 
 Aplicacion.prototype.creadorElementoDOM={
     nuevo:function(tagName){ return document.createElement(tagName); },
-    asignarAtributos:function(destino,definicion){
+    asignarAtributos:function(destino,definicion,futuro){
         for(var atributo in definicion) if(definicion.hasOwnProperty(atributo)){
             var valor=definicion[atributo];
             switch(atributo){
@@ -29,7 +55,7 @@ Aplicacion.prototype.creadorElementoDOM={
                 }
             default:
                 if(atributo instanceof Object){
-                    this.asignarAtributos(destino[atributo],valor);
+                    this.asignarAtributos(destino[atributo],valor,futuro);
                 }else{
                     destino[atributo]=valor;
                 }
@@ -38,8 +64,12 @@ Aplicacion.prototype.creadorElementoDOM={
     }
 }
 
-Aplicacion.prototype.grab=function(elemento,definicion){
+Aplicacion.prototype.grab=function(elemento,definicion,futuro){
     var elementoDestino;
+    var grabExterno=!futuro;
+    if(grabExterno){
+        futuro=this.newFuturo();
+    }
     if(typeof(elemento)=='string'){
         elementoDestino=document.getElementById(elemento);
         this.lanzarExcepcion('No existe el elemento con id '+elemento);
@@ -48,29 +78,33 @@ Aplicacion.prototype.grab=function(elemento,definicion){
     }
     var nuevoElemento;
     if(definicion===null || definicion===undefined){
-        return;
     }else if(typeof(definicion)=='string'){
         nuevoElemento=document.createTextNode(definicion);
     }else if(definicion instanceof Array){
         for(var i=0; i<definicion.length; i++){
-            this.grab(elementoDestino,definicion[i]);
+            this.grab(elementoDestino,definicion[i],futuro);
         }
-        return; 
     }else{
         var creador=this.domCreator(definicion.tipox);
         if('translate' in creador){
             var definicion_traducida=creador.translate(definicion);
-            this.grab(elementoDestino,definicion_traducida);
-            return;
+            this.grab(elementoDestino,definicion_traducida,futuro);
         }else{
             nuevoElemento=creador.nuevo(definicion.tipox);
-            creador.asignarAtributos(nuevoElemento,definicion);
-            this.grab(nuevoElemento,definicion.nodes);
+            creador.asignarAtributos(nuevoElemento,definicion,futuro);
+            this.grab(nuevoElemento,definicion.nodes,futuro);
         }
     }
-    elementoDestino.appendChild(nuevoElemento);
-    if('ongrab' in nuevoElemento){
-        nuevoElemento.ongrab(app);
+    if(nuevoElemento){
+        elementoDestino.appendChild(nuevoElemento);
+        if('ongrab' in nuevoElemento){
+            futuro.luego(function(respuesta,app){
+                nuevoElemento.ongrab(app);
+            });
+        }
+    }
+    if(grabExterno){
+        futuro.recibirListo(null);
     }
 }
 
@@ -241,6 +275,25 @@ Aplicacion.prototype.creadores.lista={tipo:'tipox', descripcion:'lista genérica
     },
 }}
 
+Aplicacion.prototype.nuevoIdDom=function(){
+    return 'DOM_autoid'+(this.autoIdDom++);
+}
+
+Aplicacion.prototype.creadores.funcion={tipo:'tipox', descripcion:'muestra la corrida de una función sobre la app', creador:{
+    nuevo:function(tipox){
+        return document.createElement('div');
+    },
+    asignarAtributos:function(destino,definicion,futuro){
+        var nuevoId=definicion.id||this.app.nuevoIdDom();
+        destino.id=nuevoId;
+        destino.className=definicion.className||'destino_funcion';
+        this.app.assert('funcion' in definicion,'falta definicion.funcion');
+        destino.ongrab=function(app){
+            app[definicion.funcion].apply(app,definicion.parametros||[]);
+        }
+    },
+}};
+
 Aplicacion.prototype.creadores.app_menu_principal={tipo:'tipox', descripcion:'menú principal', creador:{
     translate:function(definicion){
         var nuevo=cambiandole(definicion, {tipox:'header', className:'app_menu_principal'});
@@ -267,12 +320,12 @@ Aplicacion.prototype.creadores.app_alternativa={tipo:'tipox', descripcion:'menú
         nuevo.className='app_alternativa';
         return nuevo;
     },
-    asignarAtributos:function(nuevoElemento,definicion){
+    asignarAtributos:function(nuevoElemento,definicion,futuro){
         this.app.assert(!definicion.nodes, '!definicion.nodes en app_alternativa');
         nuevoElemento.id=definicion.id;
         var alternativa=this.app.cursorActual[definicion.id]||definicion['default'];
         this.app.cursorNuevo[definicion.id]=alternativa;
-        this.app.grab(nuevoElemento,definicion[alternativa]);
+        this.app.grab(nuevoElemento,definicion[alternativa],futuro);
     },
 }}
 
@@ -327,7 +380,7 @@ Aplicacion.prototype.creadores.aplicacion={tipo:'tipox', descripcion:'estructura
 }}
 
 Aplicacion.prototype.contenidoPaginaActual=function(){
-    return this.paginas;
+    return {tipox:'aplicacion', id:'menu', paginas:this.paginas};
 }
 
 Aplicacion.prototype.mostrarPaginaActual=function(){
@@ -361,9 +414,6 @@ Aplicacion.prototype.cargarJsRequeridos=function(){
 }
 
 Aplicacion.prototype.validarUsuario=function(){
-    if(!this.usuario){
-        this.paginas=this.paginasSinUsuario;
-    }
 }
 
 ////////////////////////// Futuros //////////////////////////

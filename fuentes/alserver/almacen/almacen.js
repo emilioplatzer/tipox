@@ -7,15 +7,15 @@ Aplicacion.prototype.creadores.static_ajax={tipo:'tipox', descripcion:'para prob
     nuevo:function(definicion){
         return document.createElement('span');
     },
-    asignarAtributos:function(destino,definicion){
-        var nuevo_id='static_ajax:'+definicion.label;
-        destino.id=nuevo_id;
+    asignarAtributos:function(destino,definicion,futuro){
+        var nuevoId='static_ajax:'+definicion.label;
+        destino.id=nuevoId;
         destino.ongrab=function(app){
             var elementoDestino=this;
             app.enviarPaquete(definicion.params).luego(function(respuesta,app){
-                app.grab(elementoDestino,respuesta);
+                app.grab(elementoDestino,respuesta,futuro);
             }).alFallar(function(mensaje,app){
-                app.grab(elementoDestino,{tipox:'span', className:'mensaje_error', nodes:mensaje});
+                app.grab(elementoDestino,{tipox:'span', className:'mensaje_error', nodes:mensaje},futuro);
             });
         }
     }
