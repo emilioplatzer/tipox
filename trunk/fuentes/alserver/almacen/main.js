@@ -73,8 +73,6 @@ Aplicacion.prototype.paginasSinUsuario={tipox:'aplicacion', id:'menu', paginas:{
 
 Aplicacion.prototype.jsRequeridos.push('almacen');
 
-Aplicacion.prototype.paginas={};
-
 var app=new Aplicacion();
 Aplicacion.run(app).luego(function(){
     // Almacen.adaptarAplicacion(app);
