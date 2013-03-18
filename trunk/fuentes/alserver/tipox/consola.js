@@ -24,6 +24,7 @@ Aplicacion.prototype.probarTodo=function(){
             }
             cantidadPruebasPorModulos[caso.tipox]++;
             var esperado=caso.salida||caso.salidaMinima;
+            var bidireccional='salida' in caso;
             var compararBonito=function(esperado,obtenido){
                 var rta={tieneError:false};
                 if(typeof(esperado)=='object'?(typeof(obtenido)!='object' || (esperado===null)!==(obtenido===null) || (esperado===undefined)!==(obtenido===undefined) || (esperado instanceof Array)!==(obtenido instanceof Array)):esperado!==obtenido){
@@ -43,6 +44,18 @@ Aplicacion.prototype.probarTodo=function(){
                             {tipox:'td', nodes:rtaInterna.bonito}
                         ]}]});
                         rta.tieneError=rta.tieneError||rtaInterna.tieneError;
+                    }
+                    if(bidireccional){
+                        for(var campo in obtenido) if(obtenido.hasOwnProperty(campo)){
+                            if(!(campo in esperado)){
+                                var rtaInterna=compararBonito(esperado[campo],obtenido[campo]);
+                                nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
+                                    {tipox:'td', className:'TDD_label', innerText:campo},
+                                    {tipox:'td', nodes:rtaInterna.bonito}
+                                ]}]});
+                                rta.tieneError=rta.tieneError||rtaInterna.tieneError;
+                            }
+                        }
                     }
                     rta.bonito={tipox:'div', nodes:nodes};
                 }
