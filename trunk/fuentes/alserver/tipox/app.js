@@ -47,6 +47,7 @@ Aplicacion.prototype.creadorElementoDOM={
             var valor=definicion[atributo];
             switch(atributo){
             case 'tipox': 
+            case 'nodes': 
                 break;
             case 'eventos': 
                 for(var id_evento in definicion.eventos) if(definicion.eventos.hasOwnProperty(id_evento)){
@@ -54,7 +55,25 @@ Aplicacion.prototype.creadorElementoDOM={
                     destino.addEventListener(id_evento,function(evento){return app.eventos[definicion.eventos[id_evento]](app,evento);});
                 }
             default:
-                if(atributo instanceof Object){
+                var app=this.app;
+                if(valor instanceof Array){
+                    app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
+                    var agregadores={add:true, push:true};
+                    var pude=false;
+                    for(var agregador in agregadores){
+                        if(agregador in destino[atributo]){
+                            for(var i=0; i<valor.length; i++){
+                                destino[atributo][agregador](valor[i]);
+                            }
+                            pude=true;
+                            break;
+                        }
+                    }
+                    if(!pude){
+                        app.lanzarExcepcion('No esta definida la manera de agregar elementos de arreglo al atributo '+atributo);
+                    }
+                }else if(valor instanceof Object){
+                    app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
                     this.asignarAtributos(destino[atributo],valor,futuro);
                 }else{
                     destino[atributo]=valor;
@@ -261,7 +280,7 @@ Aplicacion.prototype.creadores.tipox_logo={tipo:'tipox', descripcion:'el logo de
 
 Aplicacion.prototype.creadores.app_vinculo={tipo:'tipox', descripcion:'vínculo que cambia a una página interna', creador:{
     translate:function(definicion){
-        return cambiandole(definicion, {tipox:'a', className:(definicion.className||'app_vinculo'), href:'#!'+JSON.stringify(definicion.destino)});
+        return cambiandole(definicion, {tipox:'a', className:(definicion.className||'app_vinculo'), href:'#!'+JSON.stringify(definicion.destino), destino:null},true,null);
     },
 }}
 

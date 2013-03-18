@@ -1,4 +1,4 @@
-/* tipox.css */
+﻿/* tipox.css */
 
 body{
     margin:0px;
@@ -70,8 +70,8 @@ body{
 }
 
 .TDD_error{
-    border:2px dashed red;
     padding:3px;
+    margin-left:20px;
 }
 
 .TDD_resultado{
@@ -98,4 +98,32 @@ body{
 
 .TDD_obtenido{
     background-color:#FBB;
+}
+
+.TDD_funcion_titulo{
+    font-weight:bold;
+}
+
+.TDD_prueba_pendiente:before{
+    content:'\27B2';
+    color:blue;
+}
+
+.TDD_prueba_ok:before{
+    content:'\2714';
+    color:green;
+}
+
+.TDD_prueba_ignorada:before{
+    content:'\25B2';
+    color:yellow;
+}
+
+.TDD_prueba_fallida:before{
+    content:'\2718';
+    color:red;
+}
+
+.TDD_caso{
+    margin-left:20px;
 }
