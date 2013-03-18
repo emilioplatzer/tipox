@@ -68,3 +68,34 @@ body{
     border:1px solid gray;
     background-color:#CCF;
 }
+
+.TDD_error{
+    border:2px dashed red;
+    padding:3px;
+}
+
+.TDD_resultado{
+    border:1px solid gray;
+}
+
+.TDD_label_esperado_obtenido{
+    font-size:80%;
+    color:blue;
+}
+
+.TDD_label{
+    font-size:80%;
+    color:blue;
+}
+
+.TDD_iguales{
+    background-color:#CFC;
+}
+
+.TDD_esperado{
+    background-color:#AFA;
+}
+
+.TDD_obtenido{
+    background-color:#FBB;
+}

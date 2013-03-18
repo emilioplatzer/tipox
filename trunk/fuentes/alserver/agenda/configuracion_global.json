@@ -6,6 +6,6 @@
         "driver_options":null
     },
     "sql":{
-        "validar_usuario":"select activo from usuarios where usuario=:usuario and clave=:clave"
+        "validar_usuario":"select activo from usuarios where usuario=:usuario and password=:password"
     }
 }

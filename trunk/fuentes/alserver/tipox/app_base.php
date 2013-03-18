@@ -14,7 +14,12 @@ class AplicacionBase{
         }else if(!isset($_REQUEST['tipopr'])){
             $rta=$nombreProceso='proceso_'.$_REQUEST['proceso'];
             if(method_exists($this,$nombreProceso)){
-                $rta=$this->$nombreProceso();
+                if(isset($_REQUEST['paquete'])){
+                    $params=json_decode($_REQUEST['paquete']);
+                }else{
+                    $params=(object)array();
+                }
+                $rta=$this->$nombreProceso($params);
             }else{
                 $rta=$this->peticionErronea('No existe el nombre del proceso php '.$nombreProceso);
             }
@@ -73,15 +78,15 @@ class AplicacionBase{
         }
     }
     // procesos default:
-    function proceso_entrada(){
+    function proceso_entrada($params){
         $db=$this->baseDeDatos();
         $sentencia=$db->prepare($this->configuracion->sql->validar_usuario);
-        $sentencia->execute(array(':usuario'=>$this->argumentos->usuario,':password'=>$this->argumentos->password));
-        $datos_usuario=$sentencia->fecthObject();
+        $sentencia->execute(array(':usuario'=>$params->usuario,':password'=>$params->password));
+        $datos_usuario=$sentencia->fetchObject();
         if(!$datos_usuario){
             return array('tipox'=>'rtaError','mensaje'=>'el usuario o la clave no corresponden a un usuario activo');
         }else if(!$datos_usuario->activo){
-            return array('tipox'=>'rtaError','mensaje'=>'el usuario '.json_encode($this->argumentos->usuario).' no esta activo');
+            return array('tipox'=>'rtaError','mensaje'=>'el usuario '.json_encode($params->usuario).' no esta activo');
         }
         return $this->respuestaOk($datos_usuario);
     }

@@ -72,7 +72,9 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro){
     }
     if(typeof(elemento)=='string'){
         elementoDestino=document.getElementById(elemento);
-        this.lanzarExcepcion('No existe el elemento con id '+elemento);
+        if(!elementoDestino){
+            this.lanzarExcepcion('No existe el elemento con id '+elemento);
+        }
     }else{
         elementoDestino=elemento;
     }
@@ -546,7 +548,7 @@ Aplicacion.prototype.enviarPaquete=function(params){
         var separador='';
         for(var nombreParametro in parametrosTipo) if(parametrosTipo.hasOwnProperty(nombreParametro)){
             if(nombreParametro in params){
-                parametros+=separador+'proceso='+encodeURIComponent(parametrosTipo[nombreParametro](params[nombreParametro]));
+                parametros+=separador+nombreParametro+'='+encodeURIComponent(parametrosTipo[nombreParametro](params[nombreParametro]));
                 separador='&';
             }
         }
