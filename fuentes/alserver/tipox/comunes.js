@@ -25,7 +25,7 @@ function cambiandole(destino,cambios,borrando,borrar_si_es_este_valor){
         var respuesta={};
         for(var campo in destino){
             var cambio=cambios[campo];
-            if(cambio==undefined){
+            if(!(campo in cambios)){
                 respuesta[campo]=destino[campo];
             }else if(borrando && cambio===borrar_si_es_este_valor){
             }else{
