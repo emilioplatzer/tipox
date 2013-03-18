@@ -14,6 +14,4 @@ Aplicacion.prototype.paginas.intr={
     };
 
 var app=new Aplicacion();
-Aplicacion.run(app).luego(function(){
-    app.mostrarPaginaActual();
-});
+Aplicacion.run(app);

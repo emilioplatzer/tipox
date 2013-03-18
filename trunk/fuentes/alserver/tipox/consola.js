@@ -17,7 +17,7 @@ Aplicacion.prototype.probarTodo=function(){
         var esto=caso.tipox in this?this:window;
         var obtenido=esto[caso.tipox].apply(esto,caso.entrada);
         var app=this;
-        var compararObtenido=function(obtenido){
+        var compararObtenido=function(obtenido,caso){
             cantidadPruebas++;
             if(!(caso.tipox in cantidadPruebasPorModulos)){
                 cantidadPruebasPorModulos[caso.tipox]=0;
@@ -73,14 +73,14 @@ Aplicacion.prototype.probarTodo=function(){
                 ]});
             }
         };
-        if(obtenido instanceof Aplicacion.prototype.Futuro){
+        if(obtenido instanceof Futuro){
             obtenido.luego(function(respuesta,app){
-                compararObtenido(respuesta);
+                compararObtenido(respuesta,caso);
             }).alFallar(function(mensaje,app){
-                compararObtenido({tipox:'rtaError', mensaje:mensaje});
+                compararObtenido({tipox:'rtaError', mensaje:mensaje},caso);
             });
         }else{
-            compararObtenido(obtenido);
+            compararObtenido(obtenido,caso);
         }
     }
 }
@@ -95,24 +95,24 @@ Aplicacion.prototype.casosDePrueba.push({
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'enviarPaquete',
     caso:'entrada al sistema exitosa',
-    entrada:[{proceso:'entrada',paquete:{usuario:'abel',password:hex_md5('abel'+'clave1')}}],
+    entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'abel',password:hex_md5('abel'+'clave1')}}],
     salidaMinima:{tipox:'rtaOk'}
 });
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'enviarPaquete',
     caso:'entrada al sistema fallida por clave erronea',
-    entrada:[{proceso:'entrada',paquete:{usuario:'abel',password:hex_md5('abel'+'clave2')}}],
-    salidaMinima:{tipox:'rtaError'}
+    entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'abel',password:hex_md5('abel'+'clave2')}}],
+    salidaMinima:{tipox:'rtaError',mensaje:'el usuario o la clave no corresponden a un usuario activo'}
 });
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'enviarPaquete',
     caso:'entrada al sistema fallida por usuario inexistente',
-    entrada:{proceso:'entrada',paquete:{usuario:'beto',password:hex_md5('beto')}},
-    salidaMinima:{tipox:'rtaError'}
+    entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'beto',password:hex_md5('beto')}}],
+    salidaMinima:{tipox:'rtaError',mensaje:'el usuario o la clave no corresponden a un usuario activo'}
 });
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'enviarPaquete',
     caso:'entrada al sistema fallida por usuario inactivo',
-    entrada:[{proceso:'entrada',paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
-    salidaMinima:{tipox:'rtaError',mensaje:'error inactivo'}
+    entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
+    salidaMinima:{tipox:'rtaError',mensaje:'el usuario "cain" no esta activo'}
 });
