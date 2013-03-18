@@ -420,17 +420,17 @@ Aplicacion.prototype.validarUsuario=function(){
 
 ////////////////////////// Futuros //////////////////////////
 
-Aplicacion.prototype.newFuturo=function(){
-    return new this.Futuro(this);
-}
-
-Aplicacion.prototype.Futuro=function(app){
+var Futuro=function(app){
     this.app=app;
     this.luegos=[];
     this.manejadoresError=[];
 }
 
-Aplicacion.prototype.Futuro.prototype.sincronizar=function(){
+Aplicacion.prototype.newFuturo=function(){
+    return new Futuro(this);
+}
+
+Futuro.prototype.sincronizar=function(){
     if('respuesta' in this){
         while(this.luegos.length>0){
             var hacer=this.luegos.shift();
@@ -445,23 +445,23 @@ Aplicacion.prototype.Futuro.prototype.sincronizar=function(){
     }
 }
 
-Aplicacion.prototype.Futuro.prototype.recibirListo=function(respuesta){
+Futuro.prototype.recibirListo=function(respuesta){
     this.respuesta=respuesta;
     this.sincronizar();
 }
 
-Aplicacion.prototype.Futuro.prototype.recibirError=function(mensajeError){
+Futuro.prototype.recibirError=function(mensajeError){
     this.mensajeError=mensajeError;
     this.sincronizar();
 }
 
-Aplicacion.prototype.Futuro.prototype.luego=function(hacer){
+Futuro.prototype.luego=function(hacer){
     this.luegos.push(hacer);
     this.sincronizar();
     return this;
 }
 
-Aplicacion.prototype.Futuro.prototype.alFallar=function(hacer){
+Futuro.prototype.alFallar=function(hacer){
     this.manejadoresError.push(hacer);
     this.sincronizar();
     return this;
