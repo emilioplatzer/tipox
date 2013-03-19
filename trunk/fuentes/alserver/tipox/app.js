@@ -52,8 +52,9 @@ Aplicacion.prototype.creadorElementoDOM={
             case 'eventos': 
                 for(var id_evento in definicion.eventos) if(definicion.eventos.hasOwnProperty(id_evento)){
                     var app=this.app;
-                    destino.addEventListener(id_evento,function(evento){return app.eventos[definicion.eventos[id_evento]](app,evento);});
+                    destino.addEventListener(id_evento,function(evento){return app.eventos[definicion.eventos[id_evento]](app,evento,this);});
                 }
+                break;
             default:
                 var app=this.app;
                 if(valor instanceof Array){

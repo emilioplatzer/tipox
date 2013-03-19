@@ -8,6 +8,11 @@ Aplicacion.prototype.paginas.tdd={
     ]
 };
 
+Aplicacion.prototype.eventos.toggleDisplayAbajo=function(app,evento,elemento){
+    var hermano=elemento.nextSibling;
+    hermano.style.display=hermano.style.display?null:'none';
+}
+
 function Probador(app){
     this.app=app;
     this.casosDePrueba=app.casosDePrueba;
@@ -26,21 +31,22 @@ Probador.prototype.probarTodo=function(){
     for(var i in this.casosDePrueba) if(this.casosDePrueba.hasOwnProperty(i)){
         var caso=this.casosDePrueba[i];
         var idFuncion='TDD_funcion:'+caso.tipox;
-        var elementoFuncion=document.getElementById(idFuncion);
-        if(!elementoFuncion){
+        var elementoFuncionCasos=document.getElementById(idFuncion+'_casos');
+        if(!elementoFuncionCasos){
             this.pendientesPorModulos[idFuncion]=0;
             this.app.grab('probarTodo',
                 {tipox:'div', classList:['TDD_funcion'], id:idFuncion, nodes:[
-                    {tipox:'div', classList:['TDD_funcion_titulo','TDD_prueba_pendiente'], id:idFuncion+'_titulo', innerText:caso.tipox}
+                    {tipox:'div', classList:['TDD_funcion_titulo','TDD_prueba_pendiente'], id:idFuncion+'_titulo', innerText:caso.tipox, eventos:{click:'toggleDisplayAbajo'}},
+                    {tipox:'div', id:idFuncion+'_casos', style:{display:'none'}}
                 ]}
             );
-            elementoFuncion=document.getElementById(idFuncion);
+            elementoFuncionCasos=document.getElementById(idFuncion+'_casos');
         }
         var elementoFuncionTitulo=document.getElementById(idFuncion+'_titulo');
         var idCaso='TDD_caso:'+i;
         var clase=caso.ignorado?'TDD_prueba_ignorada':'TDD_prueba_pendiente';
-        this.app.grab(elementoFuncion,
-            {tipox:'div', className:'TDD_caso', id:idCaso, style:{display:/*'none'*/'block'}, nodes:[
+        this.app.grab(elementoFuncionCasos,
+            {tipox:'div', className:'TDD_caso', id:idCaso, nodes:[
                 {tipox:'div', classList:['TDD_caso_titulo',clase], id:idCaso+'_titulo', innerText:caso.caso}
             ]}
         );
@@ -147,6 +153,7 @@ Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
         elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
         elementoFuncionTitulo.classList.add('TDD_prueba_fallida');
         elementoCasoTitulo.classList.add('TDD_prueba_fallida');
+        document.getElementById(idFuncion+'_casos').style.display=null;
         this.errores++;
         app.grab(idCaso,{tipox:'div', className:'TDD_error', nodes:[
             {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
