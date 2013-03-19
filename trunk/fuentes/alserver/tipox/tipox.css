@@ -81,11 +81,17 @@ body{
 .TDD_label_esperado_obtenido{
     font-size:80%;
     color:blue;
+    vertical-align:top;
 }
 
 .TDD_label{
     font-size:80%;
     color:blue;
+    vertical-align:top;
+}
+
+.TDD_label:after{
+    content:'\2320'
 }
 
 .TDD_iguales{
