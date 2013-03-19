@@ -11,20 +11,26 @@ class AplicacionBase{
     private $db;
     private $configuracion;
     function atenderPeticion(){
-        if(!isset($_REQUEST['proceso'])){
-            $rta=$this->peticionVacia();
-        }else if(!isset($_REQUEST['tipopr'])){
-            $rta=$nombreProceso='proceso_'.$_REQUEST['proceso'];
-            if(method_exists($this,$nombreProceso)){
-                if(isset($_REQUEST['paquete'])){
-                    $params=json_decode($_REQUEST['paquete']);
+        try{
+            if(!isset($_REQUEST['proceso'])){
+                $rta=$this->peticionVacia();
+            }else if(!isset($_REQUEST['tipopr'])){
+                $nombreProceso='proceso_'.$_REQUEST['proceso'];
+                if(method_exists($this,$nombreProceso)){
+                    if(isset($_REQUEST['paquete'])){
+                        $params=json_decode($_REQUEST['paquete']);
+                    }else{
+                        $params=(object)array();
+                    }
+                    $rta=$this->$nombreProceso($params);
                 }else{
-                    $params=(object)array();
+                    $rta=$this->peticionErronea('No existe el nombre del proceso php '.$nombreProceso);
                 }
-                $rta=$this->$nombreProceso($params);
-            }else{
-                $rta=$this->peticionErronea('No existe el nombre del proceso php '.$nombreProceso);
             }
+            $this->cerrarBaseDeDatos(true);
+        }catch(Exception $err){
+            $this->cerrarBaseDeDatos(false);
+            $rta=array('tipox'=>'rtaError', 'mensaje'=>$err->getMessage());
         }
         echo json_encode($rta);
     }
@@ -56,15 +62,32 @@ class AplicacionBase{
     }
     function baseDeDatos(){
         if(!$this->db){
+            file_put_contents('todos_los_sql.sql',"/* BASE ABIERTA */\n",FILE_APPEND);
             $this->leerConfiguracion();
             $pdo=$this->configuracion->pdo;
             $this->db=new PDO($pdo->dsn,$pdo->username,$pdo->password,$pdo->driver_options);
             $this->tipoDb=$pdo;
             $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->db->beginTransaction();
+            if(isset($pdo->sql_preparativas)){
+                foreach($pdo->sql_preparativas as $sentencia){
+                    $this->ejecutarSql($sentencia);
+                }
+            }
         }
         return $this->db;
     }
+    function cerrarBaseDeDatos($commit){
+        if($this->db && $this->db->inTransaction()){
+            if($commit){
+                $this->db->commit();
+            }else{
+                $this->db->rollBack();
+            }
+        }
+    }
     function ejecutarSql($sentencia,$parametros=NULL){
+        file_put_contents('todos_los_sql.sql',"$sentencia;\n",FILE_APPEND);
         $db=$this->baseDeDatos();
         $sentencia=$db->prepare($sentencia);
         $sentencia->execute($parametros);
@@ -86,6 +109,7 @@ class AplicacionBase{
         }else{
             throw new ExceptionTipox('No se puede instalar porque no esta instalado.flag.no');
         }
+        return "instalada";
     }
     function proceso_control_instalacion(){
         if(!file_exists('configuracion_local.json')){

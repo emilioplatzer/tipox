@@ -1,0 +1,9 @@
+{
+    "pdo":{
+        "dsn":"pgsql:dbname=tipox_db;host=localhost",
+        "username":"tipox",
+        "password":"la_clave",
+        "driver_options":null,
+        "sql_preparativas":["set search_path to tipox, public"]
+    }
+}
