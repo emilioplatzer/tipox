@@ -75,7 +75,7 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
                 obtenido.luego(function(respuesta,app){
                     este.compararObtenido(respuesta,caso,idCaso);
                 }).alFallar(function(mensaje,app){
-                    este.compararObtenido({tipox:'rtaError', mensaje:mensaje},caso,idCaso);
+                    este.compararObtenido({tipox:'falla', mensaje:mensaje},caso,idCaso);
                 });
             }else{
                 este.compararObtenido(obtenido,caso,idCaso);
@@ -170,8 +170,8 @@ Aplicacion.prototype.casosDePrueba=[];
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'estoMismo',
     caso:'ejemplo para ver cómo se ven los casos de prueba',
-    entrada:[{iguales:'este es',abajo:'solo en obtenido',distinto:'obtenido'}],
-    salida:{iguales:'este es',arriba:'solo en esperado',distinto:'esperado'}
+    entrada:[{iguales:'este es',sub:{abajo:'solo en obtenido', otro_tipo:1} ,distinto:'obtenido',otra_estructura:"{uno:1, dos:2}"}],
+    salida:{iguales:'este es',sub:{arriba:'solo en esperado', otro_tipo:"1"},distinto:'esperado',otra_estructura:{uno:1, dos:2}}
 });
 
 Aplicacion.prototype.casosDePrueba.push({
@@ -205,23 +205,23 @@ Aplicacion.prototype.casosDePrueba.push({
     tipox:'enviarPaquete',
     caso:'entrada al sistema exitosa',
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'abel',password:hex_md5('abel'+'clave1')}}],
-    salidaMinima:{tipox:'rtaOk'}
+    salidaMinima:{activo:true}
 });
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'enviarPaquete',
     caso:'entrada al sistema fallida por clave erronea',
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'abel',password:hex_md5('abel'+'clave2')}}],
-    salidaMinima:{tipox:'rtaError',mensaje:'el usuario o la clave no corresponden a un usuario activo'}
+    salidaMinima:{tipox:'falla',mensaje:'el usuario o la clave no corresponden a un usuario activo'}
 });
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'enviarPaquete',
     caso:'entrada al sistema fallida por usuario inexistente',
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'beto',password:hex_md5('beto')}}],
-    salidaMinima:{tipox:'rtaError',mensaje:'el usuario o la clave no corresponden a un usuario activo'}
+    salidaMinima:{tipox:'falla',mensaje:'el usuario o la clave no corresponden a un usuario activo'}
 });
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'enviarPaquete',
     caso:'entrada al sistema fallida por usuario inactivo',
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
-    salidaMinima:{tipox:'rtaError',mensaje:'el usuario "cain" no esta activo'}
+    salidaMinima:{tipox:'falla',mensaje:'el usuario "cain" no esta activo'}
 });
