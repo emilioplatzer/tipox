@@ -13,6 +13,7 @@ function Probador(app){
     this.casosDePrueba=app.casosDePrueba;
     this.cantidadPruebas=0;
     this.cantidadPruebasPorModulos={};
+    this.pendientesPorModulos={};
     this.errores=0;
 }
 
@@ -27,6 +28,7 @@ Probador.prototype.probarTodo=function(){
         var idFuncion='TDD_funcion:'+caso.tipox;
         var elementoFuncion=document.getElementById(idFuncion);
         if(!elementoFuncion){
+            this.pendientesPorModulos[idFuncion]=0;
             this.app.grab('probarTodo',
                 {tipox:'div', classList:['TDD_funcion'], id:idFuncion, nodes:[
                     {tipox:'div', classList:['TDD_funcion_titulo','TDD_prueba_pendiente'], id:idFuncion+'_titulo', innerText:caso.tipox}
@@ -34,12 +36,20 @@ Probador.prototype.probarTodo=function(){
             );
             elementoFuncion=document.getElementById(idFuncion);
         }
+        var elementoFuncionTitulo=document.getElementById(idFuncion+'_titulo');
         var idCaso='TDD_caso:'+i;
+        var clase=caso.ignorado?'TDD_prueba_ignorada':'TDD_prueba_pendiente';
         this.app.grab(elementoFuncion,
-            {tipox:'div', className:'TDD_caso', id:idCaso, nodes:[
-                {tipox:'div', classList:['TDD_caso_titulo','TDD_prueba_pendiente'], id:idCaso+'_titulo', innerText:caso.caso}
+            {tipox:'div', className:'TDD_caso', id:idCaso, style:{display:/*'none'*/'block'}, nodes:[
+                {tipox:'div', classList:['TDD_caso_titulo',clase], id:idCaso+'_titulo', innerText:caso.caso}
             ]}
         );
+        if(caso.ignorado){  
+            elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
+            elementoFuncionTitulo.classList.add('TDD_prueba_ignorada');
+        }else{
+            this.pendientesPorModulos[idFuncion]++;
+        }
         var elementoCaso=document.getElementById(idFuncion);
     }
     this.probarUnCaso(0,1);
@@ -48,19 +58,30 @@ Probador.prototype.probarTodo=function(){
 Probador.prototype.probarUnCaso=function(desde,cuantos){
     for(var i=desde; i<desde+cuantos && i<this.casosDePrueba.length; i++){
         var caso=this.casosDePrueba[i];
-        var idCaso='TDD_caso:'+i;
-        var esto=caso.tipox in this.app?this.app:window;
-        var obtenido=esto[caso.tipox].apply(esto,caso.entrada);
-        var app=this.app;
-        var este=this;
-        if(obtenido instanceof Futuro){
-            obtenido.luego(function(respuesta,app){
-                este.compararObtenido(respuesta,caso,idCaso);
-            }).alFallar(function(mensaje,app){
-                este.compararObtenido({tipox:'rtaError', mensaje:mensaje},caso,idCaso);
-            });
-        }else{
-            este.compararObtenido(obtenido,caso,idCaso);
+        if(!caso.ignorado){
+            var idFuncion='TDD_funcion:'+caso.tipox;
+            var idCaso='TDD_caso:'+i;
+            var esto=caso.tipox in this.app?this.app:window;
+            var obtenido=esto[caso.tipox].apply(esto,caso.entrada);
+            var app=this.app;
+            var este=this;
+            if(obtenido instanceof Futuro){
+                obtenido.luego(function(respuesta,app){
+                    este.compararObtenido(respuesta,caso,idCaso);
+                }).alFallar(function(mensaje,app){
+                    este.compararObtenido({tipox:'rtaError', mensaje:mensaje},caso,idCaso);
+                });
+            }else{
+                este.compararObtenido(obtenido,caso,idCaso);
+            }
+            this.pendientesPorModulos[idFuncion]--;
+            if(this.pendientesPorModulos[idFuncion]==0){
+                var elementoFuncionTitulo=document.getElementById(idFuncion+'_titulo');
+                if(elementoFuncionTitulo.classList.contains('TDD_prueba_pendiente')){
+                    elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
+                    elementoFuncionTitulo.classList.add('TDD_prueba_ok');
+                }
+            }
         }
     }
     desde+=cuantos;
@@ -115,7 +136,17 @@ Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
         return rta;
     };
     var resultado=compararBonito(esperado,obtenido);
+    var idFuncion='TDD_funcion:'+caso.tipox;
+    var elementoFuncionTitulo=document.getElementById(idFuncion+'_titulo');
+    var elementoCasoTitulo=document.getElementById(idCaso+'_titulo');
+    var elementoCaso=document.getElementById(idCaso);
+    elementoCasoTitulo.classList.remove('TDD_prueba_ignorada');
+    elementoCasoTitulo.classList.remove('TDD_prueba_pendiente');
     if(resultado.tieneError){
+        elementoFuncionTitulo.classList.remove('TDD_prueba_ignorada');
+        elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
+        elementoFuncionTitulo.classList.add('TDD_prueba_fallida');
+        elementoCasoTitulo.classList.add('TDD_prueba_fallida');
         this.errores++;
         app.grab(idCaso,{tipox:'div', className:'TDD_error', nodes:[
             {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
@@ -123,6 +154,8 @@ Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
                 {tipox:'td', nodes:resultado.bonito}
             ]}]},
         ]});
+    }else{
+        elementoCasoTitulo.classList.add('TDD_prueba_ok');
     }
 };
 
@@ -133,6 +166,34 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[{iguales:'este es',abajo:'solo en obtenido',distinto:'obtenido'}],
     salida:{iguales:'este es',arriba:'solo en esperado',distinto:'esperado'}
 });
+
+Aplicacion.prototype.casosDePrueba.push({
+    tipox:'escape',
+    caso:'ejemplo para mostrar cómo reacciona un ignorado',
+    ignorado:true,
+    entrada:[{iguales:'este es',abajo:'solo en obtenido',distinto:'obtenido'}],
+    salida:{iguales:'este es',arriba:'solo en esperado',distinto:'esperado'}
+});
+
+Aplicacion.prototype.casosDePrueba.push({
+    tipox:'parseInt',
+    caso:'ejemplo para mostrar cómo pasan los casos',
+    entrada:['10'],
+    salida:10
+});
+Aplicacion.prototype.casosDePrueba.push({
+    tipox:'parseInt',
+    caso:'OJO con parse int y los strings que empiezan en 0 que los viejos navegadores lo toman como radix 8',
+    entrada:['010',8],
+    salida:8
+});
+Aplicacion.prototype.casosDePrueba.push({
+    tipox:'parseInt',
+    caso:'OJO con parse int y los strings que empiezan en 0, hay que pasar siempre el segundo parámetro (radix=10)',
+    entrada:['010',10],
+    salida:10
+});
+
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'enviarPaquete',
     caso:'entrada al sistema exitosa',
