@@ -287,7 +287,7 @@ Aplicacion.prototype.creadores.app_vinculo={tipo:'tipox', descripcion:'vínculo 
 
 Aplicacion.prototype.creadores.lista={tipo:'tipox', descripcion:'lista genérica <tagList> de elementos <tagElement> ', creador:{
     translate:function(definicion){
-        var nuevo=cambiandole(definicion, {tipox:definicion.tagList});
+        var nuevo=cambiandole(definicion, {tipox:definicion.tagList, tagList:null, tagElement:null}, true, null);
         delete nuevo.elementos;
         nuevo.nodes=[];
         for(var i in definicion.elementos) if(definicion.elementos.hasOwnProperty(i)){

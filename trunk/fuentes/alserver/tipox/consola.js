@@ -243,3 +243,15 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
     salidaMinima:{tipox:'falla',mensaje:'el usuario "cain" no esta activo'}
 });
+
+Aplicacion.prototype.pruebaTraduccion=function(definicion){
+    var creador=this.creadores[definicion.tipox].creador;
+    return creador.translate(definicion);
+}
+
+Aplicacion.prototype.casosDePrueba.push({
+    tipox:'pruebaTraduccion',
+    caso:'traducir el tipox:lista',
+    entrada:[{tipox:'lista', tagList:'ol(1)', tagElement:'li(2)', elementos:['uno', 'dos', {esto:{queda:{}}}]}],
+    salida:{tipox:'ol(1)',nodes:[{tipox:'li(2)', nodes:'uno'}, {tipox:'li(2)', nodes:'dos'}, {tipox:'li(2)', nodes:{esto:{queda:{}}}}]}
+});
