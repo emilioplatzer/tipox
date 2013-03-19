@@ -168,15 +168,33 @@ Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
 
 Aplicacion.prototype.casosDePrueba=[];
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'estoMismo',
-    caso:'ejemplo para ver cómo se ven los casos de prueba',
-    entrada:[{iguales:'este es',sub:{abajo:'solo en obtenido', otro_tipo:1} ,distinto:'obtenido',otra_estructura:"{uno:1, dos:2}"}],
-    salida:{iguales:'este es',sub:{arriba:'solo en esperado', otro_tipo:"1"},distinto:'esperado',otra_estructura:{uno:1, dos:2}}
+    tipox:'asi_se_ven_los_errores',
+    caso:'así se ven lo errores en los casos de prueba fallidos',
+    entrada:[{
+        iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
+        si_no_coinciden:'y abajo en rojo el obtenido',
+        'si falta algun campo':{'en el esperado':'y muestra el obtenido'},
+        'como se ve si el tipo no coincide':1,
+        'y si la estructura no coincide':"{uno:1, dos:2}"}],
+    salida:{
+        iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
+        si_no_coinciden:'el valor esperado se ve arriba',
+        'si falta algun campo':{'en el obtenido':'muestra el esperado y'},
+        'como se ve si el tipo no coincide':"1",
+        'y si la estructura no coincide':{uno:1, dos:2}}
 });
 
+Aplicacion.prototype.asi_se_ven_los_ignorados=function(){
+    this.lanzarExcepcion('Esto nunca debe ejecutarse porque es un ejemplo');
+}
+
+Aplicacion.prototype.asi_se_ven_los_errores=function(esto){
+    return esto;
+}
+
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'escape',
-    caso:'ejemplo para mostrar cómo reacciona un ignorado',
+    tipox:'asi_se_ven_los_ignorados',
+    caso:'Los casos de prueba ignorados se ven así',
     ignorado:true,
     entrada:[{iguales:'este es',abajo:'solo en obtenido',distinto:'obtenido'}],
     salida:{iguales:'este es',arriba:'solo en esperado',distinto:'esperado'}
