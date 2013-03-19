@@ -45,10 +45,12 @@ Probador.prototype.probarTodo=function(){
         var elementoFuncionTitulo=document.getElementById(idFuncion+'_titulo');
         var idCaso='TDD_caso:'+i;
         var clase=caso.ignorado?'TDD_prueba_ignorada':'TDD_prueba_pendiente';
+        var nodosInternos=[{tipox:'div', classList:['TDD_caso_titulo',clase], id:idCaso+'_titulo', innerText:caso.caso}];
+        if(caso.aclaracionSiFalla){
+            nodosInternos.push({tipox:'div', className:'TDD_aclaracion', id:idCaso+'_aclaracion', nodes:caso.aclaracionSiFalla});
+        }
         this.app.grab(elementoFuncionCasos,
-            {tipox:'div', className:'TDD_caso', id:idCaso, nodes:[
-                {tipox:'div', classList:['TDD_caso_titulo',clase], id:idCaso+'_titulo', innerText:caso.caso}
-            ]}
+            {tipox:'div', className:'TDD_caso', id:idCaso, nodes:nodosInternos}
         );
         if(caso.ignorado){  
             elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
@@ -105,14 +107,17 @@ Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
     this.cantidadPruebasPorModulos[caso.tipox]++;
     var esperado=caso.salida||caso.salidaMinima;
     var bidireccional='salida' in caso;
+    var nodoBonito=function(esperado,obtenido,claseEsperado,claseObtenido){
+        return {tipox:'table', nodes:[
+                {tipox:'tr', nodes:[{tipox:'td', className:claseEsperado, innerText:JSON.stringify(esperado)}]},
+                {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, innerText:JSON.stringify(obtenido)}]},
+        ]};
+    }
     var compararBonito=function(esperado,obtenido){
         var rta={tieneError:false};
         if(typeof(esperado)=='object'?(typeof(obtenido)!='object' || (esperado===null)!==(obtenido===null) || (esperado===undefined)!==(obtenido===undefined) || (esperado instanceof Array)!==(obtenido instanceof Array)):esperado!==obtenido){
             rta.tieneError=true;
-            rta.bonito={tipox:'table', nodes:[
-                {tipox:'tr', nodes:[{tipox:'td', className:'TDD_esperado', innerText:JSON.stringify(esperado)}]},
-                {tipox:'tr', nodes:[{tipox:'td', className:'TDD_obtenido', innerText:JSON.stringify(obtenido)}]},
-            ]};
+            rta.bonito=nodoBonito(esperado, obtenido,'TDD_esperado','TDD_obtenido');
         }else if(typeof(esperado)!='object'){
             rta.bonito={tipox:'div', className:'TDD_iguales', innerText:JSON.stringify(esperado)};
         }else{
@@ -125,16 +130,19 @@ Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
                 ]}]});
                 rta.tieneError=rta.tieneError||rtaInterna.tieneError;
             }
-            if(bidireccional){
-                for(var campo in obtenido) if(obtenido.hasOwnProperty(campo)){
-                    if(!(campo in esperado)){
-                        var rtaInterna=compararBonito(esperado[campo],obtenido[campo]);
-                        nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
-                            {tipox:'td', className:'TDD_label', innerText:campo},
-                            {tipox:'td', nodes:rtaInterna.bonito}
-                        ]}]});
-                        rta.tieneError=rta.tieneError||rtaInterna.tieneError;
+            for(var campo in obtenido) if(obtenido.hasOwnProperty(campo)){
+                if(!(campo in esperado)){
+                    var claseObtenido;
+                    if(bidireccional){
+                        rta.tieneError=true;
+                        claseObtenido='TDD_obtenido';
+                    }else{
+                        claseObtenido='TDD_obtenido_sobrante';
                     }
+                    nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
+                        {tipox:'td', className:'TDD_label', innerText:campo},
+                        {tipox:'td', nodes:nodoBonito(undefined,obtenido[campo],'TDD_esperado',claseObtenido)}
+                    ]}]});
                 }
             }
             rta.bonito={tipox:'div', nodes:nodes};
@@ -192,6 +200,10 @@ Aplicacion.prototype.asi_se_ven_los_errores=function(esto){
     return esto;
 }
 
+Aplicacion.prototype.asi_se_ven_los_ok=function(esto){
+    return esto;
+}
+
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'asi_se_ven_los_ignorados',
     caso:'Los casos de prueba ignorados se ven así',
@@ -201,24 +213,32 @@ Aplicacion.prototype.casosDePrueba.push({
 });
 
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'parseInt',
-    caso:'ejemplo para mostrar cómo pasan los casos',
-    entrada:['10'],
-    salida:10
+    tipox:'asi_se_ven_los_ok',
+    caso:'Se puede comparar en forma exacta usando el campo "salida"',
+    entrada:[{iguales:'este es',este_tambien:7}],
+    salida:{iguales:'este es',este_tambien:7}
 });
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'parseInt',
-    caso:'OJO con parse int y los strings que empiezan en 0 que los viejos navegadores lo toman como radix 8',
-    entrada:['010',8],
-    salida:8
-});
-Aplicacion.prototype.casosDePrueba.push({
-    tipox:'parseInt',
-    caso:'OJO con parse int y los strings que empiezan en 0, hay que pasar siempre el segundo parámetro (radix=10)',
-    entrada:['010',10],
-    salida:10
+    tipox:'asi_se_ven_los_ok',
+    caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran (para eso se usa "salidaMinima")',
+    entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
+    salidaMinima:{iguales:'sí'}
 });
 
+Aplicacion.prototype.casosDePrueba.push({
+    tipox:'asi_se_ven_los_ok',
+    caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran (para eso se usa "salidaMinima")',
+    entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
+    salidaMinima:{iguales:'sí'}
+});
+
+Aplicacion.prototype.casosDePrueba.push({
+    tipox:'enviarPaquete',
+    caso:'control de que el sistema esté instalado',
+    aclaracionSiFalla:['se puede instalar poniendo directamente ',{tipox:'a', href:'app.php?proceso=instalarBaseDeDatos', innerText:'app.php?proceso=instalarBaseDeDatos'}],
+    entrada:[{proceso:'control_instalacion',sincronico:true,paquete:{}}],
+    salidaMinima:{estadoInstalacion:'completa'}
+});
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'enviarPaquete',
     caso:'entrada al sistema exitosa',

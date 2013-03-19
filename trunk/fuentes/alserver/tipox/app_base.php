@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set("America/Buenos_Aires"); 
+
 require_once "comunes.php";
 
 class ExceptionTipox extends Exception{
@@ -34,6 +36,9 @@ class AplicacionBase{
     function respuestaOk($respuesta){
         return array('tipox'=>'rtaOk','respuesta'=>$respuesta);
     }
+    function respuestaError($mensaje){
+        return array('tipox'=>'rtaError','mensaje'=>$mensaje);
+    }
     // configuración interna de la aplicación
     function leerConfiguracion(){
         if(!$this->configuracion){
@@ -54,6 +59,7 @@ class AplicacionBase{
             $this->leerConfiguracion();
             $pdo=$this->configuracion->pdo;
             $this->db=new PDO($pdo->dsn,$pdo->username,$pdo->password,$pdo->driver_options);
+            $this->tipoDb=$pdo;
             $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         }
         return $this->db;
@@ -62,20 +68,43 @@ class AplicacionBase{
         $db=$this->baseDeDatos();
         $sentencia=$db->prepare($sentencia);
         $sentencia->execute($parametros);
+        return $sentencia;
     }
     function proceso_instalarBaseDeDatos(){
         $db=$this->baseDeDatos();
-        if(file_exists('pendiente_de_instalacion.json')){
+        if(file_exists('instalado.flag.no')){
             $sentencias_instalacion=file_get_contents('sentencias_instalacion.sql');
             foreach(explode('/*OTRA*/',$sentencias_instalacion) as $sentencia){
+                if(substr($this->tipoDb->dsn,0,7)=='sqlite:'){
+                    $sentencia=preg_replace(array('/\btrue\b/','/\bfalse\b/'),array(1,0),$sentencia);
+                }
                 if(trim($sentencia)){
                     $this->ejecutarSql($sentencia);
                 }
             }
-            rename('pendiente_de_instalacion.json','instalado.json');
+            rename('instalado.flag.no','instalado.flag.si');
         }else{
-            throw new ExceptionTipox('No se puede instalar porque no esta pendiente_de_instalacion.json');
+            throw new ExceptionTipox('No se puede instalar porque no esta instalado.flag.no');
         }
+    }
+    function proceso_control_instalacion(){
+        if(!file_exists('configuracion_local.json')){
+            return $this->respuestaError('no existe la configuracion_local.json'); // se puede crear con un json vacío. Así: {}
+        }
+        $db=$this->baseDeDatos();
+        if(!$db){
+            return $this->respuestaError('base de datos no inexistente');
+        }
+        try{
+            $sentencia=$this->ejecutarSql('select count(*) as cantidad from usuarios');
+            $fila=$sentencia->fetchObject();
+            if(!$fila->cantidad){
+                return $this->respuestaError('no hay usuarios en la tabla de usuarios');
+            }
+        }catch(Exception $err){
+            return $this->respuestaError('no se puede acceder a la tabla usuarios');
+        }
+        return $this->respuestaOk(array('estadoInstalacion'=>'completa'));
     }
     // procesos default:
     function proceso_entrada($params){

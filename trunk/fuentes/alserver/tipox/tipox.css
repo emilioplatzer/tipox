@@ -106,6 +106,10 @@ body{
     background-color:#FBB;
 }
 
+.TDD_obtenido_sobrante{
+    background-color:#BFF;
+}
+
 .TDD_funcion_titulo{
     font-weight:bold;
 }
