@@ -45,7 +45,13 @@ Probador.prototype.probarTodo=function(){
         var elementoFuncionTitulo=document.getElementById(idFuncion+'_titulo');
         var idCaso='TDD_caso:'+i;
         var clase=caso.ignorado?'TDD_prueba_ignorada':'TDD_prueba_pendiente';
-        var nodosInternos=[{tipox:'div', classList:['TDD_caso_titulo',clase], id:idCaso+'_titulo', innerText:caso.caso}];
+        var tituloCaso=[caso.caso];
+        var ticket;
+        if(caso.ignorado && caso.ignorado.substr && caso.ignorado.substr(0,1)=='#' && this.app.tracUrl){  
+            ticket={tipox:'a', href:this.app.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado};
+            tituloCaso.push(ticket);
+        }
+        var nodosInternos=[{tipox:'div', classList:['TDD_caso_titulo',clase], id:idCaso+'_titulo', nodes:tituloCaso}];
         if(caso.aclaracionSiFalla){
             nodosInternos.push({tipox:'div', className:'TDD_aclaracion', id:idCaso+'_aclaracion', nodes:caso.aclaracionSiFalla});
         }
@@ -55,12 +61,16 @@ Probador.prototype.probarTodo=function(){
         if(caso.ignorado){  
             elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
             elementoFuncionTitulo.classList.add('TDD_prueba_ignorada');
+            if(ticket){
+                this.app.grab(elementoFuncionTitulo,[ticket,' ']);
+                // this.app.grab(elementoFuncionTitulo,[{tipox:'a', href:this.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado},' ']);
+            }
         }else{
             this.pendientesPorModulos[idFuncion]++;
         }
         var elementoCaso=document.getElementById(idFuncion);
     }
-    this.probarUnCaso(0,1);
+    this.probarUnCaso(0,4);
 }
 
 Probador.prototype.probarUnCaso=function(desde,cuantos){
