@@ -10,6 +10,12 @@ class AplicacionBase{
     // parte manejo de procesos
     private $db;
     private $configuracion;
+    var $ahora;
+    var $hoy;
+    function __construct(){
+        $this->ahora=new DateTime();
+        $this->hoy=new DateTime($this->ahora->format('Y-m-d'));
+    }
     function atenderPeticion(){
         try{
             if(!isset($_REQUEST['proceso'])){
@@ -28,16 +34,20 @@ class AplicacionBase{
                 }
             }
             $this->cerrarBaseDeDatos(true);
+        }catch(PDOException $err){
+            //$rta=$this->respuestaError(utf8_decode($err->getMessage()));
+            $rta=$this->respuestaError(utf8_encode($err->getMessage()));
         }catch(Exception $err){
+            $rta=$this->respuestaError($err->getMessage());
             $this->cerrarBaseDeDatos(false);
-            $rta=array('tipox'=>'rtaError', 'mensaje'=>$err->getMessage());
         }
         echo json_encode($rta);
     }
-    function peticionVacia(){
+    function peticionVacia($mensaje){
+        return $this->respuestaError($mensaje?:'peticion vacia');
     }
     function peticionErronea($mensaje){
-        $this->peticionVacia();
+        $this->peticionVacia($mensaje);
     }
     function respuestaOk($respuesta){
         return array('tipox'=>'rtaOk','respuesta'=>$respuesta);
@@ -93,6 +103,13 @@ class AplicacionBase{
         $sentencia->execute($parametros);
         return $sentencia;
     }
+    function loguear($hasta_fecha,$mensaje){
+        if($this->hoy<=new DateTime($hasta_fecha)){
+            file_put_contents('../logs/log.txt',$mensaje."\n",FILE_APPEND);
+            $trace=debug_backtrace();
+            file_put_contents('../logs/log.txt',"--> {$trace[0]['line']}: {$trace[0]['file']}\n",FILE_APPEND);
+        }
+    }
     function proceso_instalarBaseDeDatos(){
         $db=$this->baseDeDatos();
         if(file_exists('instalado.flag.no')){
@@ -109,7 +126,7 @@ class AplicacionBase{
         }else{
             throw new ExceptionTipox('No se puede instalar porque no esta instalado.flag.no');
         }
-        return "instalada";
+        return $this->respuestaOk("instalada");
     }
     function proceso_control_instalacion(){
         if(!file_exists('configuracion_local.json')){
@@ -137,9 +154,9 @@ class AplicacionBase{
         $sentencia->execute(array(':usuario'=>$params->usuario,':password'=>$params->password));
         $datos_usuario=$sentencia->fetchObject();
         if(!$datos_usuario){
-            return array('tipox'=>'rtaError','mensaje'=>'el usuario o la clave no corresponden a un usuario activo');
+            return $this->respuestaError('el usuario o la clave no corresponden a un usuario activo');
         }else if(!$datos_usuario->activo){
-            return array('tipox'=>'rtaError','mensaje'=>'el usuario '.json_encode($params->usuario).' no esta activo');
+            return $this->respuestaError('el usuario '.json_encode($params->usuario).' no esta activo');
         }
         return $this->respuestaOk($datos_usuario);
     }
