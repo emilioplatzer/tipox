@@ -109,8 +109,8 @@ Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
     var bidireccional='salida' in caso;
     var nodoBonito=function(esperado,obtenido,claseEsperado,claseObtenido){
         return {tipox:'table', nodes:[
-                {tipox:'tr', nodes:[{tipox:'td', className:claseEsperado, innerText:JSON.stringify(esperado)}]},
-                {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, innerText:JSON.stringify(obtenido)}]},
+                {tipox:'tr', nodes:[{tipox:'td', className:claseEsperado, nodes:[{tipox:'pre', innerText:JSON.stringify(esperado)}]}]},
+                {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, nodes:[{tipox:'pre', innerText:JSON.stringify(obtenido)}]}]},
         ]};
     }
     var compararBonito=function(esperado,obtenido){
@@ -272,6 +272,14 @@ Aplicacion.prototype.pruebaTraduccion=function(definicion){
 Aplicacion.prototype.casosDePrueba.push({
     tipox:'pruebaTraduccion',
     caso:'traducir el tipox:lista',
-    entrada:[{tipox:'lista', tagList:'ol(1)', tagElement:'li(2)', elementos:['uno', 'dos', {esto:{queda:{}}}]}],
-    salida:{tipox:'ol(1)',nodes:[{tipox:'li(2)', nodes:'uno'}, {tipox:'li(2)', nodes:'dos'}, {tipox:'li(2)', nodes:{esto:{queda:{}}}}]}
+    entrada:[{tipox:'lista', tagList:'ol(1)', tagElement:'li(2)', elementos:[
+                'uno', 
+                'dos', 
+                {esto:{queda:{}}}
+            ]}],
+    salida:{tipox:'ol(1)',nodes:[
+                {tipox:'li(2)', nodes:'uno'}, 
+                {tipox:'li(2)', nodes:'dos'}, 
+                {tipox:'li(2)', nodes:{esto:{queda:{}}}}
+            ]}
 });
