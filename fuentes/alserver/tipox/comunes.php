@@ -17,4 +17,12 @@ function cambiarRecursivamente($objetoBase, $objetoConCambios){
     }
 }
 
+function comienzaCon( $str, $sub ) {
+   return ( substr( $str, 0, strlen( $sub ) ) === $sub );
+}
+
+function terminaCon( $str, $sub ) {
+   return ( substr( $str, strlen( $str ) - strlen( $sub ) ) === $sub );
+}
+
 ?>
