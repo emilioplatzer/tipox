@@ -71,6 +71,9 @@ Probador.prototype.probarTodo=function(){
         var elementoCaso=document.getElementById(idFuncion);
     }
     this.probarUnCaso(0,4);
+    if(this.casosDePrueba[0].caso=='así se ven lo errores en los casos de prueba fallidos'){
+        document.getElementById('TDD_caso:0').parentNode.style.display='none';
+    }
 }
 
 Probador.prototype.probarUnCaso=function(desde,cuantos){
