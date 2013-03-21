@@ -1,5 +1,5 @@
 Options -Indexes
-DirectoryIndex launch.html
+DirectoryIndex launch.php
 
 # Solo para desarrollo:
 ExpiresActive On

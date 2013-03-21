@@ -71,6 +71,10 @@ Aplicacion.prototype.paginasSinUsuario={tipox:'aplicacion', id:'menu', paginas:{
     }}
 }
 
+if(Aplicacion.prototype.paginas.entrar.nodes[1].nodes[0].id=='usuario'){
+    Aplicacion.prototype.paginas.entrar.nodes[1].nodes[0].aclaracion='probablemente el mail donde recibió el aviso';
+}
+
 Aplicacion.prototype.jsRequeridos.push('almacen');
 
 var app=new Aplicacion();

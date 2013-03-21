@@ -31,7 +31,7 @@ Aplicacion.prototype.paginas.entrar={
     nodes:[
         {tipox:'h2', innerText:"Entrada"},
         {tipox:'formulario_simple', nodes:[
-            {tipox:'parametro', id:'usuario', aclaracion:'probablemente el mail donde recibió el aviso'},
+            {tipox:'parametro', id:'usuario'},
             {tipox:'parametro', id:'password', label:'contraseña', type:'password'},
             {tipox:'parametro_boton', id:'entrar', eventos:{click:'entrar_aplicacion'}}
         ]}
