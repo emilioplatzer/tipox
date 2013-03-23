@@ -65,6 +65,9 @@ Aplicacion.prototype.creadorElementoDOM={
                 var app=this.app;
                 if(valor instanceof Array){
                     app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
+                    if(atributo=='innerText'){
+                        throw new Error("el innerText solo puede recibir strings");
+                    }
                     var agregadores={add:true, push:true};
                     var pude=false;
                     for(var agregador in agregadores){
