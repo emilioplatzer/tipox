@@ -1,6 +1,12 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
 
+function esAplicacion(esto){
+    if(!(esto instanceof Aplicacion)){
+        throw new Error('se esperaba que el parametro sea una aplicacion');
+    }
+}
+
 function Aplicacion(){
     this.cursorActual=[];
     this.cursorNuevo=[];
@@ -52,7 +58,7 @@ Aplicacion.prototype.creadorElementoDOM={
             case 'eventos': 
                 for(var id_evento in definicion.eventos) if(definicion.eventos.hasOwnProperty(id_evento)){
                     var app=this.app;
-                    destino.addEventListener(id_evento,function(evento){return app.eventos[definicion.eventos[id_evento]](app,evento,this);});
+                    destino.addEventListener(id_evento,function(evento){return app.eventos[definicion.eventos[id_evento]].call(app,evento,this);});
                 }
                 break;
             default:
@@ -412,8 +418,9 @@ Aplicacion.prototype.mostrarPaginaActual=function(){
 
 Aplicacion.prototype.jsRequeridos=[];
 
-Aplicacion.prototype.eventos.entrar_aplicacion=function(app,evento){
-    app.enviarPaquete({proceso:'entrada',paquete:{usuario:usuario.value.toLowerCase(),password:usuario.value.toLowerCase()+hex_md5(password.value)}}).luego(function(respuesta){
+Aplicacion.prototype.eventos.entrar_aplicacion=function(evento){
+    esAplicacion(this);
+    this.enviarPaquete({proceso:'entrada',paquete:{usuario:usuario.value.toLowerCase(),password:usuario.value.toLowerCase()+hex_md5(password.value)}}).luego(function(respuesta){
         alert('ok '+JSON.stringify(respuesta));
     }).alFallar(function(mensaje){
         alert('fallo '+mensaje);
