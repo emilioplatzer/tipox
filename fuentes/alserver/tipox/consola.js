@@ -8,7 +8,7 @@ Aplicacion.prototype.paginas.tdd={
     ]
 };
 
-Aplicacion.prototype.eventos.toggleDisplayAbajo=function(app,evento,elemento){
+Aplicacion.prototype.eventos.toggleDisplayAbajo=function(evento,elemento){
     var hermano=elemento.nextSibling;
     hermano.style.display=hermano.style.display?null:'none';
 }
