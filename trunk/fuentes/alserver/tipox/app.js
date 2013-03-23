@@ -13,6 +13,7 @@ function Aplicacion(){
     this.jsCargados={};
     this.autoIdDom=0;
     this.entornoDesarrollo=true;
+    this.hoyString=new Date().toISOString().substr(0,'2099-12-31'.length);
 }
 
 Aplicacion.prototype.paginas={};

@@ -190,6 +190,14 @@ Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso)
     var elementoCaso=document.getElementById(idCaso);
     elementoCasoTitulo.classList.remove('TDD_prueba_ignorada');
     elementoCasoTitulo.classList.remove('TDD_prueba_pendiente');
+    if(resultado.tieneError || this.app.hoyString<=caso.mostarAunqueNoFalleHasta){
+        app.grab(idCaso,{tipox:'div', className:'TDD_error', nodes:[
+            {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
+                {tipox:'td',className:'TDD_label_esperado_obtenido', nodes:['esperado',{tipox:'br'},'obtenido']},
+                {tipox:'td', nodes:resultado.bonito}
+            ]}]},
+        ]});
+    }
     if(resultado.tieneError){
         elementoFuncionTitulo.classList.remove('TDD_prueba_ignorada');
         elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
@@ -197,12 +205,6 @@ Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso)
         elementoCasoTitulo.classList.add('TDD_prueba_fallida');
         document.getElementById(idModulo+'_casos').style.display=null;
         this.errores++;
-        app.grab(idCaso,{tipox:'div', className:'TDD_error', nodes:[
-            {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
-                {tipox:'td',className:'TDD_label_esperado_obtenido', nodes:['esperado',{tipox:'br'},'obtenido']},
-                {tipox:'td', nodes:resultado.bonito}
-            ]}]},
-        ]});
     }else{
         elementoCasoTitulo.classList.add('TDD_prueba_ok');
     }
@@ -275,6 +277,14 @@ Aplicacion.prototype.casosDePrueba.push({
     caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran (para eso se usa "salidaMinima")',
     entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
     salidaMinima:{iguales:'sí'}
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_ok',
+    funcion:'estoMismo',
+    mostarAunqueNoFalleHasta:'2099-12-31',
+    caso:'Se puede pedir que muestre el resultado aunque sea correcto especificando en el caso la propiedad mostarAunqueNoFalleHasta',
+    entrada:[{un_dato:'uno', lista:['elemento1', 'elemento2'], dato_agregado:'agregado'}],
+    salidaMinima:{un_dato:'uno', lista:['elemento1', 'elemento2']}
 });
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'asi_se_ven_los_ok',
