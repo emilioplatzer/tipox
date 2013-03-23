@@ -93,17 +93,22 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
             var idModulo='TDD_modulo:'+caso.modulo;
             var idCaso='TDD_caso:'+i;
             var esto=caso.funcion in this.app?this.app:window;
-            var obtenido=esto[caso.funcion].apply(esto,caso.entrada);
+            var obtenido=null;
+            try{
+                obtenido=esto[caso.funcion].apply(esto,caso.entrada);
+            }catch(err){
+                var errorObtenido=err.message||'Recibida excepción sin message';
+            }
             var app=this.app;
             var este=this;
             if(obtenido instanceof Futuro){
                 obtenido.luego(function(respuesta,app){
-                    este.compararObtenido(respuesta,caso,idCaso);
+                    este.compararObtenido(respuesta,null,caso,idCaso);
                 }).alFallar(function(mensaje,app){
-                    este.compararObtenido({tipox:'falla', mensaje:mensaje},caso,idCaso);
+                    este.compararObtenido(null,mensaje,caso,idCaso);
                 });
             }else{
-                este.compararObtenido(obtenido,caso,idCaso);
+                este.compararObtenido(obtenido,errorObtenido,caso,idCaso);
             }
             this.pendientesPorModulos[idModulo]--;
             if(this.pendientesPorModulos[idModulo]==0){
@@ -122,14 +127,20 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
     }
 }
 
-Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
+Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso){
     this.cantidadPruebas++;
     if(!(caso.modulo in this.cantidadPruebasPorModulos)){
         this.cantidadPruebasPorModulos[caso.modulo]=0;
     }
     this.cantidadPruebasPorModulos[caso.modulo]++;
     var esperado=caso.salida||caso.salidaMinima;
-    var bidireccional='salida' in caso;
+    var bidireccional=true;
+    if(errorObtenido || caso.error){
+        obtenido={dato:obtenido||null, error:errorObtenido||null};
+        esperado={dato:esperado||null, error:caso.error   ||null};
+    }else{
+        bidireccional='salida' in caso;
+    }
     var nodoBonito=function(esperado,obtenido,claseEsperado,claseObtenido){
         return {tipox:'table', nodes:[
                 {tipox:'tr', nodes:[{tipox:'td', className:claseEsperado, nodes:[{tipox:'pre', innerText:JSON.stringify(esperado)}]}]},
@@ -198,6 +209,7 @@ Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
 };
 
 Aplicacion.prototype.casosDePrueba=[];
+
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'asi_se_ven_los_errores',
     funcion:'estoMismo',
@@ -214,6 +226,27 @@ Aplicacion.prototype.casosDePrueba.push({
         'si falta algun campo':{'en el obtenido':'muestra el esperado y'},
         'como se ve si el tipo no coincide':"1",
         'y si la estructura no coincide':{uno:1, dos:2}}
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_errores',
+    funcion:'lanzarExcepcion',
+    caso:'así se ven los casos que lanzan excepciones cuando se esperaba un resultado',
+    entrada:["texto de la excepcion no esperada"],
+    salida:{campo_esperado:'valor esperado', otro_campo:'otro valor esperado'}
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_errores',
+    funcion:'estoMismo',
+    caso:'así se ven los casos donde se espera que lance una excepción pero no se lanza',
+    entrada:["valor obtenido"],
+    error:"texto de la excepcion esperada"
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_errores',
+    funcion:'lanzarExcepcion',
+    caso:'así se ven cuando no coincide el texto de la excepción',
+    entrada:["texto de la excepcion obtenida"],
+    error:"texto de la excepcion esperada"
 });
 
 Aplicacion.prototype.asi_se_ven_los_ignorados=function(){
@@ -243,13 +276,12 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
     salidaMinima:{iguales:'sí'}
 });
-
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran (para eso se usa "salidaMinima")',
-    entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
-    salidaMinima:{iguales:'sí'}
+    funcion:'lanzarExcepcion',
+    caso:'así se ven cuando no coincide el texto de la excepción',
+    entrada:["texto de la excepcion"],
+    error:"texto de la excepcion"
 });
 
 Aplicacion.prototype.casosDePrueba.push({
@@ -273,21 +305,21 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'enviarPaquete',
     caso:'entrada al sistema fallida por clave erronea',
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'abel',password:hex_md5('abel'+'clave2')}}],
-    salidaMinima:{tipox:'falla',mensaje:'el usuario o la clave no corresponden a un usuario activo'}
+    error:'el usuario o la clave no corresponden a un usuario activo'
 });
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'control de usuarios',
     funcion:'enviarPaquete',
     caso:'entrada al sistema fallida por usuario inexistente',
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'beto',password:hex_md5('beto')}}],
-    salidaMinima:{tipox:'falla',mensaje:'el usuario o la clave no corresponden a un usuario activo'}
+    error:'el usuario o la clave no corresponden a un usuario activo'
 });
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'control de usuarios',
     funcion:'enviarPaquete',
     caso:'entrada al sistema fallida por usuario inactivo',
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
-    salidaMinima:{tipox:'falla',mensaje:'el usuario "cain" no esta activo'}
+    error:'el usuario "cain" no esta activo'
 });
 /*
 Aplicacion.prototype.casosDePrueba.push({
@@ -335,9 +367,17 @@ Aplicacion.prototype.casosDePrueba.push({
 });
 
 Aplicacion.prototype.casosDePrueba.push({
-    modulo:'los nodos internos indexado por id',
+    modulo:'creación de elementos del DOM a través de objetos tipox',
     funcion:'pruebaGrabSimple',
-    caso:'caso de ejemplo',
+    caso:'los nodos internos indexado por id',
     entrada:[{tipox:'div', id:'id1', nodes:{indexadoPor:'id', id2:{tipox:'div', innerText:'texto 2'},id3:{tipox:'div', innerText:'texto 3'}}}],
     salida:'<div id="id1"><div id="id2">texto 2</div><div id="id3">texto 3</div></div>'
+});
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'creación de elementos del DOM a través de objetos tipox',
+    funcion:'pruebaGrabSimple',
+    caso:'el innerText solo puede recibir strings',
+    entrada:[{tipox:'div', id:'id1', innerText:[]}],
+    error:'el innerText solo puede recibir strings'
 });
