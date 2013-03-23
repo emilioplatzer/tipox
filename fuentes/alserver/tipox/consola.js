@@ -30,19 +30,28 @@ Aplicacion.prototype.probarTodo=function(){
 Probador.prototype.probarTodo=function(){
     for(var i in this.casosDePrueba) if(this.casosDePrueba.hasOwnProperty(i)){
         var caso=this.casosDePrueba[i];
-        var idFuncion='TDD_funcion:'+caso.tipox;
-        var elementoFuncionCasos=document.getElementById(idFuncion+'_casos');
+        if(!('funcion' in caso)){
+            caso.funcion=caso.tipox;
+        }
+        if(!('funcion' in caso)){
+            this.lanzarExcepcion('falta la funcion en el caso de prueba');
+        }
+        if(!('modulo' in caso)){
+            caso.modulo=caso.tipox+' HAY QUE PONER EL NOMBRE DEL MÓDULO (en el atributo modulo del caso de prueba)';
+        }
+        var idModulo='TDD_modulo:'+caso.modulo;
+        var elementoFuncionCasos=document.getElementById(idModulo+'_casos');
         if(!elementoFuncionCasos){
-            this.pendientesPorModulos[idFuncion]=0;
+            this.pendientesPorModulos[idModulo]=0;
             this.app.grab('probarTodo',
-                {tipox:'div', classList:['TDD_funcion'], id:idFuncion, nodes:[
-                    {tipox:'div', classList:['TDD_funcion_titulo','TDD_prueba_pendiente'], id:idFuncion+'_titulo', innerText:caso.tipox, eventos:{click:'toggleDisplayAbajo'}},
-                    {tipox:'div', id:idFuncion+'_casos', style:{display:'none'}}
+                {tipox:'div', classList:['TDD_modulo'], id:idModulo, nodes:[
+                    {tipox:'div', classList:['TDD_modulo_titulo','TDD_prueba_pendiente'], id:idModulo+'_titulo', innerText:caso.modulo, eventos:{click:'toggleDisplayAbajo'}},
+                    {tipox:'div', id:idModulo+'_casos', style:{display:'none'}}
                 ]}
             );
-            elementoFuncionCasos=document.getElementById(idFuncion+'_casos');
+            elementoFuncionCasos=document.getElementById(idModulo+'_casos');
         }
-        var elementoFuncionTitulo=document.getElementById(idFuncion+'_titulo');
+        var elementoFuncionTitulo=document.getElementById(idModulo+'_titulo');
         var idCaso='TDD_caso:'+i;
         var clase=caso.ignorado?'TDD_prueba_ignorada':'TDD_prueba_pendiente';
         var tituloCaso=[caso.caso];
@@ -66,9 +75,9 @@ Probador.prototype.probarTodo=function(){
                 // this.app.grab(elementoFuncionTitulo,[{tipox:'a', href:this.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado},' ']);
             }
         }else{
-            this.pendientesPorModulos[idFuncion]++;
+            this.pendientesPorModulos[idModulo]++;
         }
-        var elementoCaso=document.getElementById(idFuncion);
+        var elementoCaso=document.getElementById(idModulo);
     }
     this.probarUnCaso(0,4);
     if(this.casosDePrueba[0].caso=='así se ven lo errores en los casos de prueba fallidos'){
@@ -80,10 +89,10 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
     for(var i=desde; i<desde+cuantos && i<this.casosDePrueba.length; i++){
         var caso=this.casosDePrueba[i];
         if(!caso.ignorado){
-            var idFuncion='TDD_funcion:'+caso.tipox;
+            var idModulo='TDD_modulo:'+caso.modulo;
             var idCaso='TDD_caso:'+i;
-            var esto=caso.tipox in this.app?this.app:window;
-            var obtenido=esto[caso.tipox].apply(esto,caso.entrada);
+            var esto=caso.funcion in this.app?this.app:window;
+            var obtenido=esto[caso.funcion].apply(esto,caso.entrada);
             var app=this.app;
             var este=this;
             if(obtenido instanceof Futuro){
@@ -95,9 +104,9 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
             }else{
                 este.compararObtenido(obtenido,caso,idCaso);
             }
-            this.pendientesPorModulos[idFuncion]--;
-            if(this.pendientesPorModulos[idFuncion]==0){
-                var elementoFuncionTitulo=document.getElementById(idFuncion+'_titulo');
+            this.pendientesPorModulos[idModulo]--;
+            if(this.pendientesPorModulos[idModulo]==0){
+                var elementoFuncionTitulo=document.getElementById(idModulo+'_titulo');
                 if(elementoFuncionTitulo.classList.contains('TDD_prueba_pendiente')){
                     elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
                     elementoFuncionTitulo.classList.add('TDD_prueba_ok');
@@ -114,10 +123,10 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
 
 Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
     this.cantidadPruebas++;
-    if(!(caso.tipox in this.cantidadPruebasPorModulos)){
-        this.cantidadPruebasPorModulos[caso.tipox]=0;
+    if(!(caso.modulo in this.cantidadPruebasPorModulos)){
+        this.cantidadPruebasPorModulos[caso.modulo]=0;
     }
-    this.cantidadPruebasPorModulos[caso.tipox]++;
+    this.cantidadPruebasPorModulos[caso.modulo]++;
     var esperado=caso.salida||caso.salidaMinima;
     var bidireccional='salida' in caso;
     var nodoBonito=function(esperado,obtenido,claseEsperado,claseObtenido){
@@ -163,8 +172,8 @@ Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
         return rta;
     };
     var resultado=compararBonito(esperado,obtenido);
-    var idFuncion='TDD_funcion:'+caso.tipox;
-    var elementoFuncionTitulo=document.getElementById(idFuncion+'_titulo');
+    var idModulo='TDD_modulo:'+caso.modulo;
+    var elementoFuncionTitulo=document.getElementById(idModulo+'_titulo');
     var elementoCasoTitulo=document.getElementById(idCaso+'_titulo');
     var elementoCaso=document.getElementById(idCaso);
     elementoCasoTitulo.classList.remove('TDD_prueba_ignorada');
@@ -174,7 +183,7 @@ Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
         elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
         elementoFuncionTitulo.classList.add('TDD_prueba_fallida');
         elementoCasoTitulo.classList.add('TDD_prueba_fallida');
-        document.getElementById(idFuncion+'_casos').style.display=null;
+        document.getElementById(idModulo+'_casos').style.display=null;
         this.errores++;
         app.grab(idCaso,{tipox:'div', className:'TDD_error', nodes:[
             {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
@@ -189,7 +198,8 @@ Probador.prototype.compararObtenido=function(obtenido,caso,idCaso){
 
 Aplicacion.prototype.casosDePrueba=[];
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'asi_se_ven_los_errores',
+    modulo:'asi_se_ven_los_errores',
+    funcion:'estoMismo',
     caso:'así se ven lo errores en los casos de prueba fallidos',
     entrada:[{
         iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
@@ -209,16 +219,9 @@ Aplicacion.prototype.asi_se_ven_los_ignorados=function(){
     this.lanzarExcepcion('Esto nunca debe ejecutarse porque es un ejemplo');
 }
 
-Aplicacion.prototype.asi_se_ven_los_errores=function(esto){
-    return esto;
-}
-
-Aplicacion.prototype.asi_se_ven_los_ok=function(esto){
-    return esto;
-}
-
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'asi_se_ven_los_ignorados',
+    modulo:'asi_se_ven_los_ignorados',
+    funcion:'estoMismo',
     caso:'Los casos de prueba ignorados se ven así',
     ignorado:true,
     entrada:[{iguales:'este es',abajo:'solo en obtenido',distinto:'obtenido'}],
@@ -226,52 +229,61 @@ Aplicacion.prototype.casosDePrueba.push({
 });
 
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'asi_se_ven_los_ok',
+    modulo:'asi_se_ven_los_ok',
+    funcion:'estoMismo',
     caso:'Se puede comparar en forma exacta usando el campo "salida"',
     entrada:[{iguales:'este es',este_tambien:7}],
     salida:{iguales:'este es',este_tambien:7}
 });
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'asi_se_ven_los_ok',
+    modulo:'asi_se_ven_los_ok',
+    funcion:'estoMismo',
     caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran (para eso se usa "salidaMinima")',
     entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
     salidaMinima:{iguales:'sí'}
 });
 
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'asi_se_ven_los_ok',
+    modulo:'asi_se_ven_los_ok',
+    funcion:'estoMismo',
     caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran (para eso se usa "salidaMinima")',
     entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
     salidaMinima:{iguales:'sí'}
 });
 
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'enviarPaquete',
+    modulo:'control interno del sistema',
+    funcion:'enviarPaquete',
     caso:'control de que el sistema esté instalado',
     aclaracionSiFalla:['se puede instalar poniendo directamente ',{tipox:'a', href:'app.php?proceso=instalarBaseDeDatos', innerText:'app.php?proceso=instalarBaseDeDatos'}],
     entrada:[{proceso:'control_instalacion',sincronico:true,paquete:{}}],
     salidaMinima:{estadoInstalacion:'completa'}
 });
+
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'enviarPaquete',
+    modulo:'control de usuarios',
+    funcion:'enviarPaquete',
     caso:'entrada al sistema exitosa',
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'abel',password:hex_md5('abel'+'clave1')}}],
     salidaMinima:{activo:true}
 });
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'enviarPaquete',
+    modulo:'control de usuarios',
+    funcion:'enviarPaquete',
     caso:'entrada al sistema fallida por clave erronea',
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'abel',password:hex_md5('abel'+'clave2')}}],
     salidaMinima:{tipox:'falla',mensaje:'el usuario o la clave no corresponden a un usuario activo'}
 });
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'enviarPaquete',
+    modulo:'control de usuarios',
+    funcion:'enviarPaquete',
     caso:'entrada al sistema fallida por usuario inexistente',
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'beto',password:hex_md5('beto')}}],
     salidaMinima:{tipox:'falla',mensaje:'el usuario o la clave no corresponden a un usuario activo'}
 });
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'enviarPaquete',
+    modulo:'control de usuarios',
+    funcion:'enviarPaquete',
     caso:'entrada al sistema fallida por usuario inactivo',
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
     salidaMinima:{tipox:'falla',mensaje:'el usuario "cain" no esta activo'}
@@ -283,7 +295,8 @@ Aplicacion.prototype.pruebaTraduccion=function(definicion){
 }
 
 Aplicacion.prototype.casosDePrueba.push({
-    tipox:'pruebaTraduccion',
+    modulo:'prueba de traducción de elementos tipox genéricos',
+    funcion:'pruebaTraduccion',
     caso:'traducir el tipox:lista',
     entrada:[{tipox:'lista', tagList:'ol(1)', tagElement:'li(2)', elementos:[
                 'uno', 
