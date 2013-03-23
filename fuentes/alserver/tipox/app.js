@@ -2,7 +2,7 @@
 "use strict";
 
 function esAplicacion(esto){
-    if(!(esto instanceof Aplicacion)){
+    if(!esto.esAplicacion){
         throw new Error('se esperaba que el parametro sea una aplicacion');
     }
 }
@@ -40,7 +40,8 @@ Aplicacion.prototype.paginas.entrar={
         {tipox:'formulario_simple', nodes:[
             {tipox:'parametro', id:'usuario'},
             {tipox:'parametro', id:'password', label:'contraseña', type:'password'},
-            {tipox:'parametro_boton', id:'entrar', eventos:{click:'entrar_aplicacion'}}
+            {tipox:'parametro_boton', id:'boton_entrar', eventos:{click:'entrar_aplicacion'}},
+            {tipox:'div', id:'resultado'}
         ]}
     ]
 };
@@ -440,10 +441,14 @@ Aplicacion.prototype.jsRequeridos=[];
 
 Aplicacion.prototype.eventos.entrar_aplicacion=function(evento){
     esAplicacion(this);
-    this.enviarPaquete({proceso:'entrada',paquete:{usuario:usuario.value.toLowerCase(),password:hex_md5(usuario.value.toLowerCase()+'x'+password.value)}}).luego(function(respuesta){
+    resultado.innerText='';
+    resultado.className='resultado_pendiente';
+    this.enviarPaquete({proceso:'entrada',paquete:{usuario:usuario.value.toLowerCase(),password:hex_md5(usuario.value.toLowerCase()+password.value)}}).luego(function(respuesta){
         alert('ok '+JSON.stringify(respuesta));
     }).alFallar(function(mensaje){
-        alert('fallo '+mensaje);
+        resultado.innerText=mensaje;
+        resultado.className='resultado_error';
+        boton_entrar.disabled=null;
     });
 }
 

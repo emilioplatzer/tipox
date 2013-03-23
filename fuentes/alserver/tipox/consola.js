@@ -92,12 +92,26 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
         if(!caso.ignorado){
             var idModulo='TDD_modulo:'+caso.modulo;
             var idCaso='TDD_caso:'+i;
-            var esto=caso.funcion in this.app?this.app:window;
+            var esto=null;
+            var estos=[this.app,window];
+            for(var i_esto=0;i_esto<estos.length;i_esto++){
+                if(caso.funcion in estos[i_esto]){
+                    esto=estos[i_esto];
+                    break;
+                }
+            }
             var obtenido=null;
+            var errorObtenido=null;
             try{
+                if(!esto){
+                    this.app.lanzarExcepcion("no existe la función "+caso.funcion+" o no se encuentra en los lugares probables");
+                }
                 obtenido=esto[caso.funcion].apply(esto,caso.entrada);
             }catch(err){
-                var errorObtenido=err.message||'Recibida excepción sin message';
+                errorObtenido=err.message||'Recibida excepción sin message';
+                if(caso.relanzarExcepcionSiHay){
+                    throw err;
+                }
             }
             var app=this.app;
             var este=this;
@@ -133,23 +147,48 @@ Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso)
         this.cantidadPruebasPorModulos[caso.modulo]=0;
     }
     this.cantidadPruebasPorModulos[caso.modulo]++;
-    var esperado=caso.salida||caso.salidaMinima;
-    var bidireccional=true;
+    var esperado=caso.salida||caso.salidaMinima||caso.salidaDom;
+    var visualizacionBidireccional=!('salidaDom' in caso);
+    var controlBidireccional=true;
     if(errorObtenido || caso.error){
         obtenido={dato:obtenido||null, error:errorObtenido||null};
         esperado={dato:esperado||null, error:caso.error   ||null};
     }else{
-        bidireccional='salida' in caso;
+        controlBidireccional='salida' in caso;
+    }
+    var mostrarCampos=function(objeto){
+        var rta;
+        try{
+            rta=JSON.stringify(objeto);
+        }catch(err){
+            var rta=objeto.toString();
+            for(var atributo in objeto){
+                try{
+                    rta+=', '+atributo+objeto[atributo];
+                }catch(err2){
+                }
+            }
+        }
+        return rta;
     }
     var nodoBonito=function(esperado,obtenido,claseEsperado,claseObtenido){
         return {tipox:'table', nodes:[
-                {tipox:'tr', nodes:[{tipox:'td', className:claseEsperado, nodes:[{tipox:'pre', innerText:JSON.stringify(esperado)}]}]},
-                {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, nodes:[{tipox:'pre', innerText:JSON.stringify(obtenido)}]}]},
+                {tipox:'tr', nodes:[{tipox:'td', className:claseEsperado, nodes:[{tipox:'pre', innerText:mostrarCampos(esperado)}]}]},
+                {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, nodes:[{tipox:'pre', innerText:mostrarCampos(obtenido)}]}]},
         ]};
     }
     var compararBonito=function(esperado,obtenido){
         var rta={tieneError:false};
-        if(typeof(esperado)=='object'?(typeof(obtenido)!='object' || (esperado===null)!==(obtenido===null) || (esperado===undefined)!==(obtenido===undefined) || (esperado instanceof Array)!==(obtenido instanceof Array)):esperado!==obtenido){
+        if(
+            (typeof(esperado)=='object'?
+                (typeof(obtenido)!='object' 
+                    || (esperado===null)!==(obtenido===null) 
+                    || (esperado===undefined)!==(obtenido===undefined) 
+                    || (esperado instanceof Array)!==(obtenido instanceof Array)
+                ):
+                esperado!==obtenido
+            )
+        ){
             rta.tieneError=true;
             rta.bonito=nodoBonito(esperado, obtenido,'TDD_esperado','TDD_obtenido');
         }else if(typeof(esperado)!='object'){
@@ -168,7 +207,13 @@ Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso)
                 }
             }
             for(var campo in esperado) if(esperado.hasOwnProperty(campo)){
-                var rtaInterna=compararBonito(esperado[campo],obtenido[campo]);
+                var valorObtenido=null;
+                if(obtenido===document){
+                    valorObtenido=document.getElementById(campo);
+                }else{
+                    valorObtenido=obtenido[campo];
+                }
+                var rtaInterna=compararBonito(esperado[campo],valorObtenido);
                 definirClaseContenedor(esperado[campo]);
                 nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
                     {tipox:'td', className:'TDD_label', innerText:campo},
@@ -177,21 +222,23 @@ Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso)
                 ]}]});
                 rta.tieneError=rta.tieneError||rtaInterna.tieneError;
             }
-            for(var campo in obtenido) if(obtenido.hasOwnProperty(campo)){
-                if(!(campo in esperado)){
-                    var claseObtenido;
-                    if(bidireccional){
-                        rta.tieneError=true;
-                        claseObtenido='TDD_obtenido';
-                    }else{
-                        claseObtenido='TDD_obtenido_sobrante';
+            if(visualizacionBidireccional){
+                for(var campo in obtenido) if(obtenido.hasOwnProperty(campo)){
+                    if(!(campo in esperado)){
+                        var claseObtenido;
+                        if(controlBidireccional){
+                            rta.tieneError=true;
+                            claseObtenido='TDD_obtenido';
+                        }else{
+                            claseObtenido='TDD_obtenido_sobrante';
+                        }
+                        definirClaseContenedor(obtenido[campo]);
+                        nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
+                            {tipox:'td', className:'TDD_label', innerText:campo},
+                            nodoArray,
+                            {tipox:'td', className:claseContenido, nodes:nodoBonito(undefined,obtenido[campo],'TDD_esperado',claseObtenido)}
+                        ]}]});
                     }
-                    definirClaseContenedor(obtenido[campo]);
-                    nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
-                        {tipox:'td', className:'TDD_label', innerText:campo},
-                        nodoArray,
-                        {tipox:'td', className:claseContenido, nodes:nodoBonito(undefined,obtenido[campo],'TDD_esperado',claseObtenido)}
-                    ]}]});
                 }
             }
             rta.bonito={tipox:'div', nodes:nodes};
@@ -346,15 +393,73 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
     error:'el usuario "cain" no esta activo'
 });
-/*
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'control de usuarios',
     funcion:'probarEvento',
-    caso:'entrada al sistema exitosa a través del evento entrada',
-    entrada:[{nombre:'entrada',elementos:{usuario:{usuario:'abel',password:hex_md5('abel'+'clave1')}}],
-    salidaMinima:{activo:true}
+    caso:'entrada al sistema errónea a través del evento entrada',
+    // relanzarExcepcionSiHay:true,
+    entrada:[{
+        nombre:'entrar_aplicacion',
+        elementos:{
+            usuario:{tipox:'input', type:'text', value:'abel'}, 
+            password:{tipox:'input', type:'password', value:'clave2'},
+            resultado:{tipox:'div'},
+            boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
+        },
+        mocks:[{ 
+            funcion:'enviarPaquete', 
+            argumentos:[{proceso:'entrada', paquete:{usuario:'abel', password:hex_md5('abel'+'clave2')}}], 
+            futuro:{recibirError:"clave errónea"}
+        },{ 
+            miembro:'esAplicacion', 
+            valor:true
+        }]
+    }],
+    salidaDom:{
+        resultado:{innerText:'clave errónea', className:'resultado_error'}, 
+        boton_entrar:{disabled:false}
+    }
 });
-*/
+
+Aplicacion.prototype.probarEvento=function(definicion){
+    TDD_zona_de_pruebas.innerHTML='';
+    this.grab(TDD_zona_de_pruebas,cambiandole(definicion.elementos,{indexadoPor:'id'}));
+    var funcionEvento=this.eventos[definicion.nombre];
+    var app=this;
+    var futuro=this.newFuturo();
+    var mock={};
+    for(var paso=0; paso<definicion.mocks.length; paso++){
+        if('funcion' in definicion.mocks[paso]){
+            mock[definicion.mocks[paso].funcion]=function(def_mock){
+                return function(){
+                    var args_esperado=def_mock.argumentos;
+                    var json_esperado=JSON.stringify(args_esperado);
+                    var args_obtenidos=[];
+                    for(var ia=0; ia<arguments.length; ia++){
+                        args_obtenidos.push(arguments[ia]);
+                    }
+                    var json_obtenido=JSON.stringify(args_obtenidos);
+                    if(json_obtenido!=json_esperado){
+                        app.lanzarExcepcion("no coincide la llamada al mock ///"+json_esperado+"///"+json_obtenido);
+                    }
+                    if(def_mock.futuro){
+                        var futuro=app.newFuturo();
+                        for(var aplicar in def_mock.futuro){
+                            futuro[aplicar](def_mock.futuro[aplicar]);
+                        }
+                        return futuro;
+                    }else{
+                        return def_mock.retornar;
+                    }
+                }
+            }(definicion.mocks[paso]);
+        }else{
+            mock[definicion.mocks[paso].miembro]=definicion.mocks[paso].valor;
+        }
+    }
+    funcionEvento.call(mock,definicion.evento,document.getElementById(definicion.idDestino));
+    return document;
+}
 
 Aplicacion.prototype.pruebaGrabSimple=function(definicion){
     TDD_zona_de_pruebas.innerHTML='';
