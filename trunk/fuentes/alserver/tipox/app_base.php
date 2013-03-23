@@ -58,22 +58,35 @@ class AplicacionBase{
     // configuración interna de la aplicación
     function leerConfiguracion(){
         if(!$this->configuracion){
-            $this->configuracion=json_decode(file_get_contents('configuracion_global.json')); 
-            if(!$this->configuracion){
+            // Nunca cambiar una configuración acá. Cambiarla en configuracion_global.json de la aplicacion o configuracion_local.json de la instancia
+            $this->configuracion=json_decode(<<<JSON
+                {"loguear_sql":{"todo":{
+                    "hasta":"2001-01-01",
+                    "donde":"../logs/todos_los_sql.sql"
+                }}}
+JSON
+            );
+            $configuracionGlobal=json_decode(file_get_contents('configuracion_global.json')); 
+            if(!$configuracionGlobal){
                 throw new ExceptionTipox('No se pudo leer la configuracion_global.json '.json_last_error());
             }
+            cambiarRecursivamente($this->configuracion,$configuracionGlobal);
             $configuracionLocal=json_decode(file_get_contents('configuracion_local.json'));
             if(!$configuracionLocal){
                 throw new ExceptionTipox('No se pudo leer la configuracion_local.json '.json_last_error());
             }
             cambiarRecursivamente($this->configuracion,$configuracionLocal);
         }
+        $this->loguear('2013-03-23',json_encode($this->configuracion));
         return $this->respuestaOk('base de datos instalada');
+    }
+    function loguearSql($mensaje, $razonParaLoguear){
+        $this->loguear($this->configuracion->loguear_sql->todo->hasta,"$mensaje\n",$this->configuracion->loguear_sql->todo->donde);
     }
     function baseDeDatos(){
         if(!$this->db){
-            file_put_contents('todos_los_sql.sql',"/* BASE ABIERTA */\n",FILE_APPEND);
             $this->leerConfiguracion();
+            $this->loguearSql("/* BASE ABIERTA */",'normal');
             $pdo=$this->configuracion->pdo;
             $this->db=new PDO($pdo->dsn,$pdo->username,$pdo->password,$pdo->driver_options);
             $this->tipoDb=$pdo;
@@ -97,7 +110,7 @@ class AplicacionBase{
         }
     }
     function ejecutarSql($sentencia,$parametros=NULL){
-        file_put_contents('todos_los_sql.sql',"$sentencia;\n",FILE_APPEND);
+        $this->loguearSql("$sentencia;",'normal');
         $db=$this->baseDeDatos();
         $sentencia=$db->prepare($sentencia);
         $sentencia->execute($parametros);
