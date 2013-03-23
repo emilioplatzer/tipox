@@ -156,11 +156,24 @@ Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso)
             rta.bonito={tipox:'div', className:'TDD_iguales', innerText:JSON.stringify(esperado)};
         }else{
             var nodes=[];
+            var nodoArray;
+            var claseContenido;
+            var definirClaseContenedor=function(elemento){
+                if(elemento instanceof Array){
+                    nodoArray={tipox:'td',className:'TDD_array',innerText:' '};
+                    claseContenido='';
+                }else{
+                    nodoArray=null;
+                    claseContenido='TDD_contenido';
+                }
+            }
             for(var campo in esperado) if(esperado.hasOwnProperty(campo)){
                 var rtaInterna=compararBonito(esperado[campo],obtenido[campo]);
+                definirClaseContenedor(esperado[campo]);
                 nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
                     {tipox:'td', className:'TDD_label', innerText:campo},
-                    {tipox:'td', className:'TDD_contenido', nodes:rtaInterna.bonito}
+                    nodoArray,
+                    {tipox:'td', className:claseContenido, nodes:rtaInterna.bonito}
                 ]}]});
                 rta.tieneError=rta.tieneError||rtaInterna.tieneError;
             }
@@ -173,9 +186,11 @@ Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso)
                     }else{
                         claseObtenido='TDD_obtenido_sobrante';
                     }
+                    definirClaseContenedor(obtenido[campo]);
                     nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
                         {tipox:'td', className:'TDD_label', innerText:campo},
-                        {tipox:'td', className:'TDD_contenido', nodes:nodoBonito(undefined,obtenido[campo],'TDD_esperado',claseObtenido)}
+                        nodoArray,
+                        {tipox:'td', className:claseContenido, nodes:nodoBonito(undefined,obtenido[campo],'TDD_esperado',claseObtenido)}
                     ]}]});
                 }
             }

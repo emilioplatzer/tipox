@@ -95,6 +95,12 @@ body{
     border-radius:4px;
 }
 
+.TDD_array{
+    border-left:1px solid blue;
+    border-top:1px solid blue;
+    border-bottom:1px solid blue;
+}
+
 .TDD_label:after{
     /* content:'\2320' */
     content:':'
