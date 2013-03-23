@@ -402,7 +402,6 @@ Aplicacion.prototype.casosDePrueba.push({
     modulo:'control de usuarios',
     funcion:'probarEvento',
     caso:'entrada al sistema errónea a través del evento entrada',
-    relanzarExcepcionSiHay:true,
     entrada:[{
         nombre:'entrar_aplicacion',
         elementos:{
@@ -423,6 +422,40 @@ Aplicacion.prototype.casosDePrueba.push({
     salidaDom:{
         resultado:{innerText:'clave errónea', className:'resultado_error'}, 
         boton_entrar:{disabled:false}
+    }
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'control de usuarios',
+    funcion:'probarEvento',
+    caso:'entrada al sistema exitosa a través del evento entrada',
+    // relanzarExcepcionSiHay:true,
+    entrada:[{
+        nombre:'entrar_aplicacion',
+        elementos:{
+            usuario:{tipox:'input', type:'text', value:'abel'}, 
+            password:{tipox:'input', type:'password', value:'clave1'},
+            resultado:{tipox:'div'},
+            boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
+        },
+        mocks:[{ 
+            funcion:'enviarPaquete', 
+            argumentos:[{proceso:'entrada', paquete:{usuario:'abel', password:hex_md5('abel'+'clave1')}}], 
+            futuro:{recibirListo:{activo:true}}
+        },{ 
+            funcion:'cambiarUrl', 
+            argumentos:['{"menu":"donde_entra"}'], 
+            retornar:null
+        },{ 
+            miembro:'esAplicacion', 
+            valor:true
+        },{ 
+            miembro:'urlBienvenida', 
+            valor:'{"menu":"donde_entra"}'
+        }]
+    }],
+    salidaDom:{
+        resultado:{innerText:'Validado. Entrando...', className:'resultado_ok'}, 
+        boton_entrar:{disabled:true}
     }
 });
 

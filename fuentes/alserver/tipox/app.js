@@ -8,12 +8,14 @@ function esAplicacion(esto){
 }
 
 function Aplicacion(){
+    this.esAplicacion=true;
     this.cursorActual=[];
     this.cursorNuevo=[];
     this.jsCargados={};
     this.autoIdDom=0;
     this.entornoDesarrollo=true;
     this.hoyString=new Date().toISOString().substr(0,'2099-12-31'.length);
+    this.urlBienvenida='#!{"menu":"intr"}';
 }
 
 Aplicacion.prototype.paginas={};
@@ -40,7 +42,7 @@ Aplicacion.prototype.paginas.entrar={
         {tipox:'formulario_simple', nodes:[
             {tipox:'parametro', id:'usuario'},
             {tipox:'parametro', id:'password', label:'contraseña', type:'password'},
-            {tipox:'parametro_boton', id:'boton_entrar', eventos:{click:'entrar_aplicacion'}},
+            {tipox:'parametro_boton', id:'boton_entrar', innerText:'entrar', eventos:{click:'entrar_aplicacion'}},
             {tipox:'div', id:'resultado'}
         ]}
     ]
@@ -439,12 +441,20 @@ Aplicacion.prototype.mostrarPaginaActual=function(){
 
 Aplicacion.prototype.jsRequeridos=[];
 
+Aplicacion.prototype.cambiarUrl=function(nuevaUrl){
+    window.location=nuevaUrl
+}
+
 Aplicacion.prototype.eventos.entrar_aplicacion=function(evento){
     esAplicacion(this);
+    boton_entrar.disabled='disabled';
     resultado.innerText='';
     resultado.className='resultado_pendiente';
+    var app=this;
     this.enviarPaquete({proceso:'entrada',paquete:{usuario:usuario.value.toLowerCase(),password:hex_md5(usuario.value.toLowerCase()+password.value)}}).luego(function(respuesta){
-        alert('ok '+JSON.stringify(respuesta));
+        resultado.innerText='Validado. Entrando...';
+        resultado.className='resultado_ok';
+        app.cambiarUrl(app.urlBienvenida);
     }).alFallar(function(mensaje){
         resultado.innerText=mensaje;
         resultado.className='resultado_error';
