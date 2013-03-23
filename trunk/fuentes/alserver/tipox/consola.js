@@ -80,7 +80,7 @@ Probador.prototype.probarTodo=function(){
         }
         var elementoCaso=document.getElementById(idModulo);
     }
-    this.probarUnCaso(0,4);
+    this.probarUnCaso(0,100);
     if(this.casosDePrueba[0].caso=='así se ven lo errores en los casos de prueba fallidos'){
         document.getElementById('TDD_caso:0').parentNode.style.display='none';
     }
@@ -102,15 +102,16 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
             }
             var obtenido=null;
             var errorObtenido=null;
-            try{
-                if(!esto){
-                    this.app.lanzarExcepcion("no existe la función "+caso.funcion+" o no se encuentra en los lugares probables");
-                }
+            if(!esto){
+                this.app.lanzarExcepcion("no existe la función "+caso.funcion+" o no se encuentra en los lugares probables");
+            }
+            if(caso.relanzarExcepcionSiHay){
                 obtenido=esto[caso.funcion].apply(esto,caso.entrada);
-            }catch(err){
-                errorObtenido=err.message||'Recibida excepción sin message';
-                if(caso.relanzarExcepcionSiHay){
-                    throw err;
+            }else{
+                try{
+                    obtenido=esto[caso.funcion].apply(esto,caso.entrada);
+                }catch(err){
+                    errorObtenido=err.message||'Recibida excepción sin message';
                 }
             }
             var app=this.app;
@@ -141,7 +142,7 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
     }
 }
 
-Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso){
+Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCaso){
     this.cantidadPruebas++;
     if(!(caso.modulo in this.cantidadPruebasPorModulos)){
         this.cantidadPruebasPorModulos[caso.modulo]=0;
@@ -150,9 +151,13 @@ Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso)
     var esperado=caso.salida||caso.salidaMinima||caso.salidaDom;
     var visualizacionBidireccional=!('salidaDom' in caso);
     var controlBidireccional=true;
-    if(errorObtenido || caso.error){
-        obtenido={dato:obtenido||null, error:errorObtenido||null};
-        esperado={dato:esperado||null, error:caso.error   ||null};
+    var obtenido=obtenidoOk;
+    if(obtenido && obtenido.mock){
+        obtenido={dato:obtenidoOk.dato, mock:obtenidoOk.mock.obtenido, error:errorObtenido||null};
+        esperado={dato:esperado       , mock:obtenidoOk.mock.esperado, error:caso.error   ||null};
+    }else if(errorObtenido || caso.error){
+        obtenido={dato:obtenidoOk||null, error:errorObtenido||null};
+        esperado={dato:esperado  ||null, error:caso.error   ||null};
     }else{
         controlBidireccional='salida' in caso;
     }
@@ -397,7 +402,7 @@ Aplicacion.prototype.casosDePrueba.push({
     modulo:'control de usuarios',
     funcion:'probarEvento',
     caso:'entrada al sistema errónea a través del evento entrada',
-    // relanzarExcepcionSiHay:true,
+    relanzarExcepcionSiHay:true,
     entrada:[{
         nombre:'entrar_aplicacion',
         elementos:{
@@ -421,44 +426,50 @@ Aplicacion.prototype.casosDePrueba.push({
     }
 });
 
-Aplicacion.prototype.probarEvento=function(definicion){
-    TDD_zona_de_pruebas.innerHTML='';
-    this.grab(TDD_zona_de_pruebas,cambiandole(definicion.elementos,{indexadoPor:'id'}));
-    var funcionEvento=this.eventos[definicion.nombre];
-    var app=this;
-    var futuro=this.newFuturo();
+Aplicacion.prototype.appMock=function(definicion){
     var mock={};
+    var rtaMock={obtenido:{}, esperado:{}};
+    var app=this;
     for(var paso=0; paso<definicion.mocks.length; paso++){
-        if('funcion' in definicion.mocks[paso]){
-            mock[definicion.mocks[paso].funcion]=function(def_mock){
+        var defMock=definicion.mocks[paso];
+        if('funcion' in defMock){
+            rtaMock.esperado[defMock.funcion]={argumentos:defMock.argumentos, invocaciones:defMock.invocaciones||1};
+            rtaMock.obtenido[defMock.funcion]={invocaciones:0};
+            mock[defMock.funcion]=function(defMock){
                 return function(){
-                    var args_esperado=def_mock.argumentos;
-                    var json_esperado=JSON.stringify(args_esperado);
                     var args_obtenidos=[];
                     for(var ia=0; ia<arguments.length; ia++){
                         args_obtenidos.push(arguments[ia]);
                     }
-                    var json_obtenido=JSON.stringify(args_obtenidos);
-                    if(json_obtenido!=json_esperado){
-                        app.lanzarExcepcion("no coincide la llamada al mock ///"+json_esperado+"///"+json_obtenido);
-                    }
-                    if(def_mock.futuro){
+                    rtaMock.obtenido[defMock.funcion].argumentos=args_obtenidos;
+                    rtaMock.obtenido[defMock.funcion].invocaciones++;
+                    if(defMock.futuro){
                         var futuro=app.newFuturo();
-                        for(var aplicar in def_mock.futuro){
-                            futuro[aplicar](def_mock.futuro[aplicar]);
+                        for(var aplicar in defMock.futuro){
+                            futuro[aplicar](defMock.futuro[aplicar]);
                         }
                         return futuro;
                     }else{
-                        return def_mock.retornar;
+                        return defMock.retornar;
                     }
                 }
-            }(definicion.mocks[paso]);
+            }(defMock);
         }else{
             mock[definicion.mocks[paso].miembro]=definicion.mocks[paso].valor;
         }
     }
+    mock.mock=rtaMock;
+    return mock;
+}
+
+Aplicacion.prototype.probarEvento=function(definicion){
+    TDD_zona_de_pruebas.innerHTML='';
+    this.grab(TDD_zona_de_pruebas,cambiandole(definicion.elementos,{indexadoPor:'id'}));
+    var funcionEvento=this.eventos[definicion.nombre];
+    var mock=this.appMock(definicion);
     funcionEvento.call(mock,definicion.evento,document.getElementById(definicion.idDestino));
-    return document;
+    mock.dato=document;
+    return mock;
 }
 
 Aplicacion.prototype.pruebaGrabSimple=function(definicion){
