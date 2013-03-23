@@ -4,7 +4,8 @@ Aplicacion.prototype.paginas.tdd={
     labelMenu:{tipox:'span', className:'TDD_menu', innerText:'T.D.D.'},
     filtro:function(app){ return app.entornoDesarrollo },
     nodes:["Pruebas internas de funcionamiento ",
-        {tipox:'funcion', id:'probarTodo', funcion:'probarTodo', className:'TDD_resultados'}
+        {tipox:'funcion', id:'probarTodo', funcion:'probarTodo', className:'TDD_resultados'},
+        {tipox:'div', id:'TDD_zona_de_pruebas'}
     ]
 };
 
@@ -288,6 +289,21 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
     salidaMinima:{tipox:'falla',mensaje:'el usuario "cain" no esta activo'}
 });
+/*
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'control de usuarios',
+    funcion:'probarEvento',
+    caso:'entrada al sistema exitosa a través del evento entrada',
+    entrada:[{nombre:'entrada',elementos:{usuario:{usuario:'abel',password:hex_md5('abel'+'clave1')}}],
+    salidaMinima:{activo:true}
+});
+*/
+
+Aplicacion.prototype.pruebaGrabSimple=function(definicion){
+    TDD_zona_de_pruebas.innerHTML='';
+    this.grab(TDD_zona_de_pruebas,definicion);
+    return TDD_zona_de_pruebas.innerHTML;
+}
 
 Aplicacion.prototype.pruebaTraduccion=function(definicion){
     var creador=this.creadores[definicion.tipox].creador;
@@ -295,7 +311,7 @@ Aplicacion.prototype.pruebaTraduccion=function(definicion){
 }
 
 Aplicacion.prototype.casosDePrueba.push({
-    modulo:'prueba de traducción de elementos tipox genéricos',
+    modulo:'creación de elementos del DOM a través de objetos tipox',
     funcion:'pruebaTraduccion',
     caso:'traducir el tipox:lista',
     entrada:[{tipox:'lista', tagList:'ol(1)', tagElement:'li(2)', elementos:[
@@ -308,4 +324,20 @@ Aplicacion.prototype.casosDePrueba.push({
                 {tipox:'li(2)', nodes:'dos'}, 
                 {tipox:'li(2)', nodes:{esto:{queda:{}}}}
             ]}
+});
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'creación de elementos del DOM a través de objetos tipox',
+    funcion:'pruebaGrabSimple',
+    caso:'caso de ejemplo',
+    entrada:[{tipox:'p', id:'id.p', className:'la_clase', nodes:[ "texto libre ", {tipox:'span', className:'cita', innerText:"un span"}]}],
+    salida:'<p id="id.p" class="la_clase">texto libre <span class="cita">un span</span></p>'
+});
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'los nodos internos indexado por id',
+    funcion:'pruebaGrabSimple',
+    caso:'caso de ejemplo',
+    entrada:[{tipox:'div', id:'id1', nodes:{indexadoPor:'id', id2:{tipox:'div', innerText:'texto 2'},id3:{tipox:'div', innerText:'texto 3'}}}],
+    salida:'<div id="id1"><div id="id2">texto 2</div><div id="id3">texto 3</div></div>'
 });

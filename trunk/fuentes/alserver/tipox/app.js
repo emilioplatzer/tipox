@@ -90,7 +90,7 @@ Aplicacion.prototype.creadorElementoDOM={
     }
 }
 
-Aplicacion.prototype.grab=function(elemento,definicion,futuro){
+Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicionales){
     var elementoDestino;
     var grabExterno=!futuro;
     if(grabExterno){
@@ -105,6 +105,7 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro){
         elementoDestino=elemento;
     }
     var nuevoElemento;
+    var elementoAgregado;
     if(definicion===null || definicion===undefined){
     }else if(typeof(definicion)=='string'){
         nuevoElemento=document.createTextNode(definicion);
@@ -112,11 +113,19 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro){
         for(var i=0; i<definicion.length; i++){
             this.grab(elementoDestino,definicion[i],futuro);
         }
+    }else if(definicion.indexadoPor){
+        for(var indice in definicion) if(definicion.hasOwnProperty(indice)){
+            if(indice!='indexadoPor'){
+                var atributosAdicionales={};
+                atributosAdicionales[definicion.indexadoPor]=indice;
+                this.grab(elementoDestino,definicion[indice],futuro,atributosAdicionales);
+            }
+        }
     }else{
         var creador=this.domCreator(definicion.tipox);
         if('translate' in creador){
             var definicion_traducida=creador.translate(definicion);
-            this.grab(elementoDestino,definicion_traducida,futuro);
+            elementoAgregado=this.grab(elementoDestino,definicion_traducida,futuro);
         }else{
             nuevoElemento=creador.nuevo(definicion.tipox);
             creador.asignarAtributos(nuevoElemento,definicion,futuro);
@@ -125,15 +134,22 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro){
     }
     if(nuevoElemento){
         elementoDestino.appendChild(nuevoElemento);
+        elementoAgregado=nuevoElemento;
         if('ongrab' in nuevoElemento){
             futuro.luego(function(respuesta,app){
                 nuevoElemento.ongrab(app);
             });
         }
     }
+    if(elementoAgregado && atributosAdicionales){
+        for(var atributo in atributosAdicionales) if(atributosAdicionales.hasOwnProperty(atributo)){
+            elementoAgregado[atributo]=atributosAdicionales[atributo];
+        }
+    }
     if(grabExterno){
         futuro.recibirListo(null);
     }
+    return elementoAgregado;
 }
 
 Aplicacion.prototype.cantidadExcepciones=10;
@@ -420,7 +436,7 @@ Aplicacion.prototype.jsRequeridos=[];
 
 Aplicacion.prototype.eventos.entrar_aplicacion=function(evento){
     esAplicacion(this);
-    this.enviarPaquete({proceso:'entrada',paquete:{usuario:usuario.value.toLowerCase(),password:usuario.value.toLowerCase()+hex_md5(password.value)}}).luego(function(respuesta){
+    this.enviarPaquete({proceso:'entrada',paquete:{usuario:usuario.value.toLowerCase(),password:hex_md5(usuario.value.toLowerCase()+'x'+password.value)}}).luego(function(respuesta){
         alert('ok '+JSON.stringify(respuesta));
     }).alFallar(function(mensaje){
         alert('fallo '+mensaje);
