@@ -160,7 +160,7 @@ Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso)
                 var rtaInterna=compararBonito(esperado[campo],obtenido[campo]);
                 nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
                     {tipox:'td', className:'TDD_label', innerText:campo},
-                    {tipox:'td', nodes:rtaInterna.bonito}
+                    {tipox:'td', className:'TDD_contenido', nodes:rtaInterna.bonito}
                 ]}]});
                 rta.tieneError=rta.tieneError||rtaInterna.tieneError;
             }
@@ -175,7 +175,7 @@ Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso)
                     }
                     nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
                         {tipox:'td', className:'TDD_label', innerText:campo},
-                        {tipox:'td', nodes:nodoBonito(undefined,obtenido[campo],'TDD_esperado',claseObtenido)}
+                        {tipox:'td', className:'TDD_contenido', nodes:nodoBonito(undefined,obtenido[campo],'TDD_esperado',claseObtenido)}
                     ]}]});
                 }
             }
@@ -194,7 +194,7 @@ Probador.prototype.compararObtenido=function(obtenido,errorObtenido,caso,idCaso)
         app.grab(idCaso,{tipox:'div', className:'TDD_error', nodes:[
             {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
                 {tipox:'td',className:'TDD_label_esperado_obtenido', nodes:['esperado',{tipox:'br'},'obtenido']},
-                {tipox:'td', nodes:resultado.bonito}
+                {tipox:'td',className:'TDD_contenido', nodes:resultado.bonito}
             ]}]},
         ]});
     }

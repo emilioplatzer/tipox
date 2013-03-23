@@ -156,11 +156,11 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicional
     return elementoAgregado;
 }
 
-Aplicacion.prototype.cantidadExcepciones=10;
+Aplicacion.prototype.cantidadExcepcionesAMostrar=0;
 
 Aplicacion.prototype.lanzarExcepcion=function(mensaje){
-    this.cantidadExcepciones--;
-    if(this.cantidadExcepciones>0){
+    this.cantidadExcepcionesAMostrar--;
+    if(this.cantidadExcepcionesAMostrar>0){
         this.grab(document.body,{tipox:'div', className:'debug_excepcion', innerText:mensaje});
     }
     throw new Error(mensaje);

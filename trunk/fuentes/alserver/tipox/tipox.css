@@ -90,8 +90,14 @@ body{
     vertical-align:top;
 }
 
+.TDD_contenido{
+    border-left:1px solid blue;
+    border-radius:4px;
+}
+
 .TDD_label:after{
-    content:'\2320'
+    /* content:'\2320' */
+    content:':'
 }
 
 .TDD_iguales{
