@@ -366,7 +366,7 @@ Aplicacion.prototype.creadores.formulario_simple={tipo:'tipox', descripcion:'for
 Aplicacion.prototype.creadores.parametro={tipo:'tipox', descripcion:'parámetro de formulario simple con autolabel', creador:{
     translate:function(definicion){
         var input=cambiandole(definicion, {tipox:definicion.tipox_parametro||'input', name:definicion.name||definicion.id, label:null, aclaracion:null, tipox_parametro:null},null);
-        var label={tipox:'label', 'forHTML':definicion.id, nodes:('label' in definicion?definicion.label:input.name)};
+        var label={tipox:'label', 'htmlFor':definicion.id, nodes:('label' in definicion?definicion.label:input.name)};
         var nuevo={tipox:'tr', nodes:[
             {tipox:'td', nodes:label},
             {tipox:'td', nodes:input}
