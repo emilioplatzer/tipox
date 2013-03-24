@@ -2,6 +2,7 @@
 date_default_timezone_set("America/Buenos_Aires"); 
 
 require_once "comunes.php";
+require_once "dr_pgsql.php";
 
 class ExceptionTipox extends Exception{
 }
@@ -99,6 +100,9 @@ JSON
             $this->loguearSql("/* BASE ABIERTA */",'todo');
             $pdo=$this->configuracion->pdo;
             $this->db=new PDO($pdo->dsn,$pdo->username,$pdo->password,$pdo->driver_options);
+            $nombres=explode(':',$pdo->dsn);
+            $clase='Dr_'.$nombres[0];
+            $this->db->dr=new $clase();
             $this->tipoDb=$pdo;
             $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->db->beginTransaction();
@@ -122,11 +126,21 @@ JSON
     function ejecutarSql($sentencia,$parametros=NULL){
         $this->loguearSql("$sentencia;",'todo');
         $db=$this->baseDeDatos();
+        $sentenciaArreglada=$db->dr->arreglarSentencia($sentencia);
+        if($sentenciaArreglada!=$sentencia){
+            $this->loguearSql("/*ARREGLADA*/\n{$sentenciaArreglada};",'todo');
+        }
         try{
-            $cursor=$db->prepare($sentencia);
+            $cursor=$db->prepare($sentenciaArreglada);
             $cursor->execute($parametros);
         }catch(Exception $err){
-            $this->loguearSql("$sentencia;\n--".json_encode($parametros)."\n/* Excepcion:\n".$err->getMessage()."\n*/\n",'error');
+            $this->loguearSql(
+                "$sentencia;\n".
+                    ($sentenciaArreglada!=$sentencia?"/*ARREGLADA*/\n{$sentenciaArreglada};":"").
+                    "--".json_encode($parametros)."\n".
+                    "/* Excepcion:\n".$err->getMessage()."\n*/\n"
+                ,'error'
+            );
             throw $err;
         }
         return $cursor;
@@ -150,9 +164,6 @@ JSON
                 "\n/*OTRA*/\n".file_get_contents('../tipox/sentencias_instalacion_tests.sql').
                 "\n/*OTRA*/\n".file_get_contents('sentencias_instalacion.sql');
             foreach(explode('/*OTRA*/',$sentencias_instalacion) as $sentencia){
-                if(substr($this->tipoDb->dsn,0,7)=='sqlite:'){
-                    $sentencia=preg_replace(array('/\btrue\b/','/\bfalse\b/'),array(1,0),$sentencia);
-                }
                 if(trim($sentencia)){
                     $this->ejecutarSql($sentencia);
                 }
@@ -166,8 +177,7 @@ JSON
     function proceso_control_instalacion($params){
         if($params->tipo=='tdd'){
             $db=$this->baseDeDatos();
-            // SOLO POSTGRESQL
-            $this->ejecutarSql('set search_path to tests,public');
+            $this->ejecutarSql('/*POSTGRESQL*/set search_path to tests,public--DB*/');
             try{
                 $sentencia=$this->ejecutarSql('select count(*) from prueba_tabla_comun');
             }catch(Exception $err){
