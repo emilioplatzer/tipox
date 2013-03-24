@@ -400,7 +400,16 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'enviarPaquete',
     caso:'control de que el sistema esté instalado',
     aclaracionSiFalla:['se puede instalar poniendo directamente ',{tipox:'a', href:'app.php?proceso=instalarBaseDeDatos', innerText:'app.php?proceso=instalarBaseDeDatos'}],
-    entrada:[{proceso:'control_instalacion',sincronico:true,paquete:{}}],
+    entrada:[{proceso:'control_instalacion',sincronico:true,paquete:{tipo:'base'}}],
+    salidaMinima:{estadoInstalacion:'completa'}
+});
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'control interno del sistema',
+    funcion:'enviarPaquete',
+    caso:'control de que el sistema esté preparado para correr casos de prueba en la base',
+    aclaracionSiFalla:['se puede instalar poniendo directamente ',{tipox:'a', href:'app.php?proceso=instalarBaseDeDatos', innerText:'app.php?proceso=instalarBaseDeDatos'}],
+    entrada:[{proceso:'control_instalacion',sincronico:true,paquete:{tipo:'tdd'}}],
     salidaMinima:{estadoInstalacion:'completa'}
 });
 

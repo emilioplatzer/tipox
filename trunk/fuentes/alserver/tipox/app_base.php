@@ -60,10 +60,16 @@ class AplicacionBase{
         if(!$this->configuracion){
             // Nunca cambiar una configuración acá. Cambiarla en configuracion_global.json de la aplicacion o configuracion_local.json de la instancia
             $this->configuracion=json_decode(<<<JSON
-                {"loguear_sql":{"todo":{
-                    "hasta":"2001-01-01",
-                    "donde":"../logs/todos_los_sql.sql"
-                }}}
+                {"loguear_sql":{
+                    "todo":{
+                        "hasta":"2001-01-01",
+                        "donde":"../logs/todos_los_sql.sql"
+                    },
+                    "error":{
+                        "hasta":"2099-01-01",
+                        "donde":"../logs/sqls_con_error.sql"
+                    }
+                }}
 JSON
             );
             $configuracionGlobal=json_decode(file_get_contents('configuracion_global.json')); 
@@ -81,12 +87,16 @@ JSON
         return $this->respuestaOk('base de datos instalada');
     }
     function loguearSql($mensaje, $razonParaLoguear){
-        $this->loguear($this->configuracion->loguear_sql->todo->hasta,"$mensaje\n",$this->configuracion->loguear_sql->todo->donde);
+        $this->loguear(
+            $this->configuracion->loguear_sql->{$razonParaLoguear}->hasta,
+            "$mensaje\n",
+            $this->configuracion->loguear_sql->{$razonParaLoguear}->donde
+        );
     }
     function baseDeDatos(){
         if(!$this->db){
             $this->leerConfiguracion();
-            $this->loguearSql("/* BASE ABIERTA */",'normal');
+            $this->loguearSql("/* BASE ABIERTA */",'todo');
             $pdo=$this->configuracion->pdo;
             $this->db=new PDO($pdo->dsn,$pdo->username,$pdo->password,$pdo->driver_options);
             $this->tipoDb=$pdo;
@@ -110,23 +120,35 @@ JSON
         }
     }
     function ejecutarSql($sentencia,$parametros=NULL){
-        $this->loguearSql("$sentencia;",'normal');
+        $this->loguearSql("$sentencia;",'todo');
         $db=$this->baseDeDatos();
-        $sentencia=$db->prepare($sentencia);
-        $sentencia->execute($parametros);
-        return $sentencia;
+        try{
+            $cursor=$db->prepare($sentencia);
+            $cursor->execute($parametros);
+        }catch(Exception $err){
+            $this->loguearSql("$sentencia;\n--".json_encode($parametros)."\n/* Excepcion:\n".$err->getMessage()."\n*/\n",'error');
+            throw $err;
+        }
+        return $cursor;
     }
-    function loguear($hasta_fecha,$mensaje){
+    function loguear($hasta_fecha,$mensaje,$archivo=null,$masInfo=true){
         if($this->hoy<=new DateTime($hasta_fecha)){
-            file_put_contents('../logs/log.txt',$mensaje."\n",FILE_APPEND);
+            $archivo=$archivo?:'../logs/log.txt';
+            file_put_contents($archivo,$mensaje."\n",FILE_APPEND);
             $trace=debug_backtrace();
-            file_put_contents('../logs/log.txt',"--> {$trace[0]['line']}: {$trace[0]['file']}\n",FILE_APPEND);
+            if($masInfo){
+                file_put_contents($archivo,"--> {$trace[0]['line']}: {$trace[0]['file']}\n",FILE_APPEND);
+                $ahora=new DateTime();
+                file_put_contents($archivo,"-- # ".$ahora->format(DATE_W3C)."\n",FILE_APPEND);
+            }
         }
     }
     function proceso_instalarBaseDeDatos(){
         $db=$this->baseDeDatos();
         if(file_exists('instalado.flag.no')){
-            $sentencias_instalacion=file_get_contents('sentencias_instalacion.sql');
+            $sentencias_instalacion=file_get_contents('../tipox/sentencias_instalacion.sql').
+                "\n/*OTRA*/\n".file_get_contents('../tipox/sentencias_instalacion_tests.sql').
+                "\n/*OTRA*/\n".file_get_contents('sentencias_instalacion.sql');
             foreach(explode('/*OTRA*/',$sentencias_instalacion) as $sentencia){
                 if(substr($this->tipoDb->dsn,0,7)=='sqlite:'){
                     $sentencia=preg_replace(array('/\btrue\b/','/\bfalse\b/'),array(1,0),$sentencia);
@@ -141,31 +163,43 @@ JSON
         }
         return $this->respuestaOk("instalada");
     }
-    function proceso_control_instalacion(){
-        if(!file_exists('configuracion_local.json')){
-            return $this->respuestaError('no existe la configuracion_local.json'); // se puede crear con un json vacío. Así: {}
-        }
-        $db=$this->baseDeDatos();
-        if(!$db){
-            return $this->respuestaError('base de datos no inexistente');
-        }
-        try{
-            $sentencia=$this->ejecutarSql('select count(*) as cantidad from usuarios');
-            $fila=$sentencia->fetchObject();
-            if(!$fila->cantidad){
-                return $this->respuestaError('no hay usuarios en la tabla de usuarios');
+    function proceso_control_instalacion($params){
+        if($params->tipo=='tdd'){
+            $db=$this->baseDeDatos();
+            // SOLO POSTGRESQL
+            $this->ejecutarSql('set search_path to tests,public');
+            try{
+                $sentencia=$this->ejecutarSql('select count(*) from prueba_tabla_comun');
+            }catch(Exception $err){
+                return $this->respuestaError('no se puede acceder a la prueba_tabla_comun');
             }
-        }catch(Exception $err){
-            return $this->respuestaError('no se puede acceder a la tabla usuarios');
+        }else{
+            if(!file_exists('configuracion_local.json')){
+                return $this->respuestaError('no existe la configuracion_local.json'); // se puede crear con un json vacío. Así: {}
+            }
+            $db=$this->baseDeDatos();
+            if(!$db){
+                return $this->respuestaError('base de datos no inexistente');
+            }
+            try{
+                $sentencia=$this->ejecutarSql('select count(*) as cantidad from usuarios');
+                $fila=$sentencia->fetchObject();
+                if(!$fila->cantidad){
+                    return $this->respuestaError('no hay usuarios en la tabla de usuarios');
+                }
+            }catch(Exception $err){
+                return $this->respuestaError('no se puede acceder a la tabla usuarios');
+            }
         }
         return $this->respuestaOk(array('estadoInstalacion'=>'completa'));
     }
     // procesos default:
     function proceso_entrada($params){
         $db=$this->baseDeDatos();
-        $sentencia=$db->prepare($this->configuracion->sql->validar_usuario);
-        $sentencia->execute(array(':usuario'=>$params->usuario,':password'=>$params->password));
-        $datos_usuario=$sentencia->fetchObject();
+        // NO USAR ejecutarSql para que no se loguee
+        $cursor=$db->prepare($this->configuracion->sql->validar_usuario);
+        $cursor->execute(array(':usuario'=>$params->usuario,':password'=>$params->password));
+        $datos_usuario=$cursor->fetchObject();
         if(!$datos_usuario){
             return $this->respuestaError('el usuario o la clave no corresponden a un usuario activo');
         }else if(!$datos_usuario->activo){
