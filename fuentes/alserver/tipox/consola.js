@@ -93,7 +93,7 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
             var idModulo='TDD_modulo:'+caso.modulo;
             var idCaso='TDD_caso:'+i;
             var esto=null;
-            var estos=[this.app,window];
+            var estos=[this.app,window,caso.entrada[0]];
             for(var i_esto=0;i_esto<estos.length;i_esto++){
                 if(caso.funcion in estos[i_esto]){
                     esto=estos[i_esto];
@@ -102,14 +102,22 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
             }
             var obtenido=null;
             var errorObtenido=null;
-            if(!esto){
-                this.app.lanzarExcepcion("no existe la función "+caso.funcion+" o no se encuentra en los lugares probables");
+            var salvarEntrada=this.mostrarCampos(caso.entrada);
+            var correrCaso=function(){
+                if(!esto){
+                    this.app.lanzarExcepcion("no existe la función "+caso.funcion+" o no se encuentra en los lugares probables");
+                }
+                if(esto==caso.entrada[0]){
+                    obtenido=esto[caso.funcion].apply(esto,caso.entrada.slice(1));
+                }else{
+                    obtenido=esto[caso.funcion].apply(esto,caso.entrada);
+                }
             }
             if(caso.relanzarExcepcionSiHay){
-                obtenido=esto[caso.funcion].apply(esto,caso.entrada);
+                correrCaso();
             }else{
                 try{
-                    obtenido=esto[caso.funcion].apply(esto,caso.entrada);
+                    correrCaso();
                 }catch(err){
                     errorObtenido=err.message||'Recibida excepción sin message';
                 }
@@ -118,12 +126,12 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
             var este=this;
             if(obtenido instanceof Futuro){
                 obtenido.luego(function(respuesta,app){
-                    este.compararObtenido(respuesta,null,caso,idCaso);
+                    este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
                 }).alFallar(function(mensaje,app){
-                    este.compararObtenido(null,mensaje,caso,idCaso);
+                    este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada);
                 });
             }else{
-                este.compararObtenido(obtenido,errorObtenido,caso,idCaso);
+                este.compararObtenido(obtenido,errorObtenido,caso,idCaso,salvarEntrada);
             }
             this.pendientesPorModulos[idModulo]--;
             if(this.pendientesPorModulos[idModulo]==0){
@@ -142,44 +150,63 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
     }
 }
 
-Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCaso){
+Probador.prototype.mostrarCampos=function(objeto){
+    var rta;
+    try{
+        rta=JSON.stringify(objeto);
+    }catch(err){
+        var rta={};
+        for(var atributo in objeto){
+            try{
+                rta[atributo]=objeto[atributo].toString();
+            }catch(err2){
+            }
+        }
+        rta=rta='/* '+objeto.toString()+' */'+JSON.stringify(rta);
+    }
+    return rta;
+}
+
+Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCaso,salvarEntrada){
     this.cantidadPruebas++;
     if(!(caso.modulo in this.cantidadPruebasPorModulos)){
         this.cantidadPruebasPorModulos[caso.modulo]=0;
     }
     this.cantidadPruebasPorModulos[caso.modulo]++;
+    var entradaDespuesDeCorrer=this.mostrarCampos(caso.entrada);
     var esperado=caso.salida||caso.salidaMinima||caso.salidaDom;
     var visualizacionBidireccional=!('salidaDom' in caso);
     var controlBidireccional=true;
     var obtenido=obtenidoOk;
-    if(obtenido && obtenido.mock){
-        obtenido={dato:obtenidoOk.dato, mock:obtenidoOk.mock.obtenido, error:errorObtenido||null};
-        esperado={dato:esperado       , mock:obtenidoOk.mock.esperado, error:caso.error   ||null};
-    }else if(errorObtenido || caso.error){
-        obtenido={dato:obtenidoOk||null, error:errorObtenido||null};
-        esperado={dato:esperado  ||null, error:caso.error   ||null};
+    if(obtenido && obtenido.mock || errorObtenido || caso.error || salvarEntrada!=entradaDespuesDeCorrer){
+        if(obtenido && obtenido.mock){
+            obtenido={dato:obtenidoOk.dato};
+        }else{
+            obtenido={dato:obtenidoOk};
+        }
+        esperado={dato:esperado       };
+        if(obtenido && obtenido.mock){
+            obtenido.mock=obtenidoOk.mock.obtenido;
+            esperado.mock=obtenidoOk.mock.esperado;
+        }
+        if(errorObtenido || caso.error){
+            obtenido.dato=obtenido.dato||null;
+            esperado.dato=esperado.dato||null;
+            obtenido.error=errorObtenido||null;
+            esperado.error=caso.error   ||null;
+        }
+        if(salvarEntrada!=entradaDespuesDeCorrer){
+            obtenido.entrada_alterada=JSON.parse(entradaDespuesDeCorrer);
+            esperado.entrada_alterada=JSON.parse(salvarEntrada);
+        }
     }else{
         controlBidireccional='salida' in caso;
     }
-    var mostrarCampos=function(objeto){
-        var rta;
-        try{
-            rta=JSON.stringify(objeto);
-        }catch(err){
-            var rta=objeto.toString();
-            for(var atributo in objeto){
-                try{
-                    rta+=', '+atributo+objeto[atributo];
-                }catch(err2){
-                }
-            }
-        }
-        return rta;
-    }
+    var probador=this;
     var nodoBonito=function(esperado,obtenido,claseEsperado,claseObtenido){
         return {tipox:'table', nodes:[
-                {tipox:'tr', nodes:[{tipox:'td', className:claseEsperado, nodes:[{tipox:'pre', innerText:mostrarCampos(esperado)}]}]},
-                {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, nodes:[{tipox:'pre', innerText:mostrarCampos(obtenido)}]}]},
+                {tipox:'tr', nodes:[{tipox:'td', className:claseEsperado, nodes:[{tipox:'pre', innerText:probador.mostrarCampos(esperado)}]}]},
+                {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, nodes:[{tipox:'pre', innerText:probador.mostrarCampos(obtenido)}]}]},
         ]};
     }
     var compararBonito=function(esperado,obtenido){
@@ -298,6 +325,13 @@ Aplicacion.prototype.casosDePrueba.push({
 });
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'asi_se_ven_los_errores',
+    funcion:'splice',
+    caso:'así se ve cuando una función modifica un dato interno',
+    entrada:[["uno", "dos", "tres", "cuatro"],2,1,"3"],
+    salida:["tres"]
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_errores',
     funcion:'lanzarExcepcion',
     caso:'así se ven los casos que lanzan excepciones cuando se esperaba un resultado',
     entrada:["texto de la excepcion no esperada"],
@@ -356,7 +390,7 @@ Aplicacion.prototype.casosDePrueba.push({
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'asi_se_ven_los_ok',
     funcion:'lanzarExcepcion',
-    caso:'así se ven cuando no coincide el texto de la excepción',
+    caso:'así se ve cuando coincide el texto de la excepción',
     entrada:["texto de la excepcion"],
     error:"texto de la excepcion"
 });
