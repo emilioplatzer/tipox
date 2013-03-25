@@ -7,6 +7,9 @@ class Dr_sqlite extends Dr_sql{
         $sentencia=str_replace(array('/*POSTGRESQL*/','/*TIENE:SCHEMA*/'),array('/*POSTGRESQL  ','/*TIENE:SCHEMA  '),$sentencia);
         return $sentencia;
     }
+    function adaptarBool(&$valorQueDebeTransformarseEnBooleano){
+        $valorQueDebeTransformarseEnBooleano=!!$valorQueDebeTransformarseEnBooleano;
+    }
 }
 
 ?>
