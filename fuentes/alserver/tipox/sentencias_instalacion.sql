@@ -1,4 +1,5 @@
 /*-- UTF-8:Sí (sin bom) */
+/*SQLITE:BORRAR BASE DE DATOS*/
 /*TIENE:SCHEMA*/
 drop schema if exists tipox cascade;
 --DB*/

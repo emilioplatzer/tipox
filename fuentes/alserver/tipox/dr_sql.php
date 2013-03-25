@@ -2,6 +2,8 @@
 
 class Dr_sql{
     const TABLA='tabla (el objeto de que representa el nombre de una tabla)';
+    function __construct($pdo){
+    }
     function arreglarSentencia($sentencia){
         return $sentencia;
     }
