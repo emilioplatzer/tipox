@@ -101,8 +101,8 @@ JSON
             $pdo=$this->configuracion->pdo;
             $this->db=new PDO($pdo->dsn,$pdo->username,$pdo->password,$pdo->driver_options);
             $nombres=explode(':',$pdo->dsn);
-            $clase='Dr_'.$nombres[0];
-            $this->db->dr=new $clase();
+            $dirverDb='Dr_'.$nombres[0];
+            $this->db->dr=new $dirverDb($pdo);
             $this->tipoDb=$pdo;
             $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->db->beginTransaction();
