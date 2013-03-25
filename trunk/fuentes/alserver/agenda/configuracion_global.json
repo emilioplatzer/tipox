@@ -3,7 +3,8 @@
         "dsn":"sqlite:esta_agenda.db",
         "username":null,
         "password":null,
-        "driver_options":null
+        "driver_options":null,
+        "sql_preparativas":["/*POSTGRESQL*/set search_path to tests, tipox, public --DB*/"]
     },
     "sql":{
         "validar_usuario":"select activo from usuarios where usuario=:usuario and password=:password"

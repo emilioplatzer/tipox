@@ -125,11 +125,15 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
             var app=this.app;
             var este=this;
             if(obtenido instanceof Futuro){
-                obtenido.luego(function(respuesta,app){
-                    este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
-                }).alFallar(function(mensaje,app){
-                    este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada);
-                });
+                obtenido.luego(function(caso,idCaso,salvarEntrada){
+                    return function(respuesta,app){
+                        este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
+                    }
+                }(caso,idCaso,salvarEntrada)).alFallar(function(caso,idCaso,salvarEntrada){
+                    return function(mensaje,app){
+                        este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada);
+                   }
+                }(caso,idCaso,salvarEntrada));
             }else{
                 este.compararObtenido(obtenido,errorObtenido,caso,idCaso,salvarEntrada);
             }
@@ -210,7 +214,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
         ]};
     }
     var compararBonito=function(esperado,obtenido){
-        var rta={tieneError:false};
+        var rta={tieneError:false, tieneAdvertencias:false};
         if(
             (typeof(esperado)=='object'?
                 (typeof(obtenido)!='object' 
@@ -221,8 +225,9 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
                 esperado!==obtenido
             )
         ){
-            rta.tieneError=true;
-            rta.bonito=nodoBonito(esperado, obtenido,'TDD_esperado','TDD_obtenido');
+            rta.tieneError=!caso.ignorarDiferenciaDeTiposNumericos || isNaN(esperado) || isNaN(obtenido) || esperado!=obtenido;
+            rta.tieneAdvertencias=true;
+            rta.bonito=nodoBonito(esperado, obtenido,'TDD_esperado',rta.tieneError?'TDD_obtenido':'TDD_obtenido_sobrante');
         }else if(typeof(esperado)!='object'){
             rta.bonito={tipox:'div', className:'TDD_iguales', innerText:JSON.stringify(esperado)};
         }else{
@@ -253,6 +258,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
                     {tipox:'td', className:claseContenido, nodes:rtaInterna.bonito}
                 ]}]});
                 rta.tieneError=rta.tieneError||rtaInterna.tieneError;
+                rta.tieneAdvertencias=rta.tieneAdvertencias||rtaInterna.tieneAdvertencias;
             }
             if(visualizacionBidireccional){
                 for(var campo in obtenido) if(obtenido.hasOwnProperty(campo)){
@@ -284,7 +290,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     var elementoCaso=document.getElementById(idCaso);
     elementoCasoTitulo.classList.remove('TDD_prueba_ignorada');
     elementoCasoTitulo.classList.remove('TDD_prueba_pendiente');
-    if(resultado.tieneError || this.app.hoyString<=caso.mostarAunqueNoFalleHasta){
+    if(resultado.tieneError || this.app.hoyString<=caso.mostarAunqueNoFalleHasta || resultado.tieneAdvertencias){
         app.grab(idCaso,{tipox:'div', className:'TDD_error', nodes:[
             {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
                 {tipox:'td',className:'TDD_label_esperado_obtenido', nodes:['esperado',{tipox:'br'},'obtenido']},
@@ -400,7 +406,7 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'enviarPaquete',
     caso:'control de que el sistema esté instalado',
     aclaracionSiFalla:['se puede instalar poniendo directamente ',{tipox:'a', href:'app.php?proceso=instalarBaseDeDatos', innerText:'app.php?proceso=instalarBaseDeDatos'}],
-    entrada:[{proceso:'control_instalacion',sincronico:true,paquete:{tipo:'base'}}],
+    entrada:[{proceso:'control_instalacion',paquete:{tipo:'base'}}],
     salidaMinima:{estadoInstalacion:'completa'}
 });
 
@@ -409,7 +415,7 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'enviarPaquete',
     caso:'control de que el sistema esté preparado para correr casos de prueba en la base',
     aclaracionSiFalla:['se puede instalar poniendo directamente ',{tipox:'a', href:'app.php?proceso=instalarBaseDeDatos', innerText:'app.php?proceso=instalarBaseDeDatos'}],
-    entrada:[{proceso:'control_instalacion',sincronico:true,paquete:{tipo:'tdd'}}],
+    entrada:[{proceso:'control_instalacion',paquete:{tipo:'tdd'}}],
     salidaMinima:{estadoInstalacion:'completa'}
 });
 
@@ -417,28 +423,28 @@ Aplicacion.prototype.casosDePrueba.push({
     modulo:'control de usuarios',
     funcion:'enviarPaquete',
     caso:'entrada al sistema exitosa',
-    entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'abel',password:hex_md5('abel'+'clave1')}}],
+    entrada:[{proceso:'entrada',paquete:{usuario:'abel',password:hex_md5('abel'+'clave1')}}],
     salidaMinima:{activo:true}
 });
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'control de usuarios',
     funcion:'enviarPaquete',
     caso:'entrada al sistema fallida por clave erronea',
-    entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'abel',password:hex_md5('abel'+'clave2')}}],
+    entrada:[{proceso:'entrada',paquete:{usuario:'abel',password:hex_md5('abel'+'clave2')}}],
     error:'el usuario o la clave no corresponden a un usuario activo'
 });
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'control de usuarios',
     funcion:'enviarPaquete',
     caso:'entrada al sistema fallida por usuario inexistente',
-    entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'beto',password:hex_md5('beto')}}],
+    entrada:[{proceso:'entrada',paquete:{usuario:'beto',password:hex_md5('beto')}}],
     error:'el usuario o la clave no corresponden a un usuario activo'
 });
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'control de usuarios',
     funcion:'enviarPaquete',
     caso:'entrada al sistema fallida por usuario inactivo',
-    entrada:[{proceso:'entrada',sincronico:true,paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
+    entrada:[{proceso:'entrada',paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
     error:'el usuario "cain" no esta activo'
 });
 Aplicacion.prototype.casosDePrueba.push({
@@ -597,4 +603,24 @@ Aplicacion.prototype.casosDePrueba.push({
     caso:'el innerText solo puede recibir strings',
     entrada:[{tipox:'div', id:'id1', innerText:[]}],
     error:'el innerText solo puede recibir strings'
+});
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'acceso a datos del servidor',
+    funcion:'accesoDb',
+    caso:'traer los dtos de la prueba_tabla_comun',
+    entrada:[{hacer:'select',from:'prueba_tabla_comun',where:true}],
+    ignorarDiferenciaDeTiposNumericos:true,
+    salida:[
+        {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,"ultima_modificacion":"2001-01-01"},
+        {id:2,nombre:"dos",importe:0.11,activo:false,cantidad:1   ,"ultima_modificacion":"2001-01-01"},
+        {id:3,nombre:"año",importe:2000,activo:null ,cantidad:null,"ultima_modificacion":"2001-01-01"}
+    ]
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'acceso a datos del servidor',
+    funcion:'accesoDb',
+    caso:'para traer todos los datos (sin where) hay que poner where:true',
+    entrada:[{hacer:'select',from:'prueba_tabla_comun'}],
+    error:"el acceso a datos debe tener una clausula where"
 });

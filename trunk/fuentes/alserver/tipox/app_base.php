@@ -124,25 +124,15 @@ JSON
         }
     }
     function ejecutarSql($sentencia,$parametros=NULL){
-        $this->loguearSql("$sentencia;",'todo');
         $db=$this->baseDeDatos();
-        $sentenciaArreglada=$db->dr->arreglarSentencia($sentencia);
-        if($sentenciaArreglada!=$sentencia){
-            $this->loguearSql("/*ARREGLADA*/\n{$sentenciaArreglada};",'todo');
-        }
-        try{
-            $cursor=$db->prepare($sentenciaArreglada);
-            $cursor->execute($parametros);
-        }catch(Exception $err){
-            $this->loguearSql(
-                "$sentencia;\n".
-                    ($sentenciaArreglada!=$sentencia?"/*ARREGLADA*/\n{$sentenciaArreglada};":"").
-                    "--".json_encode($parametros)."\n".
-                    "/* Excepcion:\n".$err->getMessage()."\n*/\n"
-                ,'error'
-            );
-            throw $err;
-        }
+        $app=$this;
+        $logTodo=$this->hoy<=$this->configuracion->loguear_sql->todo->hasta?function($mensaje) use ($app){
+            $app->loguear($app->configuracion->loguear_sql->todo->hasta,$mensaje,$app->configuracion->loguear_sql->todo->donde);
+        }:null;
+        $logError=$this->hoy<=$this->configuracion->loguear_sql->error->hasta?function($mensaje) use ($app){
+            $app->loguear($app->configuracion->loguear_sql->error->hasta,$mensaje,$app->configuracion->loguear_sql->error->donde);
+        }:null;
+        $cursor=$db->dr->ejecutar($db,$sentencia,$parametros,$logTodo,$logError);
         return $cursor;
     }
     function loguear($hasta_fecha,$mensaje,$archivo=null,$masInfo=true){
@@ -203,6 +193,28 @@ JSON
         }
         return $this->respuestaOk(array('estadoInstalacion'=>'completa'));
     }
+    function proceso_acceso_db($params){
+        $db=$this->baseDeDatos();
+        if(!isset($params->where)){
+            return $this->respuestaError("el acceso a datos debe tener una clausula where");
+        }
+        $this->assert(is_string($params->from),' from debe ser un nombre de tabla');
+        if($params->hacer=='select'){
+            $sentencia="SELECT * FROM ".$db->dr->quote($params->from,Dr_sql::TABLA);
+            $cursor=$this->ejecutarSql($sentencia);
+            return $this->respuestaOk($cursor->fetchAll(PDO::FETCH_CLASS));
+        }else{
+            return $this->respuestaError("no esta definido como hacer ".$params->hacer." en el acceso a datos");
+        }
+    }
+    function lanzarExcepcion($mensaje){
+        throw new Exception($mensaje);
+    }
+    function assert($condicion, $mensaje){
+        if(!$condicion){
+            $this->lanzarExcepcion($mensaje);
+        }
+    }
     // procesos default:
     function proceso_entrada($params){
         $db=$this->baseDeDatos();
@@ -212,8 +224,12 @@ JSON
         $datos_usuario=$cursor->fetchObject();
         if(!$datos_usuario){
             return $this->respuestaError('el usuario o la clave no corresponden a un usuario activo');
-        }else if(!$datos_usuario->activo){
-            return $this->respuestaError('el usuario '.json_encode($params->usuario).' no esta activo');
+        }else{
+            $this->loguear('2013-03-24',json_encode($datos_usuario));
+            $this->db->dr->adaptarBool($datos_usuario->activo);
+            if(!$datos_usuario->activo){
+                return $this->respuestaError('el usuario '.json_encode($params->usuario).' no esta activo');
+            }
         }
         return $this->respuestaOk($datos_usuario);
     }

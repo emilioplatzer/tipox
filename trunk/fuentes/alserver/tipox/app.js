@@ -636,6 +636,10 @@ Aplicacion.prototype.cambiarPaginaLocationHash=function(){
     this.mostrarPaginaActual();
 }
 
+Aplicacion.prototype.accesoDb=function(params){
+    return this.enviarPaquete({proceso:'acceso_db',paquete:params});
+}
+
 Aplicacion.prototype.controlarParametros=function(){}
 
 Aplicacion.run=function(app){
@@ -651,3 +655,4 @@ Aplicacion.run=function(app){
     , false);
     return futuro;
 }
+
