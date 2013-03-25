@@ -87,7 +87,8 @@ Probador.prototype.probarTodo=function(){
 }
 
 Probador.prototype.probarUnCaso=function(desde,cuantos){
-    for(var i=desde; i<desde+cuantos && i<this.casosDePrueba.length; i++){
+    var procesarHasta=(new Date()).getTime()+500;
+    for(var i=desde; i<desde+cuantos && i<this.casosDePrueba.length && (new Date()).getTime()<procesarHasta; i++){
         var caso=this.casosDePrueba[i];
         if(!caso.ignorado){
             var idModulo='TDD_modulo:'+caso.modulo;
@@ -147,7 +148,7 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
             }
         }
     }
-    desde+=cuantos;
+    desde=i;
     var este=this;
     if(desde<this.casosDePrueba.length){
         setTimeout(function(){ este.probarUnCaso(desde,cuantos); },100);
