@@ -184,13 +184,13 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     var controlBidireccional=true;
     var obtenido=obtenidoOk;
     if(obtenido && obtenido.mock || errorObtenido || caso.error || salvarEntrada!=entradaDespuesDeCorrer){
-        if(obtenido && obtenido.mock){
+        if(obtenidoOk && obtenidoOk.mock){
             obtenido={dato:obtenidoOk.dato};
         }else{
             obtenido={dato:obtenidoOk};
         }
         esperado={dato:esperado       };
-        if(obtenido && obtenido.mock){
+        if(obtenidoOk && obtenidoOk.mock){
             obtenido.mock=obtenidoOk.mock.obtenido;
             esperado.mock=obtenidoOk.mock.esperado;
         }
@@ -460,19 +460,17 @@ Aplicacion.prototype.casosDePrueba.push({
             resultado:{tipox:'div'},
             boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
         },
+        incluirDocumentoEnSalida:true,
         mocks:[{ 
             funcion:'enviarPaquete', 
             argumentos:[{proceso:'entrada', paquete:{usuario:'abel', password:hex_md5('abel'+'clave2')}}], 
             futuro:{recibirError:"clave errónea"}
-        },{ 
-            miembro:'esAplicacion', 
-            valor:true
         }]
     }],
-    salidaDom:{
+    salidaDom:{documento:{
         resultado:{innerText:'clave errónea', className:'resultado_error'}, 
         boton_entrar:{disabled:false}
-    }
+    }}
 });
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'control de usuarios',
@@ -487,6 +485,7 @@ Aplicacion.prototype.casosDePrueba.push({
             resultado:{tipox:'div'},
             boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
         },
+        incluirDocumentoEnSalida:true,
         mocks:[{ 
             funcion:'enviarPaquete', 
             argumentos:[{proceso:'entrada', paquete:{usuario:'abel', password:hex_md5('abel'+'clave1')}}], 
@@ -496,49 +495,48 @@ Aplicacion.prototype.casosDePrueba.push({
             argumentos:['{"menu":"donde_entra"}'], 
             retornar:null
         },{ 
-            miembro:'esAplicacion', 
-            valor:true
-        },{ 
             miembro:'urlBienvenida', 
             valor:'{"menu":"donde_entra"}'
         }]
     }],
-    salidaDom:{
+    salidaDom:{documento:{
         resultado:{innerText:'Validado. Entrando...', className:'resultado_ok'}, 
         boton_entrar:{disabled:true}
-    }
+    }}
 });
 
 Aplicacion.prototype.appMock=function(definicion){
-    var mock={};
+    var mock={esAplicacion:true};
     var rtaMock={obtenido:{}, esperado:{}};
     var app=this;
-    for(var paso=0; paso<definicion.mocks.length; paso++){
-        var defMock=definicion.mocks[paso];
-        if('funcion' in defMock){
-            rtaMock.esperado[defMock.funcion]={argumentos:defMock.argumentos, invocaciones:defMock.invocaciones||1};
-            rtaMock.obtenido[defMock.funcion]={invocaciones:0};
-            mock[defMock.funcion]=function(defMock){
-                return function(){
-                    var args_obtenidos=[];
-                    for(var ia=0; ia<arguments.length; ia++){
-                        args_obtenidos.push(arguments[ia]);
-                    }
-                    rtaMock.obtenido[defMock.funcion].argumentos=args_obtenidos;
-                    rtaMock.obtenido[defMock.funcion].invocaciones++;
-                    if(defMock.futuro){
-                        var futuro=app.newFuturo();
-                        for(var aplicar in defMock.futuro){
-                            futuro[aplicar](defMock.futuro[aplicar]);
+    if('mocks' in definicion){
+        for(var paso=0; paso<definicion.mocks.length; paso++){
+            var defMock=definicion.mocks[paso];
+            if('funcion' in defMock){
+                rtaMock.esperado[defMock.funcion]={argumentos:defMock.argumentos, invocaciones:defMock.invocaciones||1};
+                rtaMock.obtenido[defMock.funcion]={invocaciones:0};
+                mock[defMock.funcion]=function(defMock){
+                    return function(){
+                        var args_obtenidos=[];
+                        for(var ia=0; ia<arguments.length; ia++){
+                            args_obtenidos.push(arguments[ia]);
                         }
-                        return futuro;
-                    }else{
-                        return defMock.retornar;
+                        rtaMock.obtenido[defMock.funcion].argumentos=args_obtenidos;
+                        rtaMock.obtenido[defMock.funcion].invocaciones++;
+                        if(defMock.futuro){
+                            var futuro=app.newFuturo();
+                            for(var aplicar in defMock.futuro){
+                                futuro[aplicar](defMock.futuro[aplicar]);
+                            }
+                            return futuro;
+                        }else{
+                            return defMock.retornar;
+                        }
                     }
-                }
-            }(defMock);
-        }else{
-            mock[definicion.mocks[paso].miembro]=definicion.mocks[paso].valor;
+                }(defMock);
+            }else{
+                mock[definicion.mocks[paso].miembro]=definicion.mocks[paso].valor;
+            }
         }
     }
     mock.mock=rtaMock;
@@ -550,8 +548,22 @@ Aplicacion.prototype.probarEvento=function(definicion){
     this.grab(TDD_zona_de_pruebas,cambiandole(definicion.elementos,{indexadoPor:'id'}));
     var funcionEvento=this.eventos[definicion.nombre];
     var mock=this.appMock(definicion);
+    if('localStorage' in definicion){
+        for(var clave_ls in definicion.localStorage){
+            localStorage[clave_ls]=JSON.stringify(definicion.localStorage[clave_ls]);
+        }
+    }
     funcionEvento.call(mock,definicion.evento,document.getElementById(definicion.idDestino));
-    mock.dato=document;
+    mock.dato={};
+    if(definicion.incluirDocumentoEnSalida){
+        mock.dato.documento=document;
+    }
+    if('localStorage' in definicion){
+        mock.dato.localStorage={};
+        for(var clave_ls in definicion.localStorage){
+            mock.dato.localStorage[clave_ls]=JSON.parse(localStorage[clave_ls]);
+        }
+    }
     return mock;
 }
 
@@ -588,6 +600,14 @@ Aplicacion.prototype.casosDePrueba.push({
     caso:'caso de ejemplo',
     entrada:[{tipox:'p', id:'id.p', className:'la_clase', nodes:[ "texto libre ", {tipox:'span', className:'cita', innerText:"un span"}]}],
     salida:'<p id="id.p" class="la_clase">texto libre <span class="cita">un span</span></p>'
+});
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'creación de elementos del DOM a través de objetos tipox',
+    funcion:'pruebaGrabSimple',
+    caso:'creación de elemento del DOM con style',
+    entrada:[{tipox:'p', style:{width:200, backgroundColor:'#333'}}],
+    salida:'<p style="width: 200px; background-color: rgb(51, 51, 51);"></p>'
 });
 
 Aplicacion.prototype.casosDePrueba.push({

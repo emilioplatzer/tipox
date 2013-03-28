@@ -91,9 +91,17 @@ Aplicacion.prototype.creadorElementoDOM={
                     this.asignarAtributos(destino[atributo],valor,futuro);
                 }else{
                     destino[atributo]=valor;
+                    if(destino[atributo]!=valor){
+                        if(atributo in this.atributosEspeciales){ 
+                            destino[atributo]=valor+this.atributosEspeciales[atributo].sufijoValor;
+                        }
+                    }
                 }
             }
         }
+    },
+    atributosEspeciales:{
+        'width':{sufijoValor:'px'}
     }
 }
 
