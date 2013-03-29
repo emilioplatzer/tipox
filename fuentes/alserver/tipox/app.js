@@ -68,23 +68,30 @@ Aplicacion.prototype.creadorElementoDOM={
             default:
                 var app=this.app;
                 if(valor instanceof Array){
-                    app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
-                    if(atributo=='innerText'){
-                        throw new Error("el innerText solo puede recibir strings");
-                    }
-                    var agregadores={add:true, push:true};
-                    var pude=false;
-                    for(var agregador in agregadores){
-                        if(agregador in destino[atributo]){
-                            for(var i=0; i<valor.length; i++){
-                                destino[atributo][agregador](valor[i]);
-                            }
-                            pude=true;
-                            break;
+                    var defEspecial;
+                    if(atributo in this.atributosEspeciales){
+                        defEspecial=this.atributosEspeciales[atributo];
+                        atributo=defEspecial.atributoDestino;
+                        destino[atributo]=defEspecial.aplanarValores(valor);
+                    }else{
+                        app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
+                        if(atributo=='innerText'){
+                            throw new Error("el innerText solo puede recibir strings");
                         }
-                    }
-                    if(!pude){
-                        app.lanzarExcepcion('No esta definida la manera de agregar elementos de arreglo al atributo '+atributo);
+                        var agregadores={add:true, push:true};
+                        var pude=false;
+                        for(var agregador in agregadores){
+                            if(agregador in destino[atributo]){
+                                for(var i=0; i<valor.length; i++){
+                                    destino[atributo][agregador](valor[i]);
+                                }
+                                pude=true;
+                                break;
+                            }
+                        }
+                        if(!pude){
+                            app.lanzarExcepcion('No esta definida la manera de agregar elementos de arreglo al atributo '+atributo);
+                        }
                     }
                 }else if(valor instanceof Object){
                     app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
@@ -443,7 +450,12 @@ Aplicacion.prototype.contenidoPaginaActual=function(){
 }
 
 Aplicacion.prototype.mostrarPaginaActual=function(){
-    document.body.innerHTML=''; 
+    var dbg=document.getElementById('debugDirecto');
+    if(dbg){
+        document.body.innerHTML='<div id=debugDirecto>'+dbg.innerHTML+'</div>'; 
+    }else{
+        document.body.innerHTML=''; 
+    }
     this.grab(document.body,this.contenidoPaginaActual());
 }
 
@@ -633,7 +645,7 @@ Aplicacion.prototype.cambiarPaginaLocationHash=function(){
     this.validarUsuario();
     if(location.hash.substr(0,2)==='#!'){
         var hash=location.hash.substr(2);
-        if(hash[0]=='%'){
+        if(hash[0]=='%' || hash[1]=='%'){
             hash=decodeURI(hash);
         }
         var nuevoDestino=JSON.parse(hash);
@@ -664,3 +676,12 @@ Aplicacion.run=function(app){
     return futuro;
 }
 
+// compatibilidad con navegadores viejos
+if(!Modernizr.classlist || true){
+    Aplicacion.prototype.creadorElementoDOM.atributosEspeciales.classList={
+        atributoDestino:'className',
+        aplanarValores:function(valores){
+            return valores.join(' ');
+        }
+    }
+}

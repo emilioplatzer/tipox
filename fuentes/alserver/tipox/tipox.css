@@ -153,3 +153,8 @@ body{
 pre{
     margin:0px
 }
+
+#debugDirecto{
+    font-size:120%;
+    background-color:yellow;
+}
