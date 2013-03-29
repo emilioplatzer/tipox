@@ -39,3 +39,39 @@ function debugDirecto(mensaje){
     }
 }
 
+var compatibilidad={};
+
+compatibilidad.classList=function(destino){
+    if(!Modernizr.classlist){
+        destino.classList={
+            contains:function(clase){
+                var arreglo=destino.className.split(' ');
+                for(var i=0; i<arreglo.length; i++){
+                    if(clase==arreglo[i]){
+                        return true;
+                    }
+                }
+                return false;
+            },
+            add:function(clase){
+                var arreglo=destino.className.split(' ');
+                for(var i=0; i<arreglo.length; i++){
+                    if(clase==arreglo[i]){
+                        return ;
+                    }
+                }
+                arreglo.push(clase);
+                destino.className=arreglo.join(' ');
+            },
+            remove:function(clase){
+                var arreglo=destino.className.split(' ');
+                for(var i=0; i<arreglo.length; i++){
+                    while(i<arreglo.length && clase==arreglo[i]){
+                        arreglo.splice(i,1);
+                    }
+                }
+                destino.className=arreglo.join(' ');
+            }
+        }
+    }
+}

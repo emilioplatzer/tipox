@@ -26,7 +26,16 @@ function Probador(app){
 
 Aplicacion.prototype.probarTodo=function(){
     var probador=new Probador(this);
-    probador.probarTodo();
+    if("capturar la excepción y mostrarla en debug directo"){
+        try{
+            probador.probarTodo();
+        }catch(err){
+            debugDirecto(descripciones_de_error(err));
+            debugDirecto(err.stack);
+        }
+    }else{
+        probador.probarTodo();
+    }
 }
 
 Probador.prototype.probarTodo=function(){
@@ -69,6 +78,7 @@ Probador.prototype.probarTodo=function(){
         this.app.grab(elementoFuncionCasos,
             {tipox:'div', className:'TDD_caso', id:idCaso, nodes:nodosInternos}
         );
+        compatibilidad.classList(elementoFuncionTitulo);
         if(caso.ignorado){  
             elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
             elementoFuncionTitulo.classList.add('TDD_prueba_ignorada');
@@ -290,6 +300,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     var elementoFuncionTitulo=document.getElementById(idModulo+'_titulo');
     var elementoCasoTitulo=document.getElementById(idCaso+'_titulo');
     var elementoCaso=document.getElementById(idCaso);
+    compatibilidad.classList(elementoCasoTitulo);
     elementoCasoTitulo.classList.remove('TDD_prueba_ignorada');
     elementoCasoTitulo.classList.remove('TDD_prueba_pendiente');
     if(resultado.tieneError || this.app.hoyString<=caso.mostarAunqueNoFalleHasta || resultado.tieneAdvertencias){
