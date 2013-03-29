@@ -1,4 +1,5 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
+"use strict";
 
 Aplicacion.prototype.paginas.tdd={ 
     labelMenu:{tipox:'span', className:'TDD_menu', innerText:'T.D.D.'},
