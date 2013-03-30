@@ -544,6 +544,7 @@ var Futuro=function(app){
     this.app=app;
     this.recibido={tipo:'nada'};
     this.manejadores=[];
+    this.futuroEncadenado=false;
 }
 
 Aplicacion.prototype.newFuturo=function(){
@@ -553,12 +554,11 @@ Aplicacion.prototype.newFuturo=function(){
 Futuro.prototype.tiposQueImplicanProcesar={ok:true, error:true};
 
 Futuro.prototype.sincronizar=function(){
-    var proximoLuego=false;
     if(this.tiposQueImplicanProcesar[this.recibido.tipo]){
         while(this.manejadores.length>0){
             var manejador=this.manejadores.shift();
-            if(proximoLuego){
-                proximoLuego.manejadores.push(manejador);
+            if(this.futuroEncadenado){
+                this.futuroEncadenado.manejadores.push(manejador);
             }else if(this.recibido.tipo==manejador.tipo){
                 var hacer=manejador.funcion;
                 var rta;
@@ -577,7 +577,7 @@ Futuro.prototype.sincronizar=function(){
                 }
                 this.recibido.dato=rta;
                 if(rta instanceof Futuro){
-                    proximoLuego=rta;
+                    this.futuroEncadenado=rta;
                 }
             }
         }

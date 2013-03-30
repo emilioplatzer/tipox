@@ -776,7 +776,7 @@ Aplicacion.prototype.casosDePrueba.push({
         });
         futuro.recibirListo('Y');
         futuro.luego(function(mensaje,app){
-            rta=JSON.stringify(mensaje)+' paso B';
+            rta=mensaje+' paso B';
         });
         f2.recibirListo('x');
         return rta;

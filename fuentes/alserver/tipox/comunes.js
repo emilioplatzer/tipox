@@ -15,8 +15,8 @@ function descripcionError(err){
     if(typeof(err)=='string'){
         return err;
     }else{
-        var debugging=true;
-        //var debugging=false;
+        //var debugging=true;
+        var debugging=false;
         return err.message+(debugging?' '+err.stack:'');
     }
 }
