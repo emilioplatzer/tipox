@@ -17,11 +17,12 @@ create table prueba_tabla_comun(
     importe numeric,
     activo boolean,
     cantidad integer,
+    fecha date,
     ultima_modificacion date default current_timestamp
 );
-/*OTRA*/insert into prueba_tabla_comun(nombre, importe, activo, cantidad, ultima_modificacion) values ('uno' ,null,true ,-9,  '2001-01-01');
-/*OTRA*/insert into prueba_tabla_comun(nombre, importe, activo, cantidad, ultima_modificacion) values ('dos' ,0.11,false, 1  ,'2001-01-01');
-/*OTRA*/insert into prueba_tabla_comun(nombre, importe, activo, cantidad, ultima_modificacion) values ('año' ,2000,null ,null,'2001-01-01');
+/*OTRA*/insert into prueba_tabla_comun(nombre, importe, activo, cantidad, fecha, ultima_modificacion) values ('uno' ,null,true ,-9  ,'2001-12-31','2001-01-01');
+/*OTRA*/insert into prueba_tabla_comun(nombre, importe, activo, cantidad, fecha, ultima_modificacion) values ('dos' ,0.11,false, 1  ,null        ,'2001-01-01');
+/*OTRA*/insert into prueba_tabla_comun(nombre, importe, activo, cantidad, fecha, ultima_modificacion) values ('año' ,2000,null ,null,'1991-05-06','2001-01-01');
 /*OTRA*/
 /*POSTGRESQL*/
 CREATE TRIGGER prueba_tabla_comun_um

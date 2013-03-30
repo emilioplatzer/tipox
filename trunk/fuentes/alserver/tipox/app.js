@@ -1,6 +1,8 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
 
+var debug1=false;
+
 function esAplicacion(esto){
     if(!esto.esAplicacion){
         throw new Error('se esperaba que el parametro sea una aplicacion');
@@ -513,16 +515,27 @@ Aplicacion.prototype.newFuturo=function(){
 }
 
 Futuro.prototype.sincronizar=function(){
+    var proximoLuego=false;
+    var funcionesReaccionar;
+    var datoRecibido;
     if('respuesta' in this){
-        while(this.luegos.length>0){
-            var hacer=this.luegos.shift();
-            hacer(this.respuesta,this.app);
-        }
+        funcionesReaccionar='luegos';
+        datoRecibido='respuesta';
+    }else if('mensajeError' in this){
+        funcionesReaccionar='manejadoresError';
+        datoRecibido='mensajeError';
+    }else{
+        return;
     }
-    if('mensajeError' in this){
-        while(this.manejadoresError.length>0){
-            var hacer=this.manejadoresError.shift();
-            hacer(this.mensajeError,this.app);
+    while(this[funcionesReaccionar].length>0){
+        var hacer=this[funcionesReaccionar].shift();
+        if(proximoLuego){
+            proximoLuego[funcionesReaccionar].push(hacer);
+        }else{
+            this[datoRecibido]=hacer(this[datoRecibido],this.app);
+            if(this[datoRecibido] instanceof Futuro){
+                proximoLuego=this[datoRecibido];
+            }
         }
     }
 }
@@ -566,6 +579,7 @@ Aplicacion.prototype.mapLuego=function(arreglo,funcionParaCadaElemento,funcionPa
 }
 
 Aplicacion.prototype.requiereJs=function(nombreJs){
+    debugDirecto('requirio js '+nombreJs);
     var futuro=this.newFuturo();
     if(!this.jsCargados[nombreJs]){
         var s = document.createElement("script");
@@ -585,6 +599,7 @@ Aplicacion.prototype.enviarPaquete=function(params){
     var peticion=new XMLHttpRequest();
     var futuro=this.newFuturo();
     var ifDebug=function(x){ return x; };
+    if(debug1) { debugDirecto('por enviar el paquete '+JSON.stringify(params)); }
     peticion.onreadystatechange=function(){
         switch(peticion.readyState) {
         case 4: 
@@ -602,6 +617,7 @@ Aplicacion.prototype.enviarPaquete=function(params){
                         }
                         if(obtenido.tipox=='rtaOk'){
                             try{
+                                if(debug1) { debugDirecto('por indicar que está recibido el paquete '+JSON.stringify(obtenido)); }
                                 futuro.recibirListo(obtenido.respuesta);
                             }catch(err_llamador){
                                 futuro.recibirError(descripciones_de_error(err_llamador)+' al procesar la recepcion de la peticion AJAX');
@@ -656,8 +672,67 @@ Aplicacion.prototype.cambiarPaginaLocationHash=function(){
     this.mostrarPaginaActual();
 }
 
+/* Manejadores de tablas */
+var tabla={}; // donde van las definiciones leídas de tabla_xxx.js
+
+Aplicacion.prototype.drTabla={};
+Aplicacion.prototype.drTabla.prueba_tabla_comun={carpeta:'../tipox'};
+
+/* Manejadores de campos */
+Aplicacion.prototype.tiposCampo={};
+Aplicacion.prototype.constructorTipoGenerico=function(){
+    this.adaptarDatoTraidoDelServidor=function(valorCrudo){
+        return valorCrudo+1;
+    }
+}
+Aplicacion.prototype.tiposCampo.texto=Aplicacion.prototype.constructorTipoGenerico;
+Aplicacion.prototype.tiposCampo.fecha=Aplicacion.prototype.constructorTipoGenerico;
+Aplicacion.prototype.tiposCampo.entero=Aplicacion.prototype.constructorTipoGenerico;
+Aplicacion.prototype.tiposCampo.serial=Aplicacion.prototype.constructorTipoGenerico;
+Aplicacion.prototype.tiposCampo.logico=Aplicacion.prototype.constructorTipoGenerico;
+Aplicacion.prototype.tiposCampo.decimal=Aplicacion.prototype.constructorTipoGenerico;
+
+Aplicacion.prototype.prepararTabla=function(nombre){
+    var futuro=this.requiereJs(((app.drTabla[nombre]||{}).carpeta||'.')+'/'+'tabla_'+nombre);
+    futuro.luego(function(respuesta,app){
+        debugDirecto('analizando la estructura de la tabla '+JSON.stringify(respuesta)+'  ===>  '+JSON.stringify(tabla));
+        if(!nombre in app.drTabla){
+            app.drTabla[nombre]={campos:{}, carpeta:''};
+        }
+        debugDirecto('paso 1 '+JSON.stringify(app.drTabla));
+        if(!('campos' in app.drTabla[nombre])){
+            app.drTabla[nombre].campos={};
+            debugDirecto('paso 2 '+JSON.stringify(app.drTabla)+' ~~~~~ '+JSON.stringify(tabla[nombre])+' x '+nombre);
+            for(var campo in tabla[nombre].campos){
+                var defCampo=tabla[nombre].campos[campo];
+                app.drTabla[nombre].campos[campo]=new app.tiposCampo[defCampo.tipo](campo);
+            }
+        }
+        debugDirecto('analizada la estructura de la tabla '+JSON.stringify(app.drTabla));
+        return null;
+    });
+    return futuro;
+}
+
 Aplicacion.prototype.accesoDb=function(params){
-    return this.enviarPaquete({proceso:'acceso_db',paquete:params});
+    debug1=true;
+    return this.prepararTabla(params.from).luego(function(respuesta,app){
+        debugDirecto('por enviar paquete '+JSON.stringify(respuesta));
+        return app.enviarPaquete({proceso:'acceso_db',paquete:params});
+    }).luego(function(respuesta,app){
+        var campos=app.drTabla[params.from].campos;
+        debugDirecto('por arreglar los datos '+JSON.stringify(respuesta)+' /// '+JSON.stringify(campos));
+        for(var id_fila in respuesta) if(respuesta.hasOwnProperty(id_fila)){
+            var fila=respuesta[id_fila];
+            for(var campo in fila){
+                if(campo in campos){
+                    fila[campo]=campos[campo].adaptarDatoTraidoDelServidor(fila[campo]);
+                }
+            }
+        }
+        debugDirecto('datos arreglados '+JSON.stringify(respuesta));
+        return respuesta;
+    });
 }
 
 Aplicacion.prototype.controlarParametros=function(){}

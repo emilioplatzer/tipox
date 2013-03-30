@@ -139,6 +139,7 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
             if(obtenido instanceof Futuro){
                 obtenido.luego(function(caso,idCaso,salvarEntrada){
                     return function(respuesta,app){
+                        if(debug1) { debugDirecto('empezando a comprar '+JSON.stringify(respuesta)); }
                         este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
                     }
                 }(caso,idCaso,salvarEntrada)).alFallar(function(caso,idCaso,salvarEntrada){
@@ -638,18 +639,98 @@ Aplicacion.prototype.casosDePrueba.push({
     error:'el innerText solo puede recibir strings'
 });
 
+Aplicacion.prototype.aplicarFuncion=function(hacer,parametros){
+    return hacer.apply(app,parametros)
+}
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'objeto Futuro',
+    funcion:'aplicarFuncion',
+    caso:'caso simple llega el dato después del luego',
+    entrada:[function(){
+        var futuro=this.newFuturo();
+        var rta='todavía no recibí nada';
+        futuro.luego(function(mensaje,app){
+            rta=mensaje;
+        });
+        futuro.recibirListo('ya lo recibí');
+        return rta;
+    },[]],
+    salida:"ya lo recibí" 
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'objeto Futuro',
+    funcion:'aplicarFuncion',
+    caso:'caso simple llega el dato antes del luego',
+    entrada:[function(){
+        var futuro=this.newFuturo();
+        var rta='todavía no recibí nada';
+        futuro.recibirListo('ya lo recibí');
+        futuro.luego(function(mensaje,app){
+            rta=mensaje;
+        });
+        return rta;
+    },[]],
+    salida:"ya lo recibí"
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'objeto Futuro',
+    funcion:'aplicarFuncion',
+    caso:'caso encadenado llega el dato después de varios luegos',
+    entrada:[function(){
+        var futuro=this.newFuturo();
+        var rta='todavía no recibí nada';
+        futuro.luego(function(mensaje,app){
+            return mensaje+' paso A';
+        }).luego(function(mensaje,app){
+            rta=mensaje+' paso B';
+        });
+        futuro.recibirListo('recibido');
+        return rta;
+    },[]],
+    salida:"recibido paso A paso B" 
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'objeto Futuro',
+    funcion:'aplicarFuncion',
+    caso:'caso encadenado llega el dato después de varios luegos que devuelven futuros',
+    entrada:[function(){
+        var rescate_f2;
+        var futuro=this.newFuturo();
+        var rta='todavía no recibí nada';
+        futuro.luego(function(mensaje,app){
+            return mensaje+' paso A';
+        }).luego(function(mensaje,app){
+            var f2=app.newFuturo();
+            f2.tengo=mensaje;
+            // setTimeout(function(){ f2.recibirListo(mensaje+' recibido');}, 100);
+            rescate_f2=f2;
+            return f2;
+        }).luego(function(mensaje,app){
+            return mensaje+' paso C';
+        });
+        futuro.luego(function(mensaje,app){
+            rta=mensaje+' paso D';
+        });
+        futuro.recibirListo('recibido');
+        rescate_f2.recibirListo('x');
+        return {primera_parte:rescate_f2.tengo, segunda_parte:rta};
+    },[]],
+    salida:{primera_parte:'recibido paso A', segunda_parte:'x paso C paso D'}
+});
+Aplicacion.prototype.casosDePrueba=[];
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'acceso a datos del servidor',
     funcion:'accesoDb',
-    caso:'traer los dtos de la prueba_tabla_comun',
+    caso:'traer los datos de la prueba_tabla_comun',
     entrada:[{hacer:'select',from:'prueba_tabla_comun',where:true}],
-    ignorarDiferenciaDeTiposNumericos:true,
     salida:[
         {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,"ultima_modificacion":"2001-01-01"},
         {id:2,nombre:"dos",importe:0.11,activo:false,cantidad:1   ,"ultima_modificacion":"2001-01-01"},
         {id:3,nombre:"año",importe:2000,activo:null ,cantidad:null,"ultima_modificacion":"2001-01-01"}
     ]
 });
+/*
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'acceso a datos del servidor',
     funcion:'accesoDb',
@@ -657,3 +738,4 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[{hacer:'select',from:'prueba_tabla_comun'}],
     error:"el acceso a datos debe tener una clausula where"
 });
+*/
