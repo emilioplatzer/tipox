@@ -1,4 +1,4 @@
-var tabla.agenda=
+tabla.agenda=
 { "esquema":"agenda",
   "campos":{
     "id_agenda":{"tipo":"serial", "esPk":true},

@@ -30,8 +30,8 @@ Aplicacion.prototype.probarTodo=function(){
         try{
             probador.probarTodo();
         }catch(err){
-            debugDirecto(descripciones_de_error(err));
-            debugDirecto(err.stack);
+            debugDirecto(descripcionError(err));
+            // debugDirecto(err.stack);
         }
     }else{
         probador.probarTodo();
@@ -249,7 +249,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
             rta.tieneError=!caso.ignorarDiferenciaDeTiposNumericos || isNaN(esperado) || isNaN(obtenido) || esperado!=obtenido;
             rta.tieneAdvertencias=true;
             rta.bonito=nodoBonito(esperado, obtenido,'TDD_esperado',rta.tieneError?'TDD_obtenido':'TDD_obtenido_sobrante');
-        }else if(typeof(esperado)!='object'){
+        }else if(typeof(esperado)!='object' || esperado==null && obtenido==null){
             rta.bonito={tipox:'div', className:'TDD_iguales', innerText:JSON.stringify(esperado)};
         }else{
             var nodes=[];
@@ -654,6 +654,31 @@ Aplicacion.prototype.casosDePrueba.push({
     error:'el innerText solo puede recibir strings'
 });
 
+var paraProbarTipoxTabla={
+    objeto:{a:{b:"uno",c:"dos"},d:{e:{tipox:'button'},f:"cuatro"}}, 
+    arreglo:[["uno","dos"],[{tipox:'button'},"cuatro"]]
+};
+
+for(var cual_paraProbarTipoxTabla in paraProbarTipoxTabla){
+    var contenido_paraProbarTipoxTabla=paraProbarTipoxTabla[cual_paraProbarTipoxTabla];
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'creación de elementos del DOM a través de objetos tipox',
+    funcion:'pruebaTraduccion',
+    caso:'tabla simple (no tiene que importar si las filas están o no indexadas) basado en: '+cual_paraProbarTipoxTabla,
+    entrada:[{tipox:'tabla', id:'id1', className:'esta', filas:contenido_paraProbarTipoxTabla}],
+    salida:{tipox:'table', id:'id1', className:'esta', nodes:[
+        {tipox:'tr', nodes:[
+            {tipox:'td', nodes:"uno"},
+            {tipox:'td', nodes:"dos"},
+        ]},
+        {tipox:'tr', nodes:[
+            {tipox:'td', nodes:{tipox:'button'}},
+            {tipox:'td', nodes:"cuatro"},
+        ]}
+    ]},
+});
+}
+
 Aplicacion.prototype.aplicarFuncion=function(hacer,parametros){
     return hacer.apply(app,parametros)
 }
@@ -732,6 +757,31 @@ Aplicacion.prototype.casosDePrueba.push({
         return {primera_parte:rescate_f2.tengo, segunda_parte:rta};
     },[]],
     salida:{primera_parte:'recibido paso A', segunda_parte:'x paso C paso D'}
+});
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'objeto Futuro',
+    funcion:'aplicarFuncion',
+    caso:'un futuro tiene un luego que ya devolvió un futuro y después llamo a un luego',
+    entrada:[function(){
+        var futuro=this.newFuturo();
+        var f2;
+        var rta='todavía no recibí nada';
+        futuro.luego(function(mensaje,app){
+            f2=app.newFuturo();
+            f2.luego(function(mensaje,app){
+                return mensaje+' paso A';
+            });
+            return f2;
+        });
+        futuro.recibirListo('Y');
+        futuro.luego(function(mensaje,app){
+            rta=JSON.stringify(mensaje)+' paso B';
+        });
+        f2.recibirListo('x');
+        return rta;
+    },[]],
+    salida:"x paso A paso B"
 });
 
 Aplicacion.prototype.casosDePrueba.push({

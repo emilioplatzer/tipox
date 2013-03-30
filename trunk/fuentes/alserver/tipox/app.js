@@ -1,8 +1,6 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
 
-var debug1=false;
-
 function esAplicacion(esto){
     if(!esto.esAplicacion){
         throw new Error('se esperaba que el parametro sea una aplicacion');
@@ -17,8 +15,9 @@ function Aplicacion(){
     this.autoIdDom=0;
     this.entornoDesarrollo=true;
     this.hoyString=new Date().toISOString().substr(0,'2099-12-31'.length);
-    this.urlBienvenida='#!{"menu":"intr"}';
 }
+
+Aplicacion.prototype.urlBienvenida='#!{"menu":"intr"}';
 
 Aplicacion.prototype.paginas={};
 Aplicacion.prototype.paginas.intr={ 
@@ -131,7 +130,7 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicional
     var nuevoElemento;
     var elementoAgregado;
     if(definicion===null || definicion===undefined){
-    }else if(typeof(definicion)=='string'){
+    }else if(typeof(definicion)!='object'){
         nuevoElemento=document.createTextNode(definicion);
     }else if(definicion instanceof Array){
         for(var i=0; i<definicion.length; i++){
@@ -151,7 +150,7 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicional
             var definicion_traducida=creador.translate(definicion);
             elementoAgregado=this.grab(elementoDestino,definicion_traducida,futuro);
         }else{
-            nuevoElemento=creador.nuevo(definicion.tipox);
+            nuevoElemento=creador.nuevo(definicion.tipox,definicion);
             creador.asignarAtributos(nuevoElemento,definicion,futuro);
             this.grab(nuevoElemento,definicion.nodes,futuro);
         }
@@ -343,8 +342,8 @@ Aplicacion.prototype.creadores.lista={tipo:'tipox', descripcion:'lista genérica
     },
 }}
 
-Aplicacion.prototype.nuevoIdDom=function(){
-    return 'DOM_autoid'+(this.autoIdDom++);
+Aplicacion.prototype.nuevoIdDom=function(prefijo){
+    return (prefijo||'DOM_autoid')+(this.autoIdDom++);
 }
 
 Aplicacion.prototype.creadores.funcion={tipo:'tipox', descripcion:'muestra la corrida de una función sobre la app', creador:{
@@ -358,6 +357,23 @@ Aplicacion.prototype.creadores.funcion={tipo:'tipox', descripcion:'muestra la co
         this.app.assert('funcion' in definicion,'falta definicion.funcion');
         destino.ongrab=function(app){
             app[definicion.funcion].apply(app,definicion.parametros||[]);
+        }
+    },
+}};
+
+Aplicacion.prototype.creadores.futuro={tipo:'tipox', descripcion:'coloca lo devuelto en un futuro', creador:{
+    nuevo:function(tipox,definicion){
+        return document.createElement(definicion.tagName);
+    },
+    asignarAtributos:function(destino,definicion,futuro){
+        destino.id=definicion.id;
+        destino.className=definicion.className||'destino_futuro';
+        this.app.assert('futuro' in definicion,'falta definicion.funcion');
+        destino.ongrab=function(){
+            definicion.futuro.luego(function(respuesta,app){
+                destino.innerHTML='che<tr><td>algo';
+                // app.grab(destino,respuesta);
+            });
         }
     },
 }};
@@ -431,6 +447,26 @@ Aplicacion.prototype.creadores.parametro_boton={tipo:'tipox', descripcion:'botó
 }}
 
 ///////////////// fin-FORMULARIOS //////////////////
+
+Aplicacion.prototype.creadores.tabla={tipo:'tipox', descripcion:'tabla simple basada en filas de celdas', creador:{
+    translate:function(definicion){
+        var rta=cambiandole(definicion,{tipox:'table'});
+        delete rta.filas;
+        var nodesFilas=[];
+        for(var i_fila in definicion.filas) if(definicion.filas.hasOwnProperty(i_fila)){
+            var fila=definicion.filas[i_fila];
+            var nodesCeldas=[];
+            for(var i_celda in fila) if(fila.hasOwnProperty(i_celda)){
+                var celda=fila[i_celda];
+                nodesCeldas.push({tipox:'td', nodes:celda});
+            }
+            nodesFilas.push({tipox:'tr', nodes:nodesCeldas});
+        }
+        rta.nodes=nodesFilas;
+        return rta;
+    },
+}}
+
 Aplicacion.prototype.creadores.aplicacion={tipo:'tipox', descripcion:'estructura de pantallas/procesos de la aplicación', creador:{
     translate:function(definicion){
         var menu={tipox:'app_menu_principal', 'for':definicion.id, elementos:{}};
@@ -536,7 +572,7 @@ Futuro.prototype.sincronizar=function(){
                         }
                     }
                 }catch(err){
-                    rta=err.message;
+                    rta=descripcionError(err);
                     this.recibido.tipo='error';
                 }
                 this.recibido.dato=rta;
@@ -571,7 +607,13 @@ Futuro.prototype.alFallar=function(hacer){
     this.sincronizar();
     return this;
 }
-
+/*
+Futuro.prototype.tipoxFuturo=function(tipox){
+    var idFuturo=app.nuevoIdDom('futuro');
+    var nodo={tipox:'futuro', tagName:tipox, id:idFuturo, futuro:this};
+    return nodo;
+}
+*/
 Aplicacion.prototype.mapLuego=function(arreglo,funcionParaCadaElemento,funcionParaElLuego){
     var futuro=this.newFuturo();
     if(arreglo.length==0){
@@ -640,7 +682,7 @@ Aplicacion.prototype.enviarPaquete=function(params){
                             try{
                                 futuro.recibirListo(obtenido.respuesta);
                             }catch(err_llamador){
-                                futuro.recibirError(descripciones_de_error(err_llamador)+' al procesar la recepcion de la peticion AJAX');
+                                futuro.recibirError(descripcionError(err_llamador)+' al procesar la recepcion de la peticion AJAX');
                             }
                         }else if('tipox' in obtenido){
                             futuro.recibirError(obtenido.mensaje);
@@ -648,13 +690,13 @@ Aplicacion.prototype.enviarPaquete=function(params){
                             futuro.recibirError('ERROR la respuesta recibida no es tipox '+ifDebug(rta));
                         }
                     }catch(err_json){
-                        futuro.recibirError('ERROR PARSEANDO EL JSON '+':'+descripciones_de_error(err_json)+' => '+ifDebug(rta));
+                        futuro.recibirError('ERROR PARSEANDO EL JSON '+':'+descripcionError(err_json)+' => '+ifDebug(rta));
                     }
                 }else{
                     futuro.recibirError('ERROR sin respuesta en la peticion AJAX');
                 }
             }catch(err){
-                futuro.recibirError('ERROR en el proceso de transmision AJAX '+descripciones_de_error(err),6);
+                futuro.recibirError('ERROR en el proceso de transmision AJAX '+descripcionError(err),6);
             }
         }
     }
@@ -672,7 +714,7 @@ Aplicacion.prototype.enviarPaquete=function(params){
         }
         peticion.send(parametros);
     }catch(err){
-        futuro.recibirError(descripciones_de_error(err));
+        futuro.recibirError(descripcionError(err));
     }
     return futuro;
 }
@@ -725,7 +767,7 @@ Aplicacion.prototype.tiposCampo.decimal=function(definicion){
 Aplicacion.prototype.prepararTabla=function(nombre){
     var futuro=this.requiereJs(((app.drTabla[nombre]||{}).carpeta||'.')+'/'+'tabla_'+nombre);
     futuro.luego(function(respuesta,app){
-        if(!nombre in app.drTabla){
+        if(!(nombre in app.drTabla)){
             app.drTabla[nombre]={campos:{}, carpeta:''};
         }
         if(!('campos' in app.drTabla[nombre])){
@@ -741,7 +783,6 @@ Aplicacion.prototype.prepararTabla=function(nombre){
 }
 
 Aplicacion.prototype.accesoDb=function(params){
-    debug1=true;
     return this.prepararTabla(params.from).luego(function(respuesta,app){
         return app.enviarPaquete({proceso:'acceso_db',paquete:params});
     }).luego(function(respuesta,app){
