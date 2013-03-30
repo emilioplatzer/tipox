@@ -51,8 +51,8 @@ Probador.prototype.probarTodo=function(){
             caso.modulo=caso.tipox+' HAY QUE PONER EL NOMBRE DEL MÓDULO (en el atributo modulo del caso de prueba)';
         }
         var idModulo='TDD_modulo:'+caso.modulo;
-        var elementoFuncionCasos=document.getElementById(idModulo+'_casos');
-        if(!elementoFuncionCasos){
+        var elementoModuloCasos=document.getElementById(idModulo+'_casos');
+        if(!elementoModuloCasos){
             this.pendientesPorModulos[idModulo]=0;
             this.app.grab('probarTodo',
                 {tipox:'div', classList:['TDD_modulo'], id:idModulo, nodes:[
@@ -60,9 +60,9 @@ Probador.prototype.probarTodo=function(){
                     {tipox:'div', id:idModulo+'_casos', style:{display:'none'}}
                 ]}
             );
-            elementoFuncionCasos=document.getElementById(idModulo+'_casos');
+            elementoModuloCasos=document.getElementById(idModulo+'_casos');
         }
-        var elementoFuncionTitulo=document.getElementById(idModulo+'_titulo');
+        var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
         var idCaso='TDD_caso:'+i;
         var clase=caso.ignorado?'TDD_prueba_ignorada':'TDD_prueba_pendiente';
         var tituloCaso=[caso.caso];
@@ -75,16 +75,16 @@ Probador.prototype.probarTodo=function(){
         if(caso.aclaracionSiFalla){
             nodosInternos.push({tipox:'div', className:'TDD_aclaracion', id:idCaso+'_aclaracion', nodes:caso.aclaracionSiFalla});
         }
-        this.app.grab(elementoFuncionCasos,
+        this.app.grab(elementoModuloCasos,
             {tipox:'div', className:'TDD_caso', id:idCaso, nodes:nodosInternos}
         );
-        compatibilidad.classList(elementoFuncionTitulo);
+        compatibilidad.classList(elementoModuloTitulo);
         if(caso.ignorado){  
-            elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
-            elementoFuncionTitulo.classList.add('TDD_prueba_ignorada');
+            elementoModuloTitulo.classList.remove('TDD_prueba_pendiente');
+            elementoModuloTitulo.classList.add('TDD_prueba_ignorada');
             if(ticket){
-                this.app.grab(elementoFuncionTitulo,[ticket,' ']);
-                // this.app.grab(elementoFuncionTitulo,[{tipox:'a', href:this.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado},' ']);
+                this.app.grab(elementoModuloTitulo,[ticket,' ']);
+                // this.app.grab(elementoModuloTitulo,[{tipox:'a', href:this.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado},' ']);
             }
         }else{
             this.pendientesPorModulos[idModulo]++;
@@ -150,14 +150,13 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
             }else{
                 este.compararObtenido(obtenido,errorObtenido,caso,idCaso,salvarEntrada);
             }
-            this.pendientesPorModulos[idModulo]--;
-            if(this.pendientesPorModulos[idModulo]==0){
-                var elementoFuncionTitulo=document.getElementById(idModulo+'_titulo');
-                if(elementoFuncionTitulo.classList.contains('TDD_prueba_pendiente')){
-                    elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
-                    elementoFuncionTitulo.classList.add('TDD_prueba_ok');
-                }
+            /*
+            var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
+            if(elementoModuloTitulo.classList.contains('TDD_prueba_ok')){
+                elementoModuloTitulo.classList.remove('TDD_prueba_ok');
+                elementoModuloTitulo.classList.add('TDD_prueba_pendiente');
             }
+            */
         }
     }
     desde=i;
@@ -298,7 +297,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     };
     var resultado=compararBonito(esperado,obtenido);
     var idModulo='TDD_modulo:'+caso.modulo;
-    var elementoFuncionTitulo=document.getElementById(idModulo+'_titulo');
+    var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
     var elementoCasoTitulo=document.getElementById(idCaso+'_titulo');
     var elementoCaso=document.getElementById(idCaso);
     compatibilidad.classList(elementoCasoTitulo);
@@ -312,14 +311,21 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
             ]}]},
         ]});
     }
+    this.pendientesPorModulos[idModulo]--;
     if(resultado.tieneError){
-        elementoFuncionTitulo.classList.remove('TDD_prueba_ignorada');
-        elementoFuncionTitulo.classList.remove('TDD_prueba_pendiente');
-        elementoFuncionTitulo.classList.add('TDD_prueba_fallida');
+        elementoModuloTitulo.classList.remove('TDD_prueba_ignorada');
+        elementoModuloTitulo.classList.remove('TDD_prueba_pendiente');
+        elementoModuloTitulo.classList.add('TDD_prueba_fallida');
         elementoCasoTitulo.classList.add('TDD_prueba_fallida');
         document.getElementById(idModulo+'_casos').style.display=null;
         this.errores++;
     }else{
+        if(this.pendientesPorModulos[idModulo]==0){
+            if(elementoModuloTitulo.classList.contains('TDD_prueba_pendiente')){
+                elementoModuloTitulo.classList.remove('TDD_prueba_pendiente');
+                elementoModuloTitulo.classList.add('TDD_prueba_ok');
+            }
+        }
         elementoCasoTitulo.classList.add('TDD_prueba_ok');
     }
 };
@@ -718,7 +724,34 @@ Aplicacion.prototype.casosDePrueba.push({
     },[]],
     salida:{primera_parte:'recibido paso A', segunda_parte:'x paso C paso D'}
 });
-Aplicacion.prototype.casosDePrueba=[];
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'objeto Futuro',
+    funcion:'aplicarFuncion',
+    caso:'caso encadenado llega el dato, un luego lanza una excepción, es atrapada por un alFallar y no se sigue procesando',
+    entrada:[function(){
+        var rescate_f2;
+        var futuro=this.newFuturo();
+        var rta='todavía no recibí nada';
+        futuro.luego(function(mensaje,app){
+            return mensaje+' paso A';
+        }).luego(function(mensaje,app){
+            return mensaje+' paso B';
+        }).luego(function(mensaje,app){
+            throw new Error(mensaje+' paso C');
+        }).alFallar(function(mensaje,app){
+            rta=mensaje+' recibido como error';
+        }).luego(function(mensaje,app){
+            rta=mensaje+' paso D';
+        });
+        futuro.recibirListo('listo');
+        return rta;
+    },[]],
+    salida:"listo paso A paso B paso C recibido como error"
+});
+
+// Aplicacion.prototype.casosDePrueba=[];
+
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'acceso a datos del servidor',
     funcion:'accesoDb',
@@ -730,7 +763,7 @@ Aplicacion.prototype.casosDePrueba.push({
         {id:3,nombre:"año",importe:2000,activo:null ,cantidad:null,"ultima_modificacion":"2001-01-01"}
     ]
 });
-/*
+
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'acceso a datos del servidor',
     funcion:'accesoDb',
@@ -738,4 +771,3 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[{hacer:'select',from:'prueba_tabla_comun'}],
     error:"el acceso a datos debe tener una clausula where"
 });
-*/
