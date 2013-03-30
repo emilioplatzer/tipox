@@ -514,7 +514,7 @@ Aplicacion.prototype.newFuturo=function(){
     return new Futuro(this);
 }
 
-Futuro.prototype.tiposQueImplicanProcesar={ok:{proximoTipo:'ok'}, error:{proximoTipo:'detenido'}};
+Futuro.prototype.tiposQueImplicanProcesar={ok:true, error:true};
 
 Futuro.prototype.sincronizar=function(){
     var proximoLuego=false;
@@ -528,8 +528,12 @@ Futuro.prototype.sincronizar=function(){
                 var rta;
                 try{
                     rta=hacer(this.recibido.dato,this.app);
-                    if(!rta){
-                        this.recibido.tipo=this.tiposQueImplicanProcesar[this.recibido.tipo].proximoTipo;
+                    if(this.recibido.tipo=='error'){ 
+                        if(rta){ // procesé un alFallar, si retorna algo es la recuperación
+                            this.recibido.tipo='ok';
+                        }else{ // si no, hay que detener la cadena de luegos
+                            this.recibido.tipo='detener';
+                        }
                     }
                 }catch(err){
                     rta=err.message;
