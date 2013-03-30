@@ -506,8 +506,8 @@ Aplicacion.prototype.validarUsuario=function(){
 
 var Futuro=function(app){
     this.app=app;
-    this.luegos=[];
-    this.manejadoresError=[];
+    this.recibido={tipo:'nada'};
+    this.manejadores=[];
 }
 
 Aplicacion.prototype.newFuturo=function(){
@@ -516,48 +516,50 @@ Aplicacion.prototype.newFuturo=function(){
 
 Futuro.prototype.sincronizar=function(){
     var proximoLuego=false;
-    var funcionesReaccionar;
-    var datoRecibido;
-    if('respuesta' in this){
-        funcionesReaccionar='luegos';
-        datoRecibido='respuesta';
-    }else if('mensajeError' in this){
-        funcionesReaccionar='manejadoresError';
-        datoRecibido='mensajeError';
-    }else{
-        return;
-    }
-    while(this[funcionesReaccionar].length>0){
-        var hacer=this[funcionesReaccionar].shift();
-        if(proximoLuego){
-            proximoLuego[funcionesReaccionar].push(hacer);
-        }else{
-            this[datoRecibido]=hacer(this[datoRecibido],this.app);
-            if(this[datoRecibido] instanceof Futuro){
-                proximoLuego=this[datoRecibido];
+    if(this.recibido.tipo!='nada'){
+        while(this.manejadores.length>0){
+            var manejador=this.manejadores.shift();
+            if(proximoLuego){
+                proximoLuego.manejadores.push(manejador);
+            }else if(this.recibido.tipo==manejador.tipo){
+                var hacer=manejador.funcion;
+                var rta;
+                /*
+                try{
+                    rta=hacer(this.recibido.dato,this.app);
+                }catch(err){
+                }
+                */
+                    rta=hacer(this.recibido.dato,this.app);
+                    this.recibido.dato=rta;
+                if(rta instanceof Futuro){
+                    proximoLuego=rta;
+                }
             }
         }
     }
 }
 
 Futuro.prototype.recibirListo=function(respuesta){
-    this.respuesta=respuesta;
+    this.recibido.dato=respuesta;
+    this.recibido.tipo='ok';
     this.sincronizar();
 }
 
 Futuro.prototype.recibirError=function(mensajeError){
-    this.mensajeError=mensajeError;
+    this.recibido.dato=mensajeError;
+    this.recibido.tipo='error';
     this.sincronizar();
 }
 
 Futuro.prototype.luego=function(hacer){
-    this.luegos.push(hacer);
+    this.manejadores.push({funcion:hacer, tipo:'ok'});
     this.sincronizar();
     return this;
 }
 
 Futuro.prototype.alFallar=function(hacer){
-    this.manejadoresError.push(hacer);
+    this.manejadores.push({funcion:hacer, tipo:'error'});
     this.sincronizar();
     return this;
 }
@@ -581,16 +583,29 @@ Aplicacion.prototype.mapLuego=function(arreglo,funcionParaCadaElemento,funcionPa
 Aplicacion.prototype.requiereJs=function(nombreJs){
     debugDirecto('requirio js '+nombreJs);
     var futuro=this.newFuturo();
-    if(!this.jsCargados[nombreJs]){
+    futuro.esDeRequerir=true; // es debugDirecto
+    if(nombreJs in this.jsCargados){
+        if(this.jsCargados[nombreJs].estado=='cargando'){
+            this.jsCargados[nombreJs].futuros.push(futuro);
+        }else{
+            futuro.recibirListo({recienCargado:false});
+        }
+    }else{
+        this.jsCargados[nombreJs]={estado:'cargando',futuros:[futuro]};
         var s = document.createElement("script");
         s.src = nombreJs+'.js';
+        var app=this;
         s.onload = function () {
-            futuro.recibirListo({recienCargado:true});
+            var futuros=app.jsCargados[nombreJs].futuros;
+            app.jsCargados[nombreJs].estado='avisando cargado';
+            var i=1;
+            while(futuros.length){
+                var esteFuturo=futuros.shift();
+                esteFuturo.recibirListo({recienCargado:i++});
+            }
+            app.jsCargados[nombreJs].estado='cargado';
         }
         document.getElementsByTagName("head")[0].appendChild(s);
-        this.jsCargados[nombreJs]=true;
-    }else{
-        futuro.recibirListo({recienCargado:false});
     }
     return futuro;
 }
@@ -682,7 +697,7 @@ Aplicacion.prototype.drTabla.prueba_tabla_comun={carpeta:'../tipox'};
 Aplicacion.prototype.tiposCampo={};
 Aplicacion.prototype.constructorTipoGenerico=function(){
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){
-        return valorCrudo+1;
+        return valorCrudo;
     }
 }
 Aplicacion.prototype.tiposCampo.texto=Aplicacion.prototype.constructorTipoGenerico;
@@ -752,7 +767,7 @@ Aplicacion.run=function(app){
 }
 
 // compatibilidad con navegadores viejos
-if(!Modernizr.classlist || true){
+if(!Modernizr.classlist/* || true*/){
     Aplicacion.prototype.creadorElementoDOM.atributosEspeciales.classList={
         atributoDestino:'className',
         aplanarValores:function(valores){
