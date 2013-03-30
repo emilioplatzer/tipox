@@ -139,7 +139,6 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
             if(obtenido instanceof Futuro){
                 obtenido.luego(function(caso,idCaso,salvarEntrada){
                     return function(respuesta,app){
-                        if(debug1) { debugDirecto('empezando a comprar '+JSON.stringify(respuesta)); }
                         este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
                     }
                 }(caso,idCaso,salvarEntrada)).alFallar(function(caso,idCaso,salvarEntrada){
@@ -225,7 +224,17 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
                 {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, nodes:[{tipox:'pre', innerText:probador.mostrarCampos(obtenido)}]}]},
         ]};
     }
+    var capturarTiposEspecialesParaComparar=function(dato){
+        if(dato instanceof Date){
+            dato="₮Date="+dato.toString();
+        }else if(typeof(dato)=='string' && dato[0]=="₮"){
+            dato="“"+dato;
+        }
+        return dato;
+    }
     var compararBonito=function(esperado,obtenido){
+        esperado=capturarTiposEspecialesParaComparar(esperado);
+        obtenido=capturarTiposEspecialesParaComparar(obtenido);
         var rta={tieneError:false, tieneAdvertencias:false};
         if(
             (typeof(esperado)=='object'?
@@ -782,10 +791,11 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'accesoDb',
     caso:'traer los datos de la prueba_tabla_comun',
     entrada:[{hacer:'select',from:'prueba_tabla_comun',where:true}],
+    mostarAunqueNoFalleHasta:'2013-03-30',
     salida:[
-        {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,"ultima_modificacion":"2001-01-01"},
-        {id:2,nombre:"dos",importe:0.11,activo:false,cantidad:1   ,"ultima_modificacion":"2001-01-01"},
-        {id:3,nombre:"año",importe:2000,activo:null ,cantidad:null,"ultima_modificacion":"2001-01-01"}
+        {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,fecha:new Date('2001-12-31'),"ultima_modificacion":"2001-01-01"},
+        {id:2,nombre:"dos",importe:0.11,activo:false,cantidad:1   ,fecha:null                  ,"ultima_modificacion":"2001-01-01"},
+        {id:3,nombre:"año",importe:2000,activo:null ,cantidad:null,fecha:new Date('1991-05-06'),"ultima_modificacion":"2001-01-01"}
     ]
 });
 

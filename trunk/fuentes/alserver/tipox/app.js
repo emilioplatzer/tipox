@@ -589,7 +589,6 @@ Aplicacion.prototype.mapLuego=function(arreglo,funcionParaCadaElemento,funcionPa
 }
 
 Aplicacion.prototype.requiereJs=function(nombreJs){
-    debugDirecto('requirio js '+nombreJs);
     var futuro=this.newFuturo();
     futuro.esDeRequerir=true; // es debugDirecto
     if(nombreJs in this.jsCargados){
@@ -622,7 +621,6 @@ Aplicacion.prototype.enviarPaquete=function(params){
     var peticion=new XMLHttpRequest();
     var futuro=this.newFuturo();
     var ifDebug=function(x){ return x; };
-    if(debug1) { debugDirecto('por enviar el paquete '+JSON.stringify(params)); }
     peticion.onreadystatechange=function(){
         switch(peticion.readyState) {
         case 4: 
@@ -640,7 +638,6 @@ Aplicacion.prototype.enviarPaquete=function(params){
                         }
                         if(obtenido.tipox=='rtaOk'){
                             try{
-                                if(debug1) { debugDirecto('por indicar que está recibido el paquete '+JSON.stringify(obtenido)); }
                                 futuro.recibirListo(obtenido.respuesta);
                             }catch(err_llamador){
                                 futuro.recibirError(descripciones_de_error(err_llamador)+' al procesar la recepcion de la peticion AJAX');
@@ -704,34 +701,40 @@ Aplicacion.prototype.drTabla.prueba_tabla_comun={carpeta:'../tipox'};
 /* Manejadores de campos */
 Aplicacion.prototype.tiposCampo={};
 Aplicacion.prototype.constructorTipoGenerico=function(){
-    this.adaptarDatoTraidoDelServidor=function(valorCrudo){
-        return valorCrudo;
-    }
+    this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo; }
 }
-Aplicacion.prototype.tiposCampo.texto=Aplicacion.prototype.constructorTipoGenerico;
-Aplicacion.prototype.tiposCampo.fecha=Aplicacion.prototype.constructorTipoGenerico;
-Aplicacion.prototype.tiposCampo.entero=Aplicacion.prototype.constructorTipoGenerico;
-Aplicacion.prototype.tiposCampo.serial=Aplicacion.prototype.constructorTipoGenerico;
-Aplicacion.prototype.tiposCampo.logico=Aplicacion.prototype.constructorTipoGenerico;
-Aplicacion.prototype.tiposCampo.decimal=Aplicacion.prototype.constructorTipoGenerico;
+Aplicacion.prototype.tiposCampo.texto  =Aplicacion.prototype.constructorTipoGenerico;
+Aplicacion.prototype.tiposCampo.fecha  =function(definicion){
+    Aplicacion.prototype.constructorTipoGenerico.call(this,definicion);
+    this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:new Date(valorCrudo); }
+}
+Aplicacion.prototype.tiposCampo.entero =function(definicion){
+    Aplicacion.prototype.constructorTipoGenerico.call(this,definicion);
+    this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:Number(valorCrudo); }
+}
+Aplicacion.prototype.tiposCampo.serial =Aplicacion.prototype.tiposCampo.entero;
+Aplicacion.prototype.tiposCampo.logico =function(definicion){
+    Aplicacion.prototype.constructorTipoGenerico.call(this,definicion);
+    this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:!!Number(valorCrudo); }
+}
+Aplicacion.prototype.tiposCampo.decimal=function(definicion){
+    Aplicacion.prototype.constructorTipoGenerico.call(this,definicion);
+    this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:Number(valorCrudo); }
+}
 
 Aplicacion.prototype.prepararTabla=function(nombre){
     var futuro=this.requiereJs(((app.drTabla[nombre]||{}).carpeta||'.')+'/'+'tabla_'+nombre);
     futuro.luego(function(respuesta,app){
-        debugDirecto('analizando la estructura de la tabla '+JSON.stringify(respuesta)+'  ===>  '+JSON.stringify(tabla));
         if(!nombre in app.drTabla){
             app.drTabla[nombre]={campos:{}, carpeta:''};
         }
-        debugDirecto('paso 1 '+JSON.stringify(app.drTabla));
         if(!('campos' in app.drTabla[nombre])){
             app.drTabla[nombre].campos={};
-            debugDirecto('paso 2 '+JSON.stringify(app.drTabla)+' ~~~~~ '+JSON.stringify(tabla[nombre])+' x '+nombre);
             for(var campo in tabla[nombre].campos){
                 var defCampo=tabla[nombre].campos[campo];
                 app.drTabla[nombre].campos[campo]=new app.tiposCampo[defCampo.tipo](campo);
             }
         }
-        debugDirecto('analizada la estructura de la tabla '+JSON.stringify(app.drTabla));
         return null;
     });
     return futuro;
@@ -740,20 +743,17 @@ Aplicacion.prototype.prepararTabla=function(nombre){
 Aplicacion.prototype.accesoDb=function(params){
     debug1=true;
     return this.prepararTabla(params.from).luego(function(respuesta,app){
-        debugDirecto('por enviar paquete '+JSON.stringify(respuesta));
         return app.enviarPaquete({proceso:'acceso_db',paquete:params});
     }).luego(function(respuesta,app){
         var campos=app.drTabla[params.from].campos;
-        debugDirecto('por arreglar los datos '+JSON.stringify(respuesta)+' /// '+JSON.stringify(campos));
         for(var id_fila in respuesta) if(respuesta.hasOwnProperty(id_fila)){
             var fila=respuesta[id_fila];
             for(var campo in fila){
                 if(campo in campos){
-                    fila[campo]=campos[campo].adaptarDatoTraidoDelServidor(fila[campo]);
+                    fila[campo]=fila[campo]==null?null:campos[campo].adaptarDatoTraidoDelServidor(fila[campo]);
                 }
             }
         }
-        debugDirecto('datos arreglados '+JSON.stringify(respuesta));
         return respuesta;
     });
 }
