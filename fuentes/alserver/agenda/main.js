@@ -16,6 +16,6 @@ Aplicacion.prototype.paginas.intr={
 
 var app=new Aplicacion();
 Aplicacion.run(app).luego(function(){
-    setTimeout(MostrarControlCompatibilidad,1000);
+    // setTimeout(MostrarControlCompatibilidad,1000);
 });
     
