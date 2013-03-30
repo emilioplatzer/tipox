@@ -752,6 +752,29 @@ Aplicacion.prototype.casosDePrueba.push({
     salida:"listo paso A paso B paso C recibido como error"
 });
 
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'objeto Futuro',
+    funcion:'aplicarFuncion',
+    caso:'caso encadenado con un alFallar que recupera',
+    entrada:[function(){
+        var rescate_f2;
+        var futuro=this.newFuturo();
+        var rta='todavía no recibí nada';
+        futuro.luego(function(mensaje,app){
+            return mensaje+' paso A';
+        }).alFallar(function(mensaje,app){
+            return mensaje+' recuperado';
+        }).luego(function(mensaje,app){
+            rta=mensaje+' paso B';
+        }).alFallar(function(mensaje,app){
+            rta=mensaje+' segundo error';
+        });
+        futuro.recibirError('error');
+        return rta;
+    },[]],
+    salida:"error recuperado paso B"
+});
+
 // Aplicacion.prototype.casosDePrueba=[];
 
 Aplicacion.prototype.casosDePrueba.push({
