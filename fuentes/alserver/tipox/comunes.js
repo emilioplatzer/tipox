@@ -9,14 +9,16 @@ function trim(esto) {
     return esto.replace(/^\s+|\s+$/g, '');  
 }
 
-function descripciones_de_error(err){
+function descripcionError(err){
 "use strict";
     /* usado para mostrar el mensaje de error de cualquier excepción */
-    var mensaje=' '+(err.description||'')+' '+(err.message||'')+' '+(err.type_error||'');
-    if(!trim(mensaje)){
-        mensaje=JSON.stringify(err);
+    if(typeof(err)=='string'){
+        return err;
+    }else{
+        var debugging=true;
+        //var debugging=false;
+        return err.message+(debugging?' '+err.stack:'');
     }
-    return mensaje;
 }
 
 function cambiandole(destino,cambios,borrando,borrar_si_es_este_valor){
