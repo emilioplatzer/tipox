@@ -514,9 +514,11 @@ Aplicacion.prototype.newFuturo=function(){
     return new Futuro(this);
 }
 
+Futuro.prototype.tiposQueImplicanProcesar={ok:{proximoTipo:'ok'}, error:{proximoTipo:'detenido'}};
+
 Futuro.prototype.sincronizar=function(){
     var proximoLuego=false;
-    if(this.recibido.tipo!='nada'){
+    if(this.tiposQueImplicanProcesar[this.recibido.tipo]){
         while(this.manejadores.length>0){
             var manejador=this.manejadores.shift();
             if(proximoLuego){
@@ -524,14 +526,16 @@ Futuro.prototype.sincronizar=function(){
             }else if(this.recibido.tipo==manejador.tipo){
                 var hacer=manejador.funcion;
                 var rta;
-                /*
                 try{
                     rta=hacer(this.recibido.dato,this.app);
+                    if(!rta){
+                        this.recibido.tipo=this.tiposQueImplicanProcesar[this.recibido.tipo].proximoTipo;
+                    }
                 }catch(err){
+                    rta=err.message;
+                    this.recibido.tipo='error';
                 }
-                */
-                    rta=hacer(this.recibido.dato,this.app);
-                    this.recibido.dato=rta;
+                this.recibido.dato=rta;
                 if(rta instanceof Futuro){
                     proximoLuego=rta;
                 }
