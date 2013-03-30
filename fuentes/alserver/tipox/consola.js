@@ -743,6 +743,8 @@ Aplicacion.prototype.casosDePrueba.push({
             rta=mensaje+' recibido como error';
         }).luego(function(mensaje,app){
             rta=mensaje+' paso D';
+        }).alFallar(function(mensaje,app){
+            rta=mensaje+' segundo error';
         });
         futuro.recibirListo('listo');
         return rta;
