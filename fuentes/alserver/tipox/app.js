@@ -95,8 +95,16 @@ Aplicacion.prototype.creadorElementoDOM={
                         }
                     }
                 }else if(valor instanceof Object){
-                    app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
-                    this.asignarAtributos(destino[atributo],valor,futuro);
+                    var defEspecial;
+                    if(atributo in this.atributosEspeciales){
+                        defEspecial=this.atributosEspeciales[atributo];
+                        for(var subAttr in valor){
+                            defEspecial.asignarEspecial(destino,subAttr,valor[subAttr]);
+                        }
+                    }else{
+                        app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
+                        this.asignarAtributos(destino[atributo],valor,futuro);
+                    }
                 }else{
                     destino[atributo]=valor;
                     if(destino[atributo]!=valor){
@@ -821,6 +829,14 @@ if(!Modernizr.classlist/* || true*/){
         atributoDestino:'className',
         aplanarValores:function(valores){
             return valores.join(' ');
+        }
+    }
+}
+
+if(!Modernizr.dataset || true){
+    Aplicacion.prototype.creadorElementoDOM.atributosEspeciales.dataset={
+        asignarEspecial:function(destino,subAtributo,valor){
+            destino.setAttribute('data-'+subAtributo,valor);
         }
     }
 }

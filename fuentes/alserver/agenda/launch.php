@@ -5,7 +5,8 @@ lanzar(array(
     'title'=>'mini agenda',
     'jss'=>array(
         "../tercera/md5_paj",
-        "../tipox/consola",
+        "../tipox/app_pr",
+        "../tipox/grilla_pr",
         "../extensiones/compatibilidad",
         "main"
     )

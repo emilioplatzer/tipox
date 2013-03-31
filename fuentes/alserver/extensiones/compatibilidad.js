@@ -6,11 +6,30 @@ function MostrarControlCompatibilidad(elementoId){
         explicarEn.className='Normalizr_incompatibilidades';
         document.body.appendChild(explicarEn);
     }
+    var agregarParrafo=function(mensaje){
+        var parrafoConIncompatibilidad=document.createElement('p');
+        parrafoConIncompatibilidad.innerText=mensaje;
+        explicarEn.appendChild(parrafoConIncompatibilidad);
+    }
+    var r=/^eh$/ig;
+    if(!('test' in r)){
+        agregarParrafo("!('test' in r)");
+    }
+    if(!r.test){
+        agregarParrafo("!r.test");
+    }
+    if(!r.test('Eh')){
+        agregarParrafo("!r.test(Eh)");
+    }
+    if(!(r instanceof RegExp)){
+        agregarParrafo("!(r instanceof RegExp)");
+    }
+    if(!(typeof(r)=='object')){
+        agregarParrafo("!(typeof(r)=='object') typeof(r)=="+typeof(r));
+    }
     for(var prueba in Modernizr){
         if(Modernizr[prueba]===false){
-            var parrafoConIncompatibilidad=document.createElement('p');
-            parrafoConIncompatibilidad.innerText='!Modernizr.'+prueba;
-            explicarEn.appendChild(parrafoConIncompatibilidad);
+            agregarParrafo('!Modernizr.'+prueba);
         }
     }
 }

@@ -4,7 +4,7 @@ tabla.prueba_tabla_comun=
     "id":{"tipo":"serial", "esPk":true},
     "nombre":{"tipo":"texto"},
     "importe":{"tipo":"decimal"},
-    "activo":{"tipo":"logico"},
+    "activo":{"tipo":"logico", "titulo":{"tipox":"span", "nodes":["A",{"tipox":"small", "innerText":"ctv"}]}},
     "cantidad":{"tipo":"entero"},
     "fecha":{"tipo":"fecha"}
   }

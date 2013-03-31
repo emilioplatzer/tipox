@@ -10,6 +10,7 @@ $def['jss']=array_merge(array(
     '../tercera/modernizr.custom.74701',
     '../tipox/comunes'
     ,'../tipox/app'
+    ,'../tipox/grilla'
 ),$def['jss']);
 echo <<<HTML
 <!DOCTYPE html>
