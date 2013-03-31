@@ -165,10 +165,21 @@ Probador.prototype.probarUnCaso=function(desde,cuantos){
     }
 }
 
+Probador.prototype.cadenaParaMostrar=function(valor){
+    if(valor instanceof Date){
+        return valor.toString();
+    }else if(valor instanceof RegExp){
+        return "/"+valor.source+"/"+(valor.global?'g':'')+(valor.ignoreCase?'i':'')+(valor.multiline?'m':'');
+    }else{
+        return JSON.stringify(valor);
+    }
+}
+
+
 Probador.prototype.mostrarCampos=function(objeto){
     var rta;
     try{
-        rta=JSON.stringify(objeto);
+        rta=this.cadenaParaMostrar(objeto);
     }catch(err){
         var rta={};
         for(var atributo in objeto){
@@ -224,33 +235,29 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
                 {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, nodes:[{tipox:'pre', innerText:probador.mostrarCampos(obtenido)}]}]},
         ]};
     }
-    var capturarTiposEspecialesParaComparar=function(dato){
-        if(dato instanceof Date){
-            dato="₮Date="+dato.toString();
-        }else if(typeof(dato)=='string' && dato[0]=="₮"){
-            dato="“"+dato;
-        }
-        return dato;
-    }
     var compararBonito=function(esperado,obtenido){
-        esperado=capturarTiposEspecialesParaComparar(esperado);
-        obtenido=capturarTiposEspecialesParaComparar(obtenido);
         var rta={tieneError:false, tieneAdvertencias:false};
         if(
             (typeof(esperado)=='object'?
-                (typeof(obtenido)!='object' 
-                    || (esperado===null)!==(obtenido===null) 
-                    || (esperado===undefined)!==(obtenido===undefined) 
-                    || (esperado instanceof Array)!==(obtenido instanceof Array)
+                (esperado instanceof RegExp?
+                    (!esperado.test(obtenido)):
+                    (typeof(obtenido)!='object' 
+                        || (esperado===null)!==(obtenido===null) 
+                        || (esperado===undefined)!==(obtenido===undefined) 
+                        || (esperado instanceof Array)!==(obtenido instanceof Array)
+                        || (esperado instanceof Date)!==(esperado instanceof Date)
+                        || (esperado instanceof Date) && esperado.toString()!=obtenido.toString()
+                    )
                 ):
+                (typeof(esperado)=='function' && esperado instanceof RegExp)?(!esperado.test(obtenido)):
                 esperado!==obtenido
             )
         ){
             rta.tieneError=!caso.ignorarDiferenciaDeTiposNumericos || isNaN(esperado) || isNaN(obtenido) || esperado!=obtenido;
             rta.tieneAdvertencias=true;
             rta.bonito=nodoBonito(esperado, obtenido,'TDD_esperado',rta.tieneError?'TDD_obtenido':'TDD_obtenido_sobrante');
-        }else if(typeof(esperado)!='object' || esperado==null && obtenido==null){
-            rta.bonito={tipox:'div', className:'TDD_iguales', innerText:JSON.stringify(esperado)};
+        }else if(typeof(esperado)!='object' || esperado==null && obtenido==null || esperado instanceof Date || esperado instanceof RegExp){
+            rta.bonito={tipox:'div', className:'TDD_iguales', innerText:probador.cadenaParaMostrar(obtenido)};
         }else{
             var nodes=[];
             var nodoArray;
@@ -428,6 +435,37 @@ Aplicacion.prototype.casosDePrueba.push({
     caso:'así se ve cuando coincide el texto de la excepción',
     entrada:["texto de la excepcion"],
     error:"texto de la excepcion"
+});
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_errores',
+    funcion:'estoMismo',
+    mostarAunqueNoFalleHasta:'2013-03-31',
+    caso:'prueba de RegExp',
+    entrada:[{
+        simple:'palabra más larga de lo esperada',
+        conBarra:'palabra con prefijo',
+    }],
+    salida:{
+        simple:/^Palabra$/gi,
+        conBarra:/^prefijo$/g,
+    }
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_ok',
+    funcion:'estoMismo',
+    mostarAunqueNoFalleHasta:'2013-03-31',
+    caso:'prueba de RegExp',
+    entrada:[{
+        simple:'palabra',
+        conBarra:'uno/otro',
+        conEspacioOpcional:'todojunto separado',
+    }],
+    salida:{
+        simple:/^Palabra$/i,
+        conBarra:/^uno\/otro$/ig,
+        conEspacioOpcional:/^todo ?junto ?separado$/g
+    }
 });
 
 Aplicacion.prototype.casosDePrueba.push({
@@ -635,7 +673,7 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'pruebaGrabSimple',
     caso:'creación de elemento del DOM con style',
     entrada:[{tipox:'p', style:{width:200, backgroundColor:'#333'}}],
-    salida:'<p style="width: 200px; background-color: rgb(51, 51, 51);"></p>'
+    salida:/<p style="width: 200px; background-color: rgb\(51, 51, 51\); ?"><\/p>/g
 });
 
 Aplicacion.prototype.casosDePrueba.push({
@@ -678,6 +716,14 @@ Aplicacion.prototype.casosDePrueba.push({
     ]},
 });
 }
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'creación de elementos del DOM a través de objetos tipox',
+    funcion:'pruebaGrabSimple',
+    caso:'prueba de dataset',
+    entrada:[{tipox:'div', id:'id1', dataset:{uno:'uno', otroAtributoInterno:'otro'}}],
+    salida:/<div id="id1" data-uno="uno" data-otro-?atributo-?interno="otro"><\/div>/g
+});
 
 Aplicacion.prototype.aplicarFuncion=function(hacer,parametros){
     return hacer.apply(app,parametros)
@@ -841,7 +887,7 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'accesoDb',
     caso:'traer los datos de la prueba_tabla_comun',
     entrada:[{hacer:'select',from:'prueba_tabla_comun',where:true}],
-    mostarAunqueNoFalleHasta:'2013-03-30',
+    mostarAunqueNoFalleHasta:'2013-03-31',
     salida:[
         {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,fecha:new Date('2001-12-31'),"ultima_modificacion":"2001-01-01"},
         {id:2,nombre:"dos",importe:0.11,activo:false,cantidad:1   ,fecha:null                  ,"ultima_modificacion":"2001-01-01"},
@@ -856,3 +902,4 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[{hacer:'select',from:'prueba_tabla_comun'}],
     error:"el acceso a datos debe tener una clausula where"
 });
+
