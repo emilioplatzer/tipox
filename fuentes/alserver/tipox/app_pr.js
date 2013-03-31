@@ -170,6 +170,8 @@ Probador.prototype.cadenaParaMostrar=function(valor){
         return valor.toString();
     }else if(valor instanceof RegExp){
         return "/"+valor.source+"/"+(valor.global?'g':'')+(valor.ignoreCase?'i':'')+(valor.multiline?'m':'');
+    }else if(typeof valor == 'function'){
+        return valor.toString();
     }else{
         return JSON.stringify(valor);
     }

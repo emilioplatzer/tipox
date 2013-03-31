@@ -18,7 +18,9 @@ Aplicacion.prototype.paginas.agenda={
     labelMenu:'Agenda',
     nodes:[
         "agenda",
-        {tipox:'funcion', funcion:'traerAgenda', id:'zona_agenda'}
+        {tipox:'funcion', funcion:'traerAgenda', id:'zona_agenda'},
+        {tipox:'div', innerText:'grilla'},
+        {tipox:'grilla', tabla:'agenda'}
     ]
 };
 

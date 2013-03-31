@@ -68,43 +68,32 @@ Aplicacion.prototype.creadorElementoDOM={
                 break;
             default:
                 var app=this.app;
-                if(valor instanceof Array){
+                if(atributo in this.atributosEspeciales && !('sufijoValor' in this.atributosEspeciales[atributo])){
                     var defEspecial;
-                    if(atributo in this.atributosEspeciales){
-                        defEspecial=this.atributosEspeciales[atributo];
-                        atributo=defEspecial.atributoDestino;
-                        destino[atributo]=defEspecial.aplanarValores(valor);
-                    }else{
-                        app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
-                        if(atributo=='innerText'){
-                            throw new Error("el innerText solo puede recibir strings");
-                        }
-                        var agregadores={add:true, push:true};
-                        var pude=false;
-                        for(var agregador in agregadores){
-                            if(agregador in destino[atributo]){
-                                for(var i=0; i<valor.length; i++){
-                                    destino[atributo][agregador](valor[i]);
-                                }
-                                pude=true;
-                                break;
+                    defEspecial=this.atributosEspeciales[atributo];
+                    defEspecial.asignar(destino,valor);
+                }else if(valor instanceof Array){
+                    app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
+                    if(atributo=='innerText'){
+                        throw new Error("el innerText solo puede recibir strings");
+                    }
+                    var agregadores={add:true, push:true};
+                    var pude=false;
+                    for(var agregador in agregadores){
+                        if(agregador in destino[atributo]){
+                            for(var i=0; i<valor.length; i++){
+                                destino[atributo][agregador](valor[i]);
                             }
+                            pude=true;
+                            break;
                         }
-                        if(!pude){
-                            app.lanzarExcepcion('No esta definida la manera de agregar elementos de arreglo al atributo '+atributo);
-                        }
+                    }
+                    if(!pude){
+                        app.lanzarExcepcion('No esta definida la manera de agregar elementos de arreglo al atributo '+atributo);
                     }
                 }else if(valor instanceof Object){
-                    var defEspecial;
-                    if(atributo in this.atributosEspeciales){
-                        defEspecial=this.atributosEspeciales[atributo];
-                        for(var subAttr in valor){
-                            defEspecial.asignarEspecial(destino,subAttr,valor[subAttr]);
-                        }
-                    }else{
-                        app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
-                        this.asignarAtributos(destino[atributo],valor,futuro);
-                    }
+                    app.assert(atributo in destino, atributo+' no esta en '+destino.tagName+' para asignar '+JSON.stringify(valor));
+                    this.asignarAtributos(destino[atributo],valor,futuro);
                 }else{
                     destino[atributo]=valor;
                     if(destino[atributo]!=valor){
@@ -117,7 +106,12 @@ Aplicacion.prototype.creadorElementoDOM={
         }
     },
     atributosEspeciales:{
-        'width':{sufijoValor:'px'}
+        width:{sufijoValor:'px'},
+        ongrab:{
+            asignar:function(elementoDestino, valor){
+                elementoDestino.ongrab=valor;
+            }
+        }
     }
 }
 
@@ -824,19 +818,23 @@ Aplicacion.run=function(app){
 }
 
 // compatibilidad con navegadores viejos
-if(!Modernizr.classlist/* || true*/){
+if(!Modernizr.classlist || true){
     Aplicacion.prototype.creadorElementoDOM.atributosEspeciales.classList={
-        atributoDestino:'className',
-        aplanarValores:function(valores){
-            return valores.join(' ');
+        asignar:function(elementoDestino, valor){
+            elementoDestino.className=valor.join(' ');
         }
     }
 }
 
 if(!Modernizr.dataset || true){
     Aplicacion.prototype.creadorElementoDOM.atributosEspeciales.dataset={
-        asignarEspecial:function(destino,subAtributo,valor){
+        asignarSubAtributo:function(destino,subAtributo,valor){
             destino.setAttribute('data-'+subAtributo,valor);
+        },
+        asignar:function(elementoDestino, valor){
+            for(var subAttr in valor){
+                this.asignarSubAtributo(elementoDestino,subAttr,valor[subAttr]);
+            }
         }
     }
 }
