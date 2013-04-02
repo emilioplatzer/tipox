@@ -827,24 +827,3 @@ Aplicacion.run=function(app){
     return futuro;
 }
 
-// compatibilidad con navegadores viejos
-if(!Modernizr.classlist || true){
-    Aplicacion.prototype.creadorElementoDOM.atributosEspeciales.classList={
-        asignar:function(elementoDestino, valor){
-            elementoDestino.className=valor.join(' ');
-        }
-    }
-}
-
-if(!Modernizr.dataset || true){
-    Aplicacion.prototype.creadorElementoDOM.atributosEspeciales.dataset={
-        asignarSubAtributo:function(destino,subAtributo,valor){
-            destino.setAttribute('data-'+subAtributo,valor);
-        },
-        asignar:function(elementoDestino, valor){
-            for(var subAttr in valor){
-                this.asignarSubAtributo(elementoDestino,subAttr,valor[subAttr]);
-            }
-        }
-    }
-}

@@ -78,7 +78,6 @@ Probador.prototype.probarTodo=function(){
         this.app.grab(elementoModuloCasos,
             {tipox:'div', className:'TDD_caso', id:idCaso, nodes:nodosInternos}
         );
-        compatibilidad.classList(elementoModuloTitulo);
         if(caso.ignorado){  
             elementoModuloTitulo.classList.remove('TDD_prueba_pendiente');
             elementoModuloTitulo.classList.add('TDD_prueba_ignorada');
@@ -329,7 +328,6 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
     var elementoCasoTitulo=document.getElementById(idCaso+'_titulo');
     var elementoCaso=document.getElementById(idCaso);
-    compatibilidad.classList(elementoCasoTitulo);
     elementoCasoTitulo.classList.remove('TDD_prueba_ignorada');
     elementoCasoTitulo.classList.remove('TDD_prueba_pendiente');
     if(resultado.tieneError || this.app.hoyString<=caso.mostrarAunqueNoFalleHasta || resultado.tieneAdvertencias){
@@ -736,10 +734,15 @@ Aplicacion.prototype.casosDePrueba.push({
 
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'creación de elementos del DOM a través de objetos tipox',
-    funcion:'pruebaGrabSimple',
-    caso:'prueba de dataset',
-    entrada:[{tipox:'div', id:'id1', dataset:{uno:'uno', otroAtributoInterno:'otro'}}],
-    salida:/<div id="id1" data-uno="uno" data-otro-?atributo-?interno="otro"><\/div>/
+    funcion:'aplicarFuncion',
+    caso:'prueba de dataset directo del objeto',
+    entrada:[function(){
+        TDD_zona_de_pruebas.innerHTML='';
+        var definicion={tipox:'div', id:'id1', dataset:{uno:'uno', otroAtributoInterno:'otro'}};
+        this.grab(TDD_zona_de_pruebas,definicion);        
+        return id1
+    },[]],
+    salidaDom:{dataset:{uno:'uno', otroAtributoInterno:'otro'}}
 });
 
 Aplicacion.prototype.aplicarFuncion=function(hacer,parametros){
