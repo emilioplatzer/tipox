@@ -10,8 +10,24 @@
     border-collapse:collapse;
 }
 
-.grilla_cont_tabla td{
-    border:2px #AAA solid;
+.grilla_cont_tabla table{
     border-collapse:collapse;
+    padding:0px;
 }
 
+.grilla_cont_tabla td{
+    border-collapse:collapse;
+    padding:0px;
+}
+
+.grilla_tabla_int td{
+    border:2px #AAA solid;
+}
+
+.grilla_tabla_int th{
+    border:2px #AAA solid;
+}
+
+.grilla_cont_tr_datos td{
+    min-height:100px;
+}

@@ -12,8 +12,10 @@ Aplicacion.prototype.eventos.grilla_preparar_contenedor=function(evento,tabla,op
         }
         var home=ubicarElemento('.grilla_cont_td_home');
         var encabezado=ubicarElemento('.grilla_cont_td_encabezados');
-        app.grab(home,{tipox:'table', nodes:{tipox:'tr', id:tabla.id+'_tr_h'}});
-        app.grab(encabezado,{tipox:'table', nodes:{tipox:'tr', id:tabla.id+'_tr_e'}});
+        var tabla_interna={tipox:'table',className:'grilla_tabla_int', nodes:{tipox:'tr', id:tabla.id+'_tr_h'}};
+        app.grab(home, tabla_interna);
+        tabla_interna.nodes.id=tabla.id+'_tr_e';
+        app.grab(encabezado,tabla_interna);
         var campos=app.drTabla[tabla.dataset.tabla].campos;
         for(var nombreCampo in campos){
             var defCampo=campos[nombreCampo];
@@ -42,11 +44,11 @@ Aplicacion.prototype.creadores.grilla={tipo:'tipox', descripcion:'grilla funcion
              ongrab:Aplicacion.prototype.grilla_preparar_contenedor,
              nodes:[
                 {tipox:'caption', nodes:[{tipox:'grilla_boton_leer'}, {tipox:'span', className:'grilla_titulo_tabla', innerText:definicion.tabla}]},
-                {tipox:'tr', className:'grilla_contr_tr_encabezados', nodes:[
+                {tipox:'tr', className:'grilla_cont_tr_encabezados', nodes:[
                     {tipox:'td', className:'grilla_cont_td_home'},
                     {tipox:'td', className:'grilla_cont_td_encabezados'},
                 ]},
-                {tipox:'tr', className:'grilla_contr_tr_datos', nodes:[
+                {tipox:'tr', className:'grilla_cont_tr_datos', nodes:[
                     {tipox:'td', className:'grilla_cont_td_lateral'},
                     {tipox:'td', className:'grilla_cont_td_datos'},
                 ]}
