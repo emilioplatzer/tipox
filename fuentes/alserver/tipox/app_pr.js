@@ -31,7 +31,7 @@ Aplicacion.prototype.probarTodo=function(){
             probador.probarTodo();
         }catch(err){
             debugDirecto(descripcionError(err));
-            // debugDirecto(err.stack);
+            debugDirecto(err.stack);
         }
     }else{
         probador.probarTodo();
@@ -39,6 +39,9 @@ Aplicacion.prototype.probarTodo=function(){
 }
 
 Probador.prototype.probarTodo=function(){
+    this.casosPendientes=[]; // para hacer la cola de los que faltan ejecutar
+    this.casosExistentes={}; // para controlar duplicados
+    this.elementosBloqueados={}; // para controlar que no se ejecuten dos pruebas que necesitan los mismos elementos (con su id)
     for(var i in this.casosDePrueba) if(this.casosDePrueba.hasOwnProperty(i)){
         var caso=this.casosDePrueba[i];
         if(!('funcion' in caso)){
@@ -63,7 +66,7 @@ Probador.prototype.probarTodo=function(){
             elementoModuloCasos=document.getElementById(idModulo+'_casos');
         }
         var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
-        var idCaso='TDD_caso:'+i;
+        var idCaso='TDD_caso:'+caso.caso;
         var clase=caso.ignorado?'TDD_prueba_ignorada':'TDD_prueba_pendiente';
         var tituloCaso=[caso.caso];
         var ticket;
@@ -87,80 +90,105 @@ Probador.prototype.probarTodo=function(){
             }
         }else{
             this.pendientesPorModulos[idModulo]++;
+            this.casosPendientes.push(caso);
         }
+        if(caso.caso in this.casosExistentes){
+            this.app.lanzarExcepcion('Nombre de caso de prueba duplicado '+caso.caso);
+        }
+        this.casosExistentes[caso.caso]={};
         var elementoCaso=document.getElementById(idModulo);
     }
-    this.probarUnCaso(0,100);
-    if(this.casosDePrueba[0].caso=='así se ven lo errores en los casos de prueba fallidos'){
-        document.getElementById('TDD_caso:0').parentNode.style.display='none';
-    }
+    this.probarVariosCasos(100);
+    document.getElementById('TDD_caso:así se ven lo errores en los casos de prueba fallidos').parentNode.style.display='none';
 }
 
-Probador.prototype.probarUnCaso=function(desde,cuantos){
+Probador.prototype.probarVariosCasos=function(cuantos){
     var procesarHasta=(new Date()).getTime()+500;
-    for(var i=desde; i<desde+cuantos && i<this.casosDePrueba.length && (new Date()).getTime()<procesarHasta; i++){
-        var caso=this.casosDePrueba[i];
-        if(!caso.ignorado){
-            var idModulo='TDD_modulo:'+caso.modulo;
-            var idCaso='TDD_caso:'+i;
-            var esto=null;
-            var estos=[this.app,window,caso.entrada[0]];
-            for(var i_esto=0;i_esto<estos.length;i_esto++){
-                if(caso.funcion in estos[i_esto]){
-                    esto=estos[i_esto];
+    var seguirProcesando=cuantos;
+    while(this.casosPendientes.length && seguirProcesando && (new Date()).getTime()<procesarHasta){
+        var caso=this.casosPendientes.shift();
+        var hayBloqueados=false;
+        if(caso.elementos){
+            for(var elemento in caso.elementos){
+                if(document.getElementById(elemento) || this.elementosBloqueados[elemento]){
+                    hayBloqueados=true;
                     break;
                 }
             }
-            var obtenido=null;
-            var errorObtenido=null;
-            var salvarEntrada=this.mostrarCampos(caso.entrada);
-            var correrCaso=function(){
-                if(!esto){
-                    this.app.lanzarExcepcion("no existe la función "+caso.funcion+" o no se encuentra en los lugares probables");
-                }
-                if(esto==caso.entrada[0]){
-                    obtenido=esto[caso.funcion].apply(esto,caso.entrada.slice(1));
-                }else{
-                    obtenido=esto[caso.funcion].apply(esto,caso.entrada);
-                }
-            }
-            if(caso.relanzarExcepcionSiHay){
-                correrCaso();
-            }else{
-                try{
-                    correrCaso();
-                }catch(err){
-                    errorObtenido=err.message||'Recibida excepción sin message';
-                }
-            }
-            var app=this.app;
-            var este=this;
-            if(obtenido instanceof Futuro){
-                obtenido.luego(function(caso,idCaso,salvarEntrada){
-                    return function(respuesta,app){
-                        este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
-                    }
-                }(caso,idCaso,salvarEntrada)).alFallar(function(caso,idCaso,salvarEntrada){
-                    return function(mensaje,app){
-                        este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada);
-                   }
-                }(caso,idCaso,salvarEntrada));
-            }else{
-                este.compararObtenido(obtenido,errorObtenido,caso,idCaso,salvarEntrada);
-            }
-            /*
-            var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
-            if(elementoModuloTitulo.classList.contains('TDD_prueba_ok')){
-                elementoModuloTitulo.classList.remove('TDD_prueba_ok');
-                elementoModuloTitulo.classList.add('TDD_prueba_pendiente');
-            }
-            */
+        }
+        if(hayBloqueados){
+            var elementoCaso=document.getElementById('TDD_caso:'+caso.caso+'_titulo');
+            elementoCaso.classList.remove('TDD_prueba_pendiente');
+            elementoCaso.classList.add('TDD_prueba_en_espera');
+            this.casosPendientes.push(caso);
+        }else{
+            this.probarElCaso(caso);
         }
     }
-    desde=i;
     var este=this;
-    if(desde<this.casosDePrueba.length){
-        setTimeout(function(){ este.probarUnCaso(desde,cuantos); },100);
+    if(this.casosPendientes.length){
+        setTimeout(function(){ este.probarVariosCasos(cuantos); },100);
+    }
+}
+
+Probador.prototype.probarElCaso=function(caso){
+    if(caso.elementos){
+        this.app.grab(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_'+caso.caso, className:'TDD_una_prueba'});
+        for(var elemento in caso.elementos){
+            this.elementosBloqueados[elemento]=true;
+            var defElemento=caso.elementos[elemento];
+            if(defElemento){
+                this.app.grab('TDD_zona_'+caso.caso, cambiandole(defElemento,{id:elemento}));
+            }
+        }
+    }
+    var idModulo='TDD_modulo:'+caso.modulo;
+    var idCaso='TDD_caso:'+caso.caso;
+    var esto=null;
+    var estos=[this.app,window,caso.entrada[0]];
+    for(var i_esto=0;i_esto<estos.length;i_esto++){
+        if(caso.funcion in estos[i_esto]){
+            esto=estos[i_esto];
+            break;
+        }
+    }
+    var obtenido=null;
+    var errorObtenido=null;
+    var salvarEntrada=this.mostrarCampos(caso.entrada);
+    var correrCaso=function(){
+        if(!esto){
+            this.app.lanzarExcepcion("no existe la función "+caso.funcion+" o no se encuentra en los lugares probables");
+        }
+        if(esto==caso.entrada[0]){
+            obtenido=esto[caso.funcion].apply(esto,caso.entrada.slice(1));
+        }else{
+            obtenido=esto[caso.funcion].apply(esto,caso.entrada);
+        }
+    }
+    if(caso.relanzarExcepcionSiHay){
+        correrCaso();
+        var paraPonerBreakPointAca=caso.caso;
+    }else{
+        try{
+            correrCaso();
+        }catch(err){
+            errorObtenido=err.message||'Recibida excepción sin message';
+        }
+    }
+    var app=this.app;
+    var este=this;
+    if(obtenido instanceof Futuro){
+        obtenido.luego(function(caso,idCaso,salvarEntrada){
+            return function(respuesta,app){
+                este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
+            }
+        }(caso,idCaso,salvarEntrada)).alFallar(function(caso,idCaso,salvarEntrada){
+            return function(mensaje,app){
+                este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada);
+           }
+        }(caso,idCaso,salvarEntrada));
+    }else{
+        este.compararObtenido(obtenido,errorObtenido,caso,idCaso,salvarEntrada);
     }
 }
 
@@ -330,6 +358,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     var elementoCaso=document.getElementById(idCaso);
     elementoCasoTitulo.classList.remove('TDD_prueba_ignorada');
     elementoCasoTitulo.classList.remove('TDD_prueba_pendiente');
+    elementoCasoTitulo.classList.remove('TDD_prueba_en_espera');
     if(resultado.tieneError || this.app.hoyString<=caso.mostrarAunqueNoFalleHasta || resultado.tieneAdvertencias){
         app.grab(idCaso,{tipox:'div', className:'TDD_error', nodes:[
             {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
@@ -342,6 +371,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     if(resultado.tieneError){
         elementoModuloTitulo.classList.remove('TDD_prueba_ignorada');
         elementoModuloTitulo.classList.remove('TDD_prueba_pendiente');
+        elementoModuloTitulo.classList.remove('TDD_prueba_en_espera');
         elementoModuloTitulo.classList.add('TDD_prueba_fallida');
         elementoCasoTitulo.classList.add('TDD_prueba_fallida');
         document.getElementById(idModulo+'_casos').style.display=null;
@@ -352,8 +382,21 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
                 elementoModuloTitulo.classList.remove('TDD_prueba_pendiente');
                 elementoModuloTitulo.classList.add('TDD_prueba_ok');
             }
+            if(elementoModuloTitulo.classList.contains('TDD_prueba_en_espera')){
+                elementoModuloTitulo.classList.remove('TDD_prueba_en_espera');
+                elementoModuloTitulo.classList.add('TDD_prueba_ok');
+            }
         }
         elementoCasoTitulo.classList.add('TDD_prueba_ok');
+    }
+    if(caso.elementos){
+        for(var elemento in caso.elementos){
+            this.elementosBloqueados[elemento]=false;
+        }
+        var zonaDePrueba=document.getElementById('TDD_zona_'+caso.caso);
+        if(zonaDePrueba){
+            zonaDePrueba.parentNode.removeChild(zonaDePrueba);
+        }
     }
 };
 
@@ -452,7 +495,7 @@ Aplicacion.prototype.casosDePrueba.push({
     modulo:'asi_se_ven_los_errores',
     funcion:'estoMismo',
     mostrarAunqueNoFalleHasta:'2013-03-31',
-    caso:'prueba de RegExp',
+    caso:'prueba de RegExp que falla',
     entrada:[{
         simple:'palabra más larga de lo esperada',
         conBarra:'palabra con prefijo',
@@ -529,14 +572,14 @@ Aplicacion.prototype.casosDePrueba.push({
     modulo:'control de usuarios',
     funcion:'probarEvento',
     caso:'entrada al sistema errónea a través del evento entrada',
+    elementos:{
+        usuario:{tipox:'input', type:'text', value:'abel'}, 
+        password:{tipox:'input', type:'password', value:'clave2'},
+        resultado:{tipox:'div'},
+        boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
+    },
     entrada:[{
         nombre:'entrar_aplicacion',
-        elementos:{
-            usuario:{tipox:'input', type:'text', value:'abel'}, 
-            password:{tipox:'input', type:'password', value:'clave2'},
-            resultado:{tipox:'div'},
-            boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
-        },
         incluirDocumentoEnSalida:true,
         mocks:[{ 
             funcion:'enviarPaquete', 
@@ -554,14 +597,14 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'probarEvento',
     caso:'entrada al sistema exitosa a través del evento entrada',
     // relanzarExcepcionSiHay:true,
+    elementos:{
+        usuario:{tipox:'input', type:'text', value:'abel'}, 
+        password:{tipox:'input', type:'password', value:'clave1'},
+        resultado:{tipox:'div'},
+        boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
+    },
     entrada:[{
         nombre:'entrar_aplicacion',
-        elementos:{
-            usuario:{tipox:'input', type:'text', value:'abel'}, 
-            password:{tipox:'input', type:'password', value:'clave1'},
-            resultado:{tipox:'div'},
-            boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
-        },
         incluirDocumentoEnSalida:true,
         mocks:[{ 
             funcion:'enviarPaquete', 
@@ -621,8 +664,10 @@ Aplicacion.prototype.appMock=function(definicion){
 }
 
 Aplicacion.prototype.probarEvento=function(definicion){
-    TDD_zona_de_pruebas.innerHTML='';
-    this.grab(TDD_zona_de_pruebas,cambiandole(definicion.elementos,{indexadoPor:'id'}));
+    if(definicion.debugGrab){
+        console.log('2013-04-02','dentro de probar Evento');
+        console.log('2013-04-02','busco el id '+document.getElementById('id3_cont_tr_h') );
+    }
     var funcionEvento=this.eventos[definicion.nombre];
     if(definicion.sinMock){
         return funcionEvento.call(this,definicion.evento,document.getElementById(definicion.idDestino),{probando:true});
@@ -649,9 +694,10 @@ Aplicacion.prototype.probarEvento=function(definicion){
 }
 
 Aplicacion.prototype.pruebaGrabSimple=function(definicion){
-    TDD_zona_de_pruebas.innerHTML='';
-    this.grab(TDD_zona_de_pruebas,definicion);
-    return TDD_zona_de_pruebas.innerHTML;
+    this.grab(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_de_pruebas_simple', nodes:definicion});
+    var rta=TDD_zona_de_pruebas_simple.innerHTML;
+    TDD_zona_de_pruebas.removeChild(TDD_zona_de_pruebas_simple);
+    return rta;
 }
 
 Aplicacion.prototype.pruebaTraduccion=function(definicion){
@@ -736,11 +782,10 @@ Aplicacion.prototype.casosDePrueba.push({
     modulo:'creación de elementos del DOM a través de objetos tipox',
     funcion:'aplicarFuncion',
     caso:'prueba de dataset directo del objeto',
+    elementos:{}, // para que se cree el contenedor para después hacer el grab
     entrada:[function(){
-        TDD_zona_de_pruebas.innerHTML='';
-        var definicion={tipox:'div', id:'id1', dataset:{uno:'uno', otroAtributoInterno:'otro'}};
-        this.grab(TDD_zona_de_pruebas,definicion);        
-        return id1
+        var definicion={tipox:'div', id:'idds', dataset:{uno:'uno', otroAtributoInterno:'otro'}};
+        return this.grab('TDD_zona_'+'prueba de dataset directo del objeto',definicion);        
     },[]],
     salidaDom:{dataset:{uno:'uno', otroAtributoInterno:'otro'}}
 });

@@ -26,13 +26,15 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'probarEvento',
     caso:'preparar las columnas de la grilla',
     // mostrarAunqueNoFalleHasta:'2013-04-01',
+    relanzarExcepcionSiHay:true,
+    elementos:{
+        id3:{tipox:'grilla', tabla:'prueba_tabla_comun'}
+    },
     entrada:[{
         nombre:'grilla_preparar_contenedor',
+        debugGrab:true,
         sinMock:true,
         idDestino:'id3_cont',
-        elementos:{
-            id3:{tipox:'grilla', tabla:'prueba_tabla_comun'}
-        },
         incluirDocumentoEnSalida:true
     }],
     salidaDom:{documento:{

@@ -2,6 +2,7 @@
 "use strict";
 
 Aplicacion.prototype.eventos.grilla_preparar_contenedor=function(evento,tabla,opciones){
+    console.log('2013-04-02','lanzado el evento grilla_preparar_contenedor');
     var futuro=this.prepararTabla(tabla.dataset.tabla).luego(function(mensaje,app){
         var ubicarElemento=function(clase){
             var elementos=tabla.querySelectorAll(clase);
@@ -10,16 +11,17 @@ Aplicacion.prototype.eventos.grilla_preparar_contenedor=function(evento,tabla,op
             }
             return elementos[0];
         }
-        var home=ubicarElemento('.grilla_cont_td_home');
-        var encabezado=ubicarElemento('.grilla_cont_td_encabezados');
-        var tabla_interna={tipox:'table',className:'grilla_tabla_int', nodes:{tipox:'tr', id:tabla.id+'_tr_h'}};
-        app.grab(home, tabla_interna);
-        tabla_interna.nodes.id=tabla.id+'_tr_e';
-        app.grab(encabezado,tabla_interna);
+        var zonas={h:{esPk:true, destino:ubicarElemento('.grilla_cont_td_home')}, e:{esPk:false, destino:ubicarElemento('.grilla_cont_td_encabezados')}};
         var campos=app.drTabla[tabla.dataset.tabla].campos;
-        for(var nombreCampo in campos){
-            var defCampo=campos[nombreCampo];
-            app.grab(tabla.id+(defCampo.esPk?'_tr_h':'_tr_e'), {tipox:'th', nodes:defCampo.titulo||nombreCampo});
+        for(var zona in zonas){
+            var celdas=[];
+            for(var nombreCampo in campos){
+                var defCampo=campos[nombreCampo];
+                if(!!defCampo.esPk===zonas[zona].esPk){
+                    celdas.push({tipox:'th', nodes:defCampo.titulo||nombreCampo});
+                }
+            }
+            app.grab(zonas[zona].destino,{tipox:'table',className:'grilla_tabla_int', nodes:{tipox:'tr', id:tabla.id+'_tr_'+zona, nodes:celdas}});
         }
         if(opciones && opciones.probando){
             return {documento:document};
