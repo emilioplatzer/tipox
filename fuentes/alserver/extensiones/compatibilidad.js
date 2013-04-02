@@ -61,10 +61,19 @@ function debugDirecto(mensaje){
 var compatibilidad={};
 
 compatibilidad.classList=function(destino){
-    if(!Modernizr.classlist){
-        destino.classList={
+    if(!Modernizr.classList){
+        destino.__defineGetter__("classList", function(){
+            this.classListum.padre=this;
+            return this.classListum;
+        });
+        destino.__defineSetter__("classList", function(val){
+            this.classListum.padre=this;
+            this.classListum = val;
+        });
+        destino.classListum={
+            padre:{},
             contains:function(clase){
-                var arreglo=destino.className.split(' ');
+                var arreglo=(this.padre.className||'').split(' ');
                 for(var i=0; i<arreglo.length; i++){
                     if(clase==arreglo[i]){
                         return true;
@@ -73,24 +82,60 @@ compatibilidad.classList=function(destino){
                 return false;
             },
             add:function(clase){
-                var arreglo=destino.className.split(' ');
+                var arreglo=(this.padre.className||'').split(' ');
                 for(var i=0; i<arreglo.length; i++){
                     if(clase==arreglo[i]){
                         return ;
                     }
                 }
                 arreglo.push(clase);
-                destino.className=arreglo.join(' ');
+                this.padre.className=arreglo.join(' ')||null;
             },
             remove:function(clase){
-                var arreglo=destino.className.split(' ');
+                var arreglo=(this.padre.className||'').split(' ');
                 for(var i=0; i<arreglo.length; i++){
                     while(i<arreglo.length && clase==arreglo[i]){
                         arreglo.splice(i,1);
                     }
                 }
-                destino.className=arreglo.join(' ');
+               this. padre.className=arreglo.join(' ')||null;
             }
         }
     }
+}
+
+compatibilidad.dataset=function(destino){
+    if(!Modernizr.dataset){
+        destino.__defineGetter__("dataset", function(){
+            if(!('datasetum' in this)){
+                this.datasetum={};
+            }
+            return this.datasetum;
+        });
+        destino.__defineSetter__("dataset", function(val){
+            if(!('datasetum' in this)){
+                this.datasetum={};
+            }
+            this.datasetum = val;
+        });
+    }
+}
+
+if(Modernizr.dataset && window.Aplicacion && window.Aplicacion.prototype.casosDePrueba){
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'creación de elementos del DOM a través de objetos tipox',
+    funcion:'pruebaGrabSimple',
+    caso:'prueba de dataset comprobado con innerHTML',
+    entrada:[{tipox:'div', id:'id1', dataset:{uno:'uno', otroAtributoInterno:'otro'}}],
+    salida:/<div id="id1" data-uno="uno" data-otro-?atributo-?interno="otro"><\/div>/
+});
+}
+
+// -------------- activar compatibilidad con navegadores viejos  ---------------------
+if(!Modernizr.classList /* || true*/){
+    compatibilidad.classList(HTMLElement.prototype);
+}
+
+if(!Modernizr.dataset /*|| true*/){
+    compatibilidad.dataset(HTMLElement.prototype);
 }
