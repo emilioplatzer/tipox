@@ -49,7 +49,9 @@ Aplicacion.prototype.paginas.entrar={
     ]
 };
 
-Aplicacion.prototype.eventos={};
+Aplicacion.prototype.eventoVacio={}; // para pasarle de parámetro a los eventos que no reciben evento del DOM. Ej ongrab
+
+Aplicacion.prototype.eventos={}; // colección de eventos asignables
 
 Aplicacion.prototype.creadorElementoDOM={
     nuevo:function(tagName){ return document.createElement(tagName); },
@@ -115,7 +117,7 @@ Aplicacion.prototype.creadorElementoDOM={
     }
 }
 
-Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicionales){
+Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicionales,debug){
     var elementoDestino;
     var grabExterno=!futuro;
     if(grabExterno){
@@ -162,7 +164,7 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicional
         elementoAgregado=nuevoElemento;
         if('ongrab' in nuevoElemento){
             futuro.luego(function(respuesta,app){
-                nuevoElemento.ongrab(app);
+                nuevoElemento.ongrab.call(app,app.eventoVacio,nuevoElemento);
             });
         }
     }
@@ -172,6 +174,9 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicional
         }
     }
     if(grabExterno){
+        if(debug){
+            console.log('2013-04-02','Terminé el grab de '+(elementoAgregado||{}).id+' voy a avanzar el futuro');
+        }
         futuro.recibirListo(null);
     }
     return elementoAgregado;
@@ -357,25 +362,8 @@ Aplicacion.prototype.creadores.funcion={tipo:'tipox', descripcion:'muestra la co
         destino.id=nuevoId;
         destino.className=definicion.className||'destino_funcion';
         this.app.assert('funcion' in definicion,'falta definicion.funcion');
-        destino.ongrab=function(app){
-            app[definicion.funcion].apply(app,definicion.parametros||[]);
-        }
-    },
-}};
-
-Aplicacion.prototype.creadores.futuro={tipo:'tipox', descripcion:'coloca lo devuelto en un futuro', creador:{
-    nuevo:function(tipox,definicion){
-        return document.createElement(definicion.tagName);
-    },
-    asignarAtributos:function(destino,definicion,futuro){
-        destino.id=definicion.id;
-        destino.className=definicion.className||'destino_futuro';
-        this.app.assert('futuro' in definicion,'falta definicion.funcion');
         destino.ongrab=function(){
-            definicion.futuro.luego(function(respuesta,app){
-                destino.innerHTML='che<tr><td>algo';
-                // app.grab(destino,respuesta);
-            });
+            this[definicion.funcion].apply(this,definicion.parametros||[]);
         }
     },
 }};
@@ -609,13 +597,7 @@ Futuro.prototype.alFallar=function(hacer){
     this.sincronizar();
     return this;
 }
-/*
-Futuro.prototype.tipoxFuturo=function(tipox){
-    var idFuturo=app.nuevoIdDom('futuro');
-    var nodo={tipox:'futuro', tagName:tipox, id:idFuturo, futuro:this};
-    return nodo;
-}
-*/
+
 Aplicacion.prototype.mapLuego=function(arreglo,funcionParaCadaElemento,funcionParaElLuego){
     var futuro=this.newFuturo();
     if(arreglo.length==0){
