@@ -4,9 +4,10 @@ Aplicacion.prototype.casosDePrueba.push({
     modulo:'grillas',
     funcion:'pruebaTraduccion',
     caso:'grilla simple basada en tabla',
+    // mostrarAunqueNoFalleHasta:'2013-04-01',
     entrada:[{tipox:'grilla', tabla:'prueba_tabla_comun', id:'id2', despliegue:'simple'}],
-    salida:{tipox:'div', id:'id2', className:'grilla_div', ongrab:Aplicacion.prototype.grilla_preparar_contenedor, nodes:[
-        {tipox:'table', className:'grilla_cont_tabla', dataset:{tabla:'prueba_tabla_comun'}, nodes:[
+    salida:{tipox:'div', id:'id2', className:'grilla_div', nodes:[
+        {tipox:'table', id:'id2_cont', className:'grilla_cont_tabla', ongrab:Aplicacion.prototype.grilla_preparar_contenedor, dataset:{tabla:'prueba_tabla_comun'}, nodes:[
             {tipox:'caption', nodes:[{tipox:'grilla_boton_leer'}, {tipox:'span', className:'grilla_titulo_tabla', innerText:"prueba_tabla_comun"}]},
             {tipox:'tr', className:'grilla_contr_tr_encabezados', nodes:[
                 {tipox:'td', className:'grilla_cont_td_home'},
@@ -22,22 +23,45 @@ Aplicacion.prototype.casosDePrueba.push({
 
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'grillas',
-    funcion:'pruebaTraduccion',
-    caso:'grilla simple basada en tabla',
-    entrada:[{tipox:'grilla', tabla:'prueba_tabla_comun', id:'id2', despliegue:'simple'}],
-    salida:{tipox:'div', id:'id2', className:'grilla_div', ongrab:Aplicacion.prototype.grilla_preparar_contenedor, nodes:[
-        {tipox:'table', className:'grilla_cont_tabla', dataset:{tabla:'prueba_tabla_comun'}, nodes:[
-            {tipox:'caption', nodes:[{tipox:'grilla_boton_leer'}, {tipox:'span', className:'grilla_titulo_tabla', innerText:"prueba_tabla_comun"}]},
-            {tipox:'tr', className:'grilla_contr_tr_encabezados', nodes:[
-                {tipox:'td', className:'grilla_cont_td_home'},
-                {tipox:'td', className:'grilla_cont_td_encabezados'},
-            ]},
-            {tipox:'tr', className:'grilla_contr_tr_datos', nodes:[
-                {tipox:'td', className:'grilla_cont_td_lateral'},
-                {tipox:'td', className:'grilla_cont_td_datos'},
+    funcion:'probarEvento',
+    caso:'preparar las columnas de la grilla',
+    // mostrarAunqueNoFalleHasta:'2013-04-01',
+    entrada:[{
+        nombre:'grilla_preparar_contenedor',
+        sinMock:true,
+        idDestino:'id3_cont',
+        elementos:{
+            id3:{tipox:'grilla', tabla:'prueba_tabla_comun'}
+        },
+        incluirDocumentoEnSalida:true
+    }],
+    salidaDom:{documento:{
+        id3:{localName:'div', childNodes:[
+            {localName:'table', childNodes:[
+                {localName:'caption'},
+                {localName:'tr', childNodes:[
+                    {localName:'td', className:'grilla_cont_td_home', childNodes:[
+                        {localName:'table', childNodes:[{localName:'tr', childNodes:[
+                            {localName:'th', innerText:'id'}
+                        ]}]}
+                    ]},
+                    {localName:'td', className:'grilla_cont_td_encabezados', childNodes:[
+                        {localName:'table', childNodes:[{localName:'tr', childNodes:[
+                            {localName:'th', innerText:"nombre"},
+                            {localName:'th', innerText:"importe"},
+                            {localName:'th', childNodes:[{textContent:"A"},{localName:"small", innerText:"ctv"}]},
+                            {localName:'th', innerText:"cantidad"},
+                            {localName:'th', innerText:"fecha"},
+                        ]}]}
+                    ]},
+                ]},
+                {localName:'tr', className:'grilla_contr_tr_datos', childNodes:[
+                    {localName:'td', className:'grilla_cont_td_lateral'},
+                    {localName:'td', className:'grilla_cont_td_datos'},
+                ]}
             ]}
-        ]}
-    ]},
+        ]},
+    }}
 });
 
 /*

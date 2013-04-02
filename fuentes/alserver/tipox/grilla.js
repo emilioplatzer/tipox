@@ -1,26 +1,46 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
+"use strict";
 
-Aplicacion.prototype.grilla_preparar_contenedor=function(idTabla){
-    var elementos=document.querySelectorAll('.grilla_cont_td_home');
-    if(!elementos){
-        alert('no está el home en la grilla 1');
-    }else if(!elementos.length){
-        alert('no está el home en la grilla 2');
-    }else{
-        elementos[0].innerText='home';
+Aplicacion.prototype.eventos.grilla_preparar_contenedor=function(evento,tabla,opciones){
+    var futuro=this.prepararTabla(tabla.dataset.tabla).luego(function(mensaje,app){
+        var ubicarElemento=function(clase){
+            var elementos=tabla.querySelectorAll(clase);
+            if(!elementos.length){
+                app.lanzarExcepcion("La tabla "+tabla.id+" no tiene la estructura completa (clase "+clase+")");
+            }
+            return elementos[0];
+        }
+        var home=ubicarElemento('.grilla_cont_td_home');
+        var encabezado=ubicarElemento('.grilla_cont_td_encabezados');
+        app.grab(home,{tipox:'table', nodes:{tipox:'tr', id:tabla.id+'_tr_h'}});
+        app.grab(encabezado,{tipox:'table', nodes:{tipox:'tr', id:tabla.id+'_tr_e'}});
+        var campos=app.drTabla[tabla.dataset.tabla].campos;
+        for(var nombreCampo in campos){
+            var defCampo=campos[nombreCampo];
+            app.grab(tabla.id+(defCampo.esPk?'_tr_h':'_tr_e'), {tipox:'th', nodes:defCampo.titulo||nombreCampo});
+        }
+        if(opciones && opciones.probando){
+            return {documento:document};
+        }
+    });
+    if(opciones && opciones.probando){
+        return futuro;
     }
 }
 
 Aplicacion.prototype.creadores.grilla_boton_leer={tipo:'tipox', descripcion:'grilla funcional con ABM', creador:{
     translate:function(definicion){
-        return cambiandole(definicion,{tipox:'span', title:'no implementado aún', innerText:'N/I/A'});
+        return cambiandole(definicion,{tipox:'button', innerText:'ver', title:'traer los datos de la base'});
     }
 }};
 
 Aplicacion.prototype.creadores.grilla={tipo:'tipox', descripcion:'grilla funcional con ABM', creador:{
     translate:function(definicion){
-        var rta=cambiandole(definicion,{tipox:'div', className:'grilla_div', nodes:[
-            {tipox:'table', className:'grilla_cont_tabla', dataset:{tabla:definicion.tabla}, nodes:[
+        var id=definicion.id||this.app.nuevoIdDom('tabla');
+        var rta=cambiandole(definicion,{tipox:'div', className:'grilla_div', id:id, nodes:[
+            {tipox:'table', id:id+'_cont', className:'grilla_cont_tabla', dataset:{tabla:definicion.tabla}, 
+             ongrab:Aplicacion.prototype.grilla_preparar_contenedor,
+             nodes:[
                 {tipox:'caption', nodes:[{tipox:'grilla_boton_leer'}, {tipox:'span', className:'grilla_titulo_tabla', innerText:definicion.tabla}]},
                 {tipox:'tr', className:'grilla_contr_tr_encabezados', nodes:[
                     {tipox:'td', className:'grilla_cont_td_home'},
@@ -31,8 +51,7 @@ Aplicacion.prototype.creadores.grilla={tipo:'tipox', descripcion:'grilla funcion
                     {tipox:'td', className:'grilla_cont_td_datos'},
                 ]}
             ]}
-        ], ongrab:Aplicacion.prototype.grilla_preparar_contenedor
-        });
+        ]});
         delete rta.tabla;
         delete rta.despliegue;
         return rta;

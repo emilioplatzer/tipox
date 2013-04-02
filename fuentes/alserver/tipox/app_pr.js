@@ -237,24 +237,35 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
                 {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, nodes:[{tipox:'pre', innerText:probador.mostrarCampos(obtenido)}]}]},
         ]};
     }
+    var controlandoDom=true;
     var compararBonito=function(esperado,obtenido){
         var rta={tieneError:false, tieneAdvertencias:false};
-        if(
-            (typeof(esperado)=='object'?
-                (esperado instanceof RegExp?
-                    (!esperado.test(obtenido)):
-                    (typeof(obtenido)!='object' 
-                        || (esperado===null)!==(obtenido===null) 
-                        || (esperado===undefined)!==(obtenido===undefined) 
-                        || (esperado instanceof Array)!==(obtenido instanceof Array)
-                        || (esperado instanceof Date)!==(esperado instanceof Date)
-                        || (esperado instanceof Date) && esperado.toString()!=obtenido.toString()
-                    )
-                ):
-                (typeof(esperado)=='function' && esperado instanceof RegExp)?(!esperado.test(obtenido)):
-                esperado!==obtenido
+        if( typeof esperado =='object'?(
+                esperado instanceof RegExp?(
+                    !esperado.test(obtenido)
+                ):(
+                    typeof obtenido !='object' ||
+                        (esperado===null)!==(obtenido===null) ||
+                        (esperado===undefined)!==(obtenido===undefined) ||
+                        (esperado instanceof Array)!==(obtenido instanceof Array || controlandoDom && ({}).toString.call(obtenido)=='[object NodeList]') ||
+                        (esperado instanceof Date)!==(esperado instanceof Date) ||
+                        (esperado instanceof Date) && esperado.toString()!=obtenido.toString()
+                )
+            ):(
+                typeof esperado =='function' && esperado instanceof RegExp?(
+                    !esperado.test(obtenido)
+                ):(
+                    esperado!==obtenido
+                )
             )
         ){
+            if(({}).toString.call(obtenido)=='[object NodeList]'){
+                var stop1=obtenido.length;
+                var stop2=controlandoDom;
+                var stop3=esperado instanceof Array;
+                var stop4=obtenido.length===1;
+                var stop5=(obtenido instanceof Array || controlandoDom && obtenido!==null && (obtenido.length || obtenido.length===0));
+            }
             rta.tieneError=!caso.ignorarDiferenciaDeTiposNumericos || isNaN(esperado) || isNaN(obtenido) || esperado!=obtenido;
             rta.tieneAdvertencias=true;
             rta.bonito=nodoBonito(esperado, obtenido,'TDD_esperado',rta.tieneError?'TDD_obtenido':'TDD_obtenido_sobrante');
@@ -321,7 +332,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     compatibilidad.classList(elementoCasoTitulo);
     elementoCasoTitulo.classList.remove('TDD_prueba_ignorada');
     elementoCasoTitulo.classList.remove('TDD_prueba_pendiente');
-    if(resultado.tieneError || this.app.hoyString<=caso.mostarAunqueNoFalleHasta || resultado.tieneAdvertencias){
+    if(resultado.tieneError || this.app.hoyString<=caso.mostrarAunqueNoFalleHasta || resultado.tieneAdvertencias){
         app.grab(idCaso,{tipox:'div', className:'TDD_error', nodes:[
             {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
                 {tipox:'td',className:'TDD_label_esperado_obtenido', nodes:['esperado',{tipox:'br'},'obtenido']},
@@ -426,8 +437,8 @@ Aplicacion.prototype.casosDePrueba.push({
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'asi_se_ven_los_ok',
     funcion:'estoMismo',
-    mostarAunqueNoFalleHasta:'2099-12-31',
-    caso:'Se puede pedir que muestre el resultado aunque sea correcto especificando en el caso la propiedad mostarAunqueNoFalleHasta',
+    mostrarAunqueNoFalleHasta:'2099-12-31',
+    caso:'Se puede pedir que muestre el resultado aunque sea correcto especificando en el caso la propiedad mostrarAunqueNoFalleHasta',
     entrada:[{un_dato:'uno', lista:['elemento1', 'elemento2'], dato_agregado:'agregado'}],
     salidaMinima:{un_dato:'uno', lista:['elemento1', 'elemento2']}
 });
@@ -442,7 +453,7 @@ Aplicacion.prototype.casosDePrueba.push({
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'asi_se_ven_los_errores',
     funcion:'estoMismo',
-    mostarAunqueNoFalleHasta:'2013-03-31',
+    mostrarAunqueNoFalleHasta:'2013-03-31',
     caso:'prueba de RegExp',
     entrada:[{
         simple:'palabra más larga de lo esperada',
@@ -456,7 +467,7 @@ Aplicacion.prototype.casosDePrueba.push({
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'asi_se_ven_los_ok',
     funcion:'estoMismo',
-    mostarAunqueNoFalleHasta:'2013-03-31',
+    mostrarAunqueNoFalleHasta:'2013-03-31',
     caso:'prueba de RegExp',
     entrada:[{
         simple:'palabra',
@@ -465,8 +476,8 @@ Aplicacion.prototype.casosDePrueba.push({
     }],
     salida:{
         simple:/^Palabra$/i,
-        conBarra:/^uno\/otro$/ig,
-        conEspacioOpcional:/^todo ?junto ?separado$/g
+        conBarra:/^uno\/otro$/,
+        conEspacioOpcional:/^todo ?junto ?separado$/
     }
 });
 
@@ -615,24 +626,28 @@ Aplicacion.prototype.probarEvento=function(definicion){
     TDD_zona_de_pruebas.innerHTML='';
     this.grab(TDD_zona_de_pruebas,cambiandole(definicion.elementos,{indexadoPor:'id'}));
     var funcionEvento=this.eventos[definicion.nombre];
-    var mock=this.appMock(definicion);
-    if('localStorage' in definicion){
-        for(var clave_ls in definicion.localStorage){
-            localStorage[clave_ls]=JSON.stringify(definicion.localStorage[clave_ls]);
+    if(definicion.sinMock){
+        return funcionEvento.call(this,definicion.evento,document.getElementById(definicion.idDestino),{probando:true});
+    }else{
+        var mock=this.appMock(definicion);
+        if('localStorage' in definicion){
+            for(var clave_ls in definicion.localStorage){
+                localStorage[clave_ls]=JSON.stringify(definicion.localStorage[clave_ls]);
+            }
         }
-    }
-    funcionEvento.call(mock,definicion.evento,document.getElementById(definicion.idDestino));
-    mock.dato={};
-    if(definicion.incluirDocumentoEnSalida){
-        mock.dato.documento=document;
-    }
-    if('localStorage' in definicion){
-        mock.dato.localStorage={};
-        for(var clave_ls in definicion.localStorage){
-            mock.dato.localStorage[clave_ls]=JSON.parse(localStorage[clave_ls]);
+        funcionEvento.call(mock,definicion.evento,document.getElementById(definicion.idDestino));
+        mock.dato={};
+        if(definicion.incluirDocumentoEnSalida){
+            mock.dato.documento=document;
         }
+        if('localStorage' in definicion){
+            mock.dato.localStorage={};
+            for(var clave_ls in definicion.localStorage){
+                mock.dato.localStorage[clave_ls]=JSON.parse(localStorage[clave_ls]);
+            }
+        }
+        return mock;
     }
-    return mock;
 }
 
 Aplicacion.prototype.pruebaGrabSimple=function(definicion){
@@ -642,7 +657,7 @@ Aplicacion.prototype.pruebaGrabSimple=function(definicion){
 }
 
 Aplicacion.prototype.pruebaTraduccion=function(definicion){
-    var creador=this.creadores[definicion.tipox].creador;
+    var creador=this.domCreator(definicion.tipox);
     return creador.translate(definicion);
 }
 
@@ -675,7 +690,7 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'pruebaGrabSimple',
     caso:'creación de elemento del DOM con style',
     entrada:[{tipox:'p', style:{width:200, backgroundColor:'#333'}}],
-    salida:/<p style="width: 200px; background-color: rgb\(51, 51, 51\); ?"><\/p>/g
+    salida:/<p style="width: 200px; background-color: rgb\(51, 51, 51\); ?"><\/p>/
 });
 
 Aplicacion.prototype.casosDePrueba.push({
@@ -724,7 +739,7 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'pruebaGrabSimple',
     caso:'prueba de dataset',
     entrada:[{tipox:'div', id:'id1', dataset:{uno:'uno', otroAtributoInterno:'otro'}}],
-    salida:/<div id="id1" data-uno="uno" data-otro-?atributo-?interno="otro"><\/div>/g
+    salida:/<div id="id1" data-uno="uno" data-otro-?atributo-?interno="otro"><\/div>/
 });
 
 Aplicacion.prototype.aplicarFuncion=function(hacer,parametros){
@@ -889,7 +904,7 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'accesoDb',
     caso:'traer los datos de la prueba_tabla_comun',
     entrada:[{hacer:'select',from:'prueba_tabla_comun',where:true}],
-    mostarAunqueNoFalleHasta:'2013-03-31',
+    mostrarAunqueNoFalleHasta:'2013-03-31',
     salida:[
         {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,fecha:new Date('2001-12-31'),"ultima_modificacion":"2001-01-01"},
         {id:2,nombre:"dos",importe:0.11,activo:false,cantidad:1   ,fecha:null                  ,"ultima_modificacion":"2001-01-01"},
