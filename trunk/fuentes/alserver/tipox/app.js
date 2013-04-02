@@ -143,7 +143,7 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicional
             if(indice!='indexadoPor'){
                 var atributosAdicionales={};
                 atributosAdicionales[definicion.indexadoPor]=indice;
-                this.grab(elementoDestino,definicion[indice],futuro,atributosAdicionales);
+                this.grab(elementoDestino,cambiandole(definicion[indice],atributosAdicionales),futuro);
             }
         }
     }else{
@@ -656,6 +656,13 @@ Aplicacion.prototype.requiereJs=function(nombreJs){
             }
             app.jsCargados[nombreJs].estado='cargado';
         }
+        s.onerror=function(){
+            var futuros=app.jsCargados[nombreJs].futuros;
+            while(futuros.length){
+                var esteFuturo=futuros.shift();
+                esteFuturo.recibirError('error al cargar '+nombreJs);
+            }
+        }
         document.getElementsByTagName("head")[0].appendChild(s);
     }
     return futuro;
@@ -744,39 +751,42 @@ Aplicacion.prototype.drTabla.prueba_tabla_comun={carpeta:'../tipox'};
 
 /* Manejadores de campos */
 Aplicacion.prototype.tiposCampo={};
-Aplicacion.prototype.constructorTipoGenerico=function(){
+Aplicacion.prototype.tiposCampo.generico=function(definicion){
+    for(var attr in definicion){
+        this[attr]=definicion[attr];
+    }
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo; }
 }
-Aplicacion.prototype.tiposCampo.texto  =Aplicacion.prototype.constructorTipoGenerico;
+Aplicacion.prototype.tiposCampo.texto  =Aplicacion.prototype.tiposCampo.generico;
 Aplicacion.prototype.tiposCampo.fecha  =function(definicion){
-    Aplicacion.prototype.constructorTipoGenerico.call(this,definicion);
+    Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:new Date(valorCrudo); }
 }
 Aplicacion.prototype.tiposCampo.entero =function(definicion){
-    Aplicacion.prototype.constructorTipoGenerico.call(this,definicion);
+    Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:Number(valorCrudo); }
 }
 Aplicacion.prototype.tiposCampo.serial =Aplicacion.prototype.tiposCampo.entero;
 Aplicacion.prototype.tiposCampo.logico =function(definicion){
-    Aplicacion.prototype.constructorTipoGenerico.call(this,definicion);
+    Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:!!Number(valorCrudo); }
 }
 Aplicacion.prototype.tiposCampo.decimal=function(definicion){
-    Aplicacion.prototype.constructorTipoGenerico.call(this,definicion);
+    Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:Number(valorCrudo); }
 }
 
-Aplicacion.prototype.prepararTabla=function(nombre){
-    var futuro=this.requiereJs(((app.drTabla[nombre]||{}).carpeta||'.')+'/'+'tabla_'+nombre);
+Aplicacion.prototype.prepararTabla=function(nombreTabla){
+    var futuro=this.requiereJs(((app.drTabla[nombreTabla]||{}).carpeta||'.')+'/'+'tabla_'+nombreTabla);
     futuro.luego(function(respuesta,app){
-        if(!(nombre in app.drTabla)){
-            app.drTabla[nombre]={campos:{}, carpeta:''};
+        if(!(nombreTabla in app.drTabla)){
+            app.drTabla[nombreTabla]={campos:{}, carpeta:''};
         }
-        if(!('campos' in app.drTabla[nombre])){
-            app.drTabla[nombre].campos={};
-            for(var campo in tabla[nombre].campos){
-                var defCampo=tabla[nombre].campos[campo];
-                app.drTabla[nombre].campos[campo]=new app.tiposCampo[defCampo.tipo](campo);
+        if(!('campos' in app.drTabla[nombreTabla])){
+            app.drTabla[nombreTabla].campos={};
+            for(var nombreTablaCampo in tabla[nombreTabla].campos){
+                var defCampo=tabla[nombreTabla].campos[nombreTablaCampo];
+                app.drTabla[nombreTabla].campos[nombreTablaCampo]=new app.tiposCampo[defCampo.tipo](defCampo);
             }
         }
         return null;

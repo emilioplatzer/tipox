@@ -1,0 +1,17 @@
+.grilla_cont_tabla caption{
+    border:3px #888 solid;
+    border-bottom:0px;
+    padding:2px;
+    white-space:nowrap;
+}
+
+.grilla_cont_tabla{
+    border:3px #888 solid;
+    border-collapse:collapse;
+}
+
+.grilla_cont_tabla td{
+    border:2px #AAA solid;
+    border-collapse:collapse;
+}
+
