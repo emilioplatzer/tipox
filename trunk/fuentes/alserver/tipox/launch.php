@@ -40,7 +40,9 @@ echo <<<HTML
 <body>
 cargando...
 <br>
-<img src='../imagenes/cargando.gif' alt='cargando...'>
+<div style='padding:10px'>
+<img src='../imagenes/reloj.gif' alt='cargando...' style='text-align:center'>
+</div>
 HTML;
 foreach($def['jss'] as $un_js){
     echo "<script src='{$un_js}.js'></script>\n";

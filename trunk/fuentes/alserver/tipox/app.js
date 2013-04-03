@@ -36,6 +36,7 @@ Aplicacion.prototype.paginas.info={
         ]}
     ]
 };
+
 Aplicacion.prototype.paginas.entrar={
     labelMenu:'entrar',
     nodes:[
@@ -111,6 +112,11 @@ Aplicacion.prototype.creadorElementoDOM={
         width:{sufijoValor:'px'},
         ongrab:{
             asignar:function(elementoDestino, valor){
+                if(!(valor instanceof Function)){
+                    var mensaje="valor debe ser instanceof Function en "+elementoDestino.id;
+                    console.assert(valor instanceof Function, mensaje);
+                    throw new Error(mensaje);
+                }
                 elementoDestino.ongrab=valor;
             }
         }
@@ -163,8 +169,9 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicional
         elementoDestino.appendChild(nuevoElemento);
         elementoAgregado=nuevoElemento;
         if('ongrab' in nuevoElemento){
+            console.assert(nuevoElemento.ongrab instanceof Function);
             futuro.luego(function(respuesta,app){
-                nuevoElemento.ongrab.call(app,app.eventoVacio,nuevoElemento);
+                return nuevoElemento.ongrab.call(app,app.eventoVacio,nuevoElemento);
             });
         }
     }
@@ -174,9 +181,6 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicional
         }
     }
     if(grabExterno){
-        if(debug){
-            console.log('2013-04-02','Terminé el grab de '+(elementoAgregado||{}).id+' voy a avanzar el futuro');
-        }
         futuro.recibirListo(null);
     }
     return elementoAgregado;
@@ -363,7 +367,7 @@ Aplicacion.prototype.creadores.funcion={tipo:'tipox', descripcion:'muestra la co
         destino.className=definicion.className||'destino_funcion';
         this.app.assert('funcion' in definicion,'falta definicion.funcion');
         destino.ongrab=function(){
-            this[definicion.funcion].apply(this,definicion.parametros||[]);
+            return this[definicion.funcion].apply(this,definicion.parametros||[]);
         }
     },
 }};
@@ -530,11 +534,20 @@ Aplicacion.prototype.validarUsuario=function(){
 
 ////////////////////////// Futuros //////////////////////////
 
+Aplicacion.prototype.controlDeFuturos=[];
+
 var Futuro=function(app){
     this.app=app;
     this.recibido={tipo:'nada'};
     this.manejadores=[];
     this.futuroEncadenado=false;
+    if(app.controlDeFuturos){
+        try{
+            necesito.el.stack="ahora";
+        }catch(err){
+            this.idFuturo=app.controlDeFuturos.push({stack:err.stack.split('\n').slice(2).join('\n')})-1;
+        }
+    }
 }
 
 Aplicacion.prototype.newFuturo=function(){
@@ -563,6 +576,7 @@ Futuro.prototype.sincronizar=function(){
                     }
                 }catch(err){
                     rta=descripcionError(err);
+                    console.log(err.stack);
                     this.recibido.tipo='error';
                 }
                 this.recibido.dato=rta;
@@ -578,24 +592,38 @@ Futuro.prototype.recibirListo=function(respuesta){
     this.recibido.dato=respuesta;
     this.recibido.tipo='ok';
     this.sincronizar();
+    this.controlInterno('recibirListo');
 }
 
 Futuro.prototype.recibirError=function(mensajeError){
     this.recibido.dato=mensajeError;
     this.recibido.tipo='error';
     this.sincronizar();
+    this.controlInterno('recibirError');
 }
 
 Futuro.prototype.luego=function(hacer){
     this.manejadores.push({funcion:hacer, tipo:'ok'});
     this.sincronizar();
+    this.controlInterno('luego');
     return this;
 }
 
 Futuro.prototype.alFallar=function(hacer){
     this.manejadores.push({funcion:hacer, tipo:'error'});
     this.sincronizar();
+    this.controlInterno('alFallar');
     return this;
+}
+
+Futuro.prototype.controlInterno=function(contador){
+    if(this.app.controlDeFuturos){
+        var repositorio=this.app.controlDeFuturos[this.idFuturo];
+        if(!(contador in repositorio)){
+            repositorio[contador]=0;
+        }
+        repositorio[contador]++;
+    }
 }
 
 Aplicacion.prototype.mapLuego=function(arreglo,funcionParaCadaElemento,funcionParaElLuego){
