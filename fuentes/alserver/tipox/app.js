@@ -766,11 +766,13 @@ Aplicacion.prototype.tiposCampo.generico=function(definicion){
         this[attr]=definicion[attr];
     }
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo; }
+    this.innerText=function(valor){ return valor===null?'':valor.toString(); }
 }
 Aplicacion.prototype.tiposCampo.texto  =Aplicacion.prototype.tiposCampo.generico;
 Aplicacion.prototype.tiposCampo.fecha  =function(definicion){
     Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:new Date(valorCrudo); }
+    this.innerText=function(valor){ return valor===null?'':valor.getDate()+'/'+(valor.getMonth()+1)+'/'+valor.getFullYear(); }
 }
 Aplicacion.prototype.tiposCampo.entero =function(definicion){
     Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
@@ -780,6 +782,7 @@ Aplicacion.prototype.tiposCampo.serial =Aplicacion.prototype.tiposCampo.entero;
 Aplicacion.prototype.tiposCampo.logico =function(definicion){
     Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:!!Number(valorCrudo); }
+    this.innerText=function(valor){ return valor===null?'':(!valor?'no':'Sí'); }
 }
 Aplicacion.prototype.tiposCampo.decimal=function(definicion){
     Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
