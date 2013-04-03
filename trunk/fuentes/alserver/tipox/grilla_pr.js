@@ -14,8 +14,8 @@ Aplicacion.prototype.casosDePrueba.push({
                 {tipox:'td', className:'grilla_cont_td_encabezados'},
             ]},
             {tipox:'tr', className:'grilla_cont_tr_datos', nodes:[
-                {tipox:'td', className:'grilla_cont_td_lateral'},
-                {tipox:'td', className:'grilla_cont_td_datos'},
+                {tipox:'td', id:'id2_cont_td_l', className:'grilla_cont_td_lateral'},
+                {tipox:'td', id:'id2_cont_td_d', className:'grilla_cont_td_datos'},
             ]}
         ]}
     ]},
@@ -66,36 +66,50 @@ Aplicacion.prototype.casosDePrueba.push({
     }}
 });
 
-/*
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'grillas',
-    funcion:'pruebaTraduccion',
-    caso:'grilla simple basada en tabla',
-    entrada:[{tipox:'grilla', tabla:'prueba_tabla_comun'}],
-    salida:{tipox:'div', id:'id1', className:'grilla_div', nodes:[
-        {tipox:'table', className:'grilla_tabla_contenedor', dataset:{tabla:'prueba_tabla_comun'}, nodes:[
-            {tipox:'caption', nodes:[{tipox:'grilla_boton_leer'}, {tipox:'grilla_titulo_tabla', innerText:"prueba_tabla_comun"}]},
-            {tipox:'tr', className:'grilla_tr_encabezados', nodes:[
-                {tipox:'td', className:'grilla_td_home', nodes:[
-                    {tipox:'table', className:'grilla_tabla_interna', nodes:[
-                        {tipox:'tr', nodes:[
-                            {tipox:'th', nodes:"id"}
-                        ]}
-                    ]}
+    funcion:'probarEvento',
+    caso:'ver los datos de la grilla',
+    // mostrarAunqueNoFalleHasta:'2013-04-01',
+    relanzarExcepcionSiHay:true,
+    elementos:{
+        id3:{tipox:'grilla', tabla:'prueba_tabla_comun'}
+    },
+    entrada:[{
+        nombre:'grilla_ver',
+        debugGrab:true,
+        sinMock:true,
+        idDestino:'id3',
+        incluirDocumentoEnSalida:true
+    }],
+    salidaDom:{documento:{
+        id3_cont_td_l:{localName:'td', childNodes:[{localName:'table', childNodes:[
+                {localName:'tr', childNodes:[{localName:'td', innerText:'1', className:'tipo_serial'}]},
+                {localName:'tr', childNodes:[{localName:'td', innerText:'2', className:'tipo_serial'}]},
+                {localName:'tr', childNodes:[{localName:'td', innerText:'3', className:'tipo_serial'}]},
+        ]}]},
+        id3_cont_td_d:{localName:'td', childNodes:[{localName:'table', childNodes:[
+                {localName:'tr', childNodes:[
+                    {localName:'td', innerText:'uno', className:'tipo_texto'},
+                    {localName:'td', innerText:'', className:'tipo_decimal'},
+                    {localName:'td', innerText:'Sí', className:'tipo_logico'},
+                    {localName:'td', innerText:'-9', className:'tipo_entero'},
+                    {localName:'td', innerText:'31/12/2001', className:'tipo_fecha'},
                 ]},
-                {tipox:'td', className:'grilla_td_home', nodes:[
-                    {tipox:'table', className:'grilla_tabla_interna', nodes:[
-                        {tipox:'tr', nodes:[
-                            {tipox:'th', nodes:"nombre"},
-                            {tipox:'th', nodes:"importe"},
-                            {tipox:'th', nodes:{"tipox":"span", "nodes":["A",{"tipox":"small", "innerText":"ctv"}]}},
-                            {tipox:'th', nodes:"cantidad"},
-                            {tipox:'th', nodes:"fecha"},
-                        ]}
-                    ]}
-                ]}
-            ]}
-        ]}
-    ]},
+                {localName:'tr', childNodes:[
+                    {localName:'td', innerText:'dos', className:'tipo_texto'},
+                    {localName:'td', innerText:'0.11', className:'tipo_decimal'},
+                    {localName:'td', innerText:'no', className:'tipo_logico'},
+                    {localName:'td', innerText:'1', className:'tipo_entero'},
+                    {localName:'td', innerText:'', className:'tipo_fecha'},
+                ]},
+                {localName:'tr', childNodes:[
+                    {localName:'td', innerText:'año', className:'tipo_texto'},
+                    {localName:'td', innerText:'2000', className:'tipo_decimal'},
+                    {localName:'td', innerText:'', className:'tipo_logico'},
+                    {localName:'td', innerText:'', className:'tipo_entero'},
+                    {localName:'td', innerText:'6/5/1991', className:'tipo_fecha'},
+                ]},
+        ]}]},
+    }}
 });
-*/
