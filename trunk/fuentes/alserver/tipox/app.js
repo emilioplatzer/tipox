@@ -790,7 +790,7 @@ Aplicacion.prototype.prepararTabla=function(nombreTabla){
     var futuro=this.requiereJs(((app.drTabla[nombreTabla]||{}).carpeta||'.')+'/'+'tabla_'+nombreTabla);
     futuro.luego(function(respuesta,app){
         if(!(nombreTabla in app.drTabla)){
-            app.drTabla[nombreTabla]={campos:{}, carpeta:''};
+            app.drTabla[nombreTabla]={carpeta:''};
         }
         if(!('campos' in app.drTabla[nombreTabla])){
             app.drTabla[nombreTabla].campos={};
