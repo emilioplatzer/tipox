@@ -2,7 +2,6 @@
 "use strict";
 
 Aplicacion.prototype.eventos.grilla_preparar_contenedor=function(evento,tabla,opciones){
-    console.log('2013-04-02','lanzado el evento grilla_preparar_contenedor');
     var futuro=this.prepararTabla(tabla.dataset.tabla).luego(function(mensaje,app){
         var ubicarElemento=function(clase){
             var elementos=tabla.querySelectorAll(clase);
@@ -27,6 +26,7 @@ Aplicacion.prototype.eventos.grilla_preparar_contenedor=function(evento,tabla,op
             return {documento:document};
         }
     });
+    return futuro;
     if(opciones && opciones.probando){
         return futuro;
     }
@@ -43,7 +43,7 @@ Aplicacion.prototype.creadores.grilla={tipo:'tipox', descripcion:'grilla funcion
         var id=definicion.id||this.app.nuevoIdDom('tabla');
         var rta=cambiandole(definicion,{tipox:'div', className:'grilla_div', id:id, nodes:[
             {tipox:'table', id:id+'_cont', className:'grilla_cont_tabla', dataset:{tabla:definicion.tabla}, 
-             ongrab:Aplicacion.prototype.grilla_preparar_contenedor,
+             ongrab:Aplicacion.prototype.eventos.grilla_preparar_contenedor,
              nodes:[
                 {tipox:'caption', nodes:[{tipox:'grilla_boton_leer'}, {tipox:'span', className:'grilla_titulo_tabla', innerText:definicion.tabla}]},
                 {tipox:'tr', className:'grilla_cont_tr_encabezados', nodes:[

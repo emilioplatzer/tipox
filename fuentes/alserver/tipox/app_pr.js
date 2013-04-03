@@ -102,6 +102,25 @@ Probador.prototype.probarTodo=function(){
     document.getElementById('TDD_caso:así se ven lo errores en los casos de prueba fallidos').parentNode.style.display='none';
 }
 
+Aplicacion.prototype.paginas.info.nodes.push({tipox:'button', innerText:'Controlar Futuros', eventos:{click:'controlar_futuros'}});
+Aplicacion.prototype.paginas.info.nodes.push({tipox:'div', id:'destinoControlFuturos', style:{display:'none'}});
+
+Aplicacion.prototype.eventos.controlar_futuros=function(evento,elemento){
+    var h2=document.createElement('h2');
+    h2.innerText='control de futuros';
+    destinoControlFuturos.appendChild(h2);
+    destinoControlFuturos.style.display=null;
+    for(var i=0; i<this.controlDeFuturos.length; i++){
+        var futuro=this.controlDeFuturos[i];
+        if(!futuro.recibirError && !futuro.recibirListo){
+            var pre=document.createElement('pre');
+            pre.innerText=futuro.stack;
+            pre.style.borderBottom='1px dotted #6A6';
+            destinoControlFuturos.appendChild(pre);
+        }
+    }
+}
+
 Probador.prototype.probarVariosCasos=function(cuantos){
     var procesarHasta=(new Date()).getTime()+500;
     var seguirProcesando=cuantos;
@@ -664,10 +683,6 @@ Aplicacion.prototype.appMock=function(definicion){
 }
 
 Aplicacion.prototype.probarEvento=function(definicion){
-    if(definicion.debugGrab){
-        console.log('2013-04-02','dentro de probar Evento');
-        console.log('2013-04-02','busco el id '+document.getElementById('id3_cont_tr_h') );
-    }
     var funcionEvento=this.eventos[definicion.nombre];
     if(definicion.sinMock){
         return funcionEvento.call(this,definicion.evento,document.getElementById(definicion.idDestino),{probando:true});
@@ -967,4 +982,3 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[{hacer:'select',from:'prueba_tabla_comun'}],
     error:"el acceso a datos debe tener una clausula where"
 });
-

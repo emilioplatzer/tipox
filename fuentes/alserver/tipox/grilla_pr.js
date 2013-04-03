@@ -7,7 +7,7 @@ Aplicacion.prototype.casosDePrueba.push({
     // mostrarAunqueNoFalleHasta:'2013-04-01',
     entrada:[{tipox:'grilla', tabla:'prueba_tabla_comun', id:'id2'}],
     salida:{tipox:'div', id:'id2', className:'grilla_div', nodes:[
-        {tipox:'table', id:'id2_cont', className:'grilla_cont_tabla', ongrab:Aplicacion.prototype.grilla_preparar_contenedor, dataset:{tabla:'prueba_tabla_comun'}, nodes:[
+        {tipox:'table', id:'id2_cont', className:'grilla_cont_tabla', ongrab:Aplicacion.prototype.eventos.grilla_preparar_contenedor, dataset:{tabla:'prueba_tabla_comun'}, nodes:[
             {tipox:'caption', nodes:[{tipox:'grilla_boton_leer'}, {tipox:'span', className:'grilla_titulo_tabla', innerText:"prueba_tabla_comun"}]},
             {tipox:'tr', className:'grilla_cont_tr_encabezados', nodes:[
                 {tipox:'td', className:'grilla_cont_td_home'},
