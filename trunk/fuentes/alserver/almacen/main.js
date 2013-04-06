@@ -78,7 +78,10 @@ if(Aplicacion.prototype.paginas.entrar.nodes[1].nodes[0].id=='usuario'){
 Aplicacion.prototype.jsRequeridos.push('almacen');
 
 var app=new Aplicacion();
-Aplicacion.run(app).luego(function(){
-    // Almacen.adaptarAplicacion(app);
-    app.mostrarPaginaActual();
-});
+Aplicacion.run(app) /* .luego("mostrar la página actua", ,,, creo que esto no va así
+    function(){
+        // Almacen.adaptarAplicacion(app);
+        app.mostrarPaginaActual();
+    }
+);
+// */

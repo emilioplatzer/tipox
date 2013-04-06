@@ -10,6 +10,30 @@ Aplicacion.prototype.paginas.tdd={
     ]
 };
 
+function debugDirecto(mensaje){
+    var destino=document.getElementById('debugDirecto');
+    var agregarMensaje=function(destino,mensaje){
+        var nuevo_p=document.createElement('p');
+        nuevo_p.innerText=mensaje;
+        destino.appendChild(nuevo_p);
+    }
+    if(!destino){
+        var destino=document.createElement('div');
+        destino.id='debugDirecto';
+        if(!document.body){
+            window.addEventListener('load',function(){
+                document.body.appendChild(destino);
+                agregarMensaje(destino,mensaje);
+            });
+        }else{
+            document.body.appendChild(destino);
+            agregarMensaje(destino,mensaje);
+        }
+    }else{
+        agregarMensaje(destino,mensaje);
+    }
+}
+
 Aplicacion.prototype.eventos.toggleDisplayAbajo=function(evento,elemento){
     var hermano=elemento.nextSibling;
     hermano.style.display=hermano.style.display?null:'none';
@@ -26,6 +50,12 @@ function Probador(app){
 
 Aplicacion.prototype.probarTodo=function(){
     var probador=new Probador(this);
+    probador.cualesProbar={
+        'preparar las columnas de la grilla':true,
+        'ver cómo la grilla indica que hay una tabla_inexistente':true,
+        'ver los datos de la grilla':true
+    };
+    delete probador.cualesProbar; // NUNCA BORRAR. COMENTAR PARA ACTIVAR
     if("capturar la excepción y mostrarla en debug directo"){
         try{
             probador.probarTodo();
@@ -35,6 +65,13 @@ Aplicacion.prototype.probarTodo=function(){
         }
     }else{
         probador.probarTodo();
+    }
+    if(probador.cualesProbar){
+        this.grab(document.body,{
+            tipox:'div', 
+            className:'advertencia_importante',
+            innerText:'¡Atención! Solo se está probando algún caso. Antes de hacer commit activar la línea delete probador.cualesProbar'
+        });
     }
 }
 
@@ -59,7 +96,13 @@ Probador.prototype.probarTodo=function(){
             this.pendientesPorModulos[idModulo]=0;
             this.app.grab('probarTodo',
                 {tipox:'div', classList:['TDD_modulo'], id:idModulo, nodes:[
-                    {tipox:'div', classList:['TDD_modulo_titulo','TDD_prueba_pendiente'], id:idModulo+'_titulo', innerText:caso.modulo, eventos:{click:'toggleDisplayAbajo'}},
+                    {tipox:'div', 
+                        classList:['TDD_modulo_titulo','TDD_prueba_pendiente'], 
+                        dataset:{clasePrueba:'TDD_prueba_pendiente'},
+                        id:idModulo+'_titulo', 
+                        innerText:caso.modulo, 
+                        eventos:{click:'toggleDisplayAbajo'}
+                    },
                     {tipox:'div', id:idModulo+'_casos', style:{display:'none'}}
                 ]}
             );
@@ -74,7 +117,7 @@ Probador.prototype.probarTodo=function(){
             ticket={tipox:'a', href:this.app.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado};
             tituloCaso.push(ticket);
         }
-        var nodosInternos=[{tipox:'div', classList:['TDD_caso_titulo',clase], id:idCaso+'_titulo', nodes:tituloCaso}];
+        var nodosInternos=[{tipox:'div', classList:['TDD_caso_titulo',clase], id:idCaso+'_titulo', nodes:tituloCaso, dataset:{clasePrueba:clase}}];
         if(caso.aclaracionSiFalla){
             nodosInternos.push({tipox:'div', className:'TDD_aclaracion', id:idCaso+'_aclaracion', nodes:caso.aclaracionSiFalla});
         }
@@ -82,13 +125,12 @@ Probador.prototype.probarTodo=function(){
             {tipox:'div', className:'TDD_caso', id:idCaso, nodes:nodosInternos}
         );
         if(caso.ignorado){  
-            elementoModuloTitulo.classList.remove('TDD_prueba_pendiente');
-            elementoModuloTitulo.classList.add('TDD_prueba_ignorada');
             if(ticket){
                 this.app.grab(elementoModuloTitulo,[ticket,' ']);
                 // this.app.grab(elementoModuloTitulo,[{tipox:'a', href:this.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado},' ']);
             }
-        }else{
+            this.cambioEstado(caso,'TDD_prueba_ignorada');
+        }else if(!this.cualesProbar || this.cualesProbar[caso.caso]){
             this.pendientesPorModulos[idModulo]++;
             this.casosPendientes.push(caso);
         }
@@ -136,9 +178,7 @@ Probador.prototype.probarVariosCasos=function(cuantos){
             }
         }
         if(hayBloqueados){
-            var elementoCaso=document.getElementById('TDD_caso:'+caso.caso+'_titulo');
-            elementoCaso.classList.remove('TDD_prueba_pendiente');
-            elementoCaso.classList.add('TDD_prueba_en_espera');
+            this.cambioEstado(caso,'TDD_prueba_en_espera');
             this.casosPendientes.push(caso);
         }else{
             this.probarElCaso(caso);
@@ -151,6 +191,7 @@ Probador.prototype.probarVariosCasos=function(cuantos){
 }
 
 Probador.prototype.probarElCaso=function(caso){
+    this.cambioEstado(caso,'TDD_prueba_comenzada');
     if(caso.elementos){
         this.app.grab(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_'+caso.caso, className:'TDD_una_prueba'});
         for(var elemento in caso.elementos){
@@ -183,6 +224,9 @@ Probador.prototype.probarElCaso=function(caso){
         }else{
             obtenido=esto[caso.funcion].apply(esto,caso.entrada);
         }
+        if(caso.incluirDocumentoEnSalida){
+            obtenido.documento=document;
+        }
     }
     if(caso.relanzarExcepcionSiHay){
         correrCaso();
@@ -197,16 +241,24 @@ Probador.prototype.probarElCaso=function(caso){
     var app=this.app;
     var este=this;
     if(obtenido instanceof Futuro){
-        obtenido.luego(function(caso,idCaso,salvarEntrada){
-            return function(respuesta,app){
-                este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
-            }
-        }(caso,idCaso,salvarEntrada)).alFallar(function(caso,idCaso,salvarEntrada){
-            return function(mensaje,app){
-                este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada);
-           }
-        }(caso,idCaso,salvarEntrada));
+        console.log('obtuve un futuro del caso ',caso.caso,obtenido);
+        obtenido.luego("comparo lo obtenido (Listo) en el futuro",
+            function(caso,idCaso,salvarEntrada){
+                return function(respuesta,app,futuro){
+                    console.log('recibo respuesta positiva en el caso ',caso.caso,futuro);
+                    este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
+                }
+            }(caso,idCaso,salvarEntrada)
+        ).alFallar("comparo lo obtenido (Falla) en el futuro",
+            function(caso,idCaso,salvarEntrada){
+                return function(mensaje,app,futuro){
+                    console.log('recibo respuesta fallida en el caso ',caso.caso,futuro);
+                    este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada);
+                }
+            }(caso,idCaso,salvarEntrada)
+        );
     }else{
+        console.log('obtuve una respuesta común del caso ',caso.caso);
         este.compararObtenido(obtenido,errorObtenido,caso,idCaso,salvarEntrada);
     }
 }
@@ -214,6 +266,8 @@ Probador.prototype.probarElCaso=function(caso){
 Probador.prototype.cadenaParaMostrar=function(valor){
     if(valor instanceof Date){
         return valor.toString();
+    }else if(valor instanceof Probador.prototype.MostrarNoEsperabaNada){
+        return 'valor esperado no especificado';
     }else if(valor instanceof RegExp){
         return "/"+valor.source+"/"+(valor.global?'g':'')+(valor.ignoreCase?'i':'')+(valor.multiline?'m':'');
     }else if(typeof valor == 'function'){
@@ -236,7 +290,7 @@ Probador.prototype.mostrarCampos=function(objeto){
             }catch(err2){
             }
         }
-        rta=rta='/* '+objeto.toString()+' */'+JSON.stringify(rta);
+        rta='/* '+objeto.toString()+' */'+JSON.stringify(rta);
     }
     return rta;
 }
@@ -248,8 +302,9 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     }
     this.cantidadPruebasPorModulos[caso.modulo]++;
     var entradaDespuesDeCorrer=this.mostrarCampos(caso.entrada);
-    var esperado=caso.salida||caso.salidaMinima||caso.salidaDom;
+    var esperado=caso.salida||caso.salidaMinima||caso.salidaDom||caso.salidaDomAbundante;
     var visualizacionBidireccional=!('salidaDom' in caso);
+    var visualizacionBidireccionalIgnorandoVacios=('salidaDomAbundante' in caso)
     var controlBidireccional=true;
     var obtenido=obtenidoOk;
     if(obtenido && obtenido.mock || errorObtenido || caso.error || salvarEntrada!=entradaDespuesDeCorrer){
@@ -284,6 +339,10 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
         ]};
     }
     var controlandoDom=true;
+    var considerarArray={
+        '[object NodeList]':true,
+        '[object DOMTokenList]':true
+    };
     var compararBonito=function(esperado,obtenido){
         var rta={tieneError:false, tieneAdvertencias:false};
         if( typeof esperado =='object'?(
@@ -293,7 +352,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
                     typeof obtenido !='object' ||
                         (esperado===null)!==(obtenido===null) ||
                         (esperado===undefined)!==(obtenido===undefined) ||
-                        (esperado instanceof Array)!==(obtenido instanceof Array || controlandoDom && ({}).toString.call(obtenido)=='[object NodeList]') ||
+                        (esperado instanceof Array)!==(obtenido instanceof Array || controlandoDom && !!considerarArray[({}).toString.call(obtenido)]) ||
                         (esperado instanceof Date)!==(esperado instanceof Date) ||
                         (esperado instanceof Date) && esperado.toString()!=obtenido.toString()
                 )
@@ -349,7 +408,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
             }
             if(visualizacionBidireccional){
                 for(var campo in obtenido) if(obtenido.hasOwnProperty(campo)){
-                    if(!(campo in esperado)){
+                    if(!(campo in esperado) && (!visualizacionBidireccionalIgnorandoVacios || !!obtenido[campo])){
                         var claseObtenido;
                         if(controlBidireccional){
                             rta.tieneError=true;
@@ -361,7 +420,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
                         nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
                             {tipox:'td', className:'TDD_label', innerText:campo},
                             nodoArray,
-                            {tipox:'td', className:claseContenido, nodes:nodoBonito(undefined,obtenido[campo],'TDD_esperado',claseObtenido)}
+                            {tipox:'td', className:claseContenido, nodes:nodoBonito(new probador.MostrarNoEsperabaNada(),obtenido[campo],'TDD_esperado_no_especificado',claseObtenido)}
                         ]}]});
                     }
                 }
@@ -375,9 +434,6 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
     var elementoCasoTitulo=document.getElementById(idCaso+'_titulo');
     var elementoCaso=document.getElementById(idCaso);
-    elementoCasoTitulo.classList.remove('TDD_prueba_ignorada');
-    elementoCasoTitulo.classList.remove('TDD_prueba_pendiente');
-    elementoCasoTitulo.classList.remove('TDD_prueba_en_espera');
     if(resultado.tieneError || this.app.hoyString<=caso.mostrarAunqueNoFalleHasta || resultado.tieneAdvertencias){
         app.grab(idCaso,{tipox:'div', className:'TDD_error', nodes:[
             {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
@@ -388,25 +444,11 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     }
     this.pendientesPorModulos[idModulo]--;
     if(resultado.tieneError){
-        elementoModuloTitulo.classList.remove('TDD_prueba_ignorada');
-        elementoModuloTitulo.classList.remove('TDD_prueba_pendiente');
-        elementoModuloTitulo.classList.remove('TDD_prueba_en_espera');
-        elementoModuloTitulo.classList.add('TDD_prueba_fallida');
-        elementoCasoTitulo.classList.add('TDD_prueba_fallida');
+        this.cambioEstado(caso,'TDD_prueba_fallida');
         document.getElementById(idModulo+'_casos').style.display=null;
         this.errores++;
     }else{
-        if(this.pendientesPorModulos[idModulo]==0){
-            if(elementoModuloTitulo.classList.contains('TDD_prueba_pendiente')){
-                elementoModuloTitulo.classList.remove('TDD_prueba_pendiente');
-                elementoModuloTitulo.classList.add('TDD_prueba_ok');
-            }
-            if(elementoModuloTitulo.classList.contains('TDD_prueba_en_espera')){
-                elementoModuloTitulo.classList.remove('TDD_prueba_en_espera');
-                elementoModuloTitulo.classList.add('TDD_prueba_ok');
-            }
-        }
-        elementoCasoTitulo.classList.add('TDD_prueba_ok');
+        this.cambioEstado(caso,'TDD_prueba_ok');
     }
     if(caso.elementos){
         for(var elemento in caso.elementos){
@@ -418,6 +460,45 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
         }
     }
 };
+
+Probador.prototype.MostrarNoEsperabaNada=function(){ 
+    this.vacio='vacio';
+}
+
+Probador.prototype.prioridadEstados={   
+    TDD_prueba_ok:1,
+    TDD_prueba_ignorada:2,
+    TDD_prueba_comenzada:3,
+    TDD_prueba_pendiente:6,
+    TDD_prueba_en_espera:8,
+    TDD_prueba_fallida:9
+}
+
+Probador.prototype.cambioEstado=function(caso,nombreClase){
+    var elementoTitulo=document.getElementById('TDD_modulo:'+caso.modulo+'_titulo');
+    var elementoCaso  =document.getElementById('TDD_caso:'  +caso.caso  +'_titulo');
+    this.cambioEstadoDeUno(elementoCaso,nombreClase);
+    if(!('hijos' in elementoTitulo)){
+        elementoTitulo.hijos={};
+    }
+    elementoTitulo.hijos[elementoCaso.id]=nombreClase;
+    var maxPrioridad='TDD_prueba_ok';
+    for(var hijo in elementoTitulo.hijos){
+        var claseHijo=elementoTitulo.hijos[hijo];
+        if(this.prioridadEstados[maxPrioridad]<this.prioridadEstados[claseHijo]){
+            maxPrioridad=claseHijo;
+        }
+    }
+    this.cambioEstadoDeUno(elementoTitulo,claseHijo);
+}
+
+Probador.prototype.cambioEstadoDeUno=function(elemento,nombreClase){
+    if(!!elemento.dataset.clasePrueba){
+        elemento.classList.remove(elemento.dataset.clasePrueba);
+    }
+    elemento.classList.add(nombreClase);
+    elemento.dataset.clasePrueba=nombreClase;
+}
 
 Aplicacion.prototype.casosDePrueba=[];
 
@@ -708,6 +789,21 @@ Aplicacion.prototype.probarEvento=function(definicion){
     }
 }
 
+Aplicacion.prototype.probarFuncionModificadoraApp=function(definicion){
+    var mock=this.appMock(definicion);
+    mock[definicion.funcion]=this[definicion.funcion];
+    for(var variable in definicion.miembrosModificables){
+        mock[variable]=JSON.parse(JSON.stringify(definicion.miembrosModificables[variable]));
+    }
+    mock[definicion.funcion].apply(mock,definicion.argumentos);
+    var rta={};
+    for(var variable in definicion.miembrosModificables){
+        rta[variable]=mock[variable]; 
+    }
+    mock.dato=rta;
+    return mock;
+}
+
 Aplicacion.prototype.pruebaGrabSimple=function(definicion){
     this.grab(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_de_pruebas_simple', nodes:definicion});
     var rta=TDD_zona_de_pruebas_simple.innerHTML;
@@ -816,9 +912,11 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[function(){
         var futuro=this.newFuturo();
         var rta='todavía no recibí nada';
-        futuro.luego(function(mensaje,app){
-            rta=mensaje;
-        });
+        futuro.luego("devuelve lo recibido",
+            function(mensaje,app){
+                rta=mensaje;
+            }
+        );
         futuro.recibirListo('ya lo recibí');
         return rta;
     },[]],
@@ -832,9 +930,11 @@ Aplicacion.prototype.casosDePrueba.push({
         var futuro=this.newFuturo();
         var rta='todavía no recibí nada';
         futuro.recibirListo('ya lo recibí');
-        futuro.luego(function(mensaje,app){
-            rta=mensaje;
-        });
+        futuro.luego("devuelve el mismo mensaje recibido",
+            function(mensaje,app){
+                rta=mensaje;
+            }
+        );
         return rta;
     },[]],
     salida:"ya lo recibí"
@@ -846,11 +946,15 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[function(){
         var futuro=this.newFuturo();
         var rta='todavía no recibí nada';
-        futuro.luego(function(mensaje,app){
-            return mensaje+' paso A';
-        }).luego(function(mensaje,app){
-            rta=mensaje+' paso B';
-        });
+        futuro.luego("agrega A", 
+            function(mensaje,app){
+                return mensaje+' paso A';
+            }
+        ).luego("agrega B",
+            function(mensaje,app){
+                rta=mensaje+' paso B';
+            }
+        );
         futuro.recibirListo('recibido');
         return rta;
     },[]],
@@ -864,20 +968,27 @@ Aplicacion.prototype.casosDePrueba.push({
         var rescate_f2;
         var futuro=this.newFuturo();
         var rta='todavía no recibí nada';
-        futuro.luego(function(mensaje,app){
-            return mensaje+' paso A';
-        }).luego(function(mensaje,app){
-            var f2=app.newFuturo();
-            f2.tengo=mensaje;
-            // setTimeout(function(){ f2.recibirListo(mensaje+' recibido');}, 100);
-            rescate_f2=f2;
-            return f2;
-        }).luego(function(mensaje,app){
-            return mensaje+' paso C';
-        });
-        futuro.luego(function(mensaje,app){
-            rta=mensaje+' paso D';
-        });
+        futuro.luego("agrega una A",
+            function(mensaje,app){
+                return mensaje+' paso A';
+            }
+        ).luego("prepara un futuro interno",
+            function(mensaje,app){
+                var f2=app.newFuturo();
+                f2.tengo=mensaje;
+                rescate_f2=f2;
+                return f2;
+            }
+        ).luego("agrega la C a un futuro encadenado",
+            function(mensaje,app){
+                return mensaje+' paso C';
+            }
+        );
+        futuro.luego("agrega la D",
+            function(mensaje,app){
+                rta=mensaje+' paso D';
+            }
+        );
         futuro.recibirListo('recibido');
         rescate_f2.recibirListo('x');
         return {primera_parte:rescate_f2.tengo, segunda_parte:rta};
@@ -893,17 +1004,23 @@ Aplicacion.prototype.casosDePrueba.push({
         var futuro=this.newFuturo();
         var f2;
         var rta='todavía no recibí nada';
-        futuro.luego(function(mensaje,app){
-            f2=app.newFuturo();
-            f2.luego(function(mensaje,app){
-                return mensaje+' paso A';
-            });
-            return f2;
-        });
+        futuro.luego("prepara un futuro interno",
+            function(mensaje,app){
+                f2=app.newFuturo();
+                f2.luego("agrega una A",
+                    function(mensaje,app){
+                        return mensaje+' paso A';
+                    }
+                );
+                return f2;
+            }
+        );
         futuro.recibirListo('Y');
-        futuro.luego(function(mensaje,app){
-            rta=mensaje+' paso B';
-        });
+        futuro.luego("agrega una B después de recibir la Y",
+            function(mensaje,app){
+                rta=mensaje+' paso B';
+            }
+        );
         f2.recibirListo('x');
         return rta;
     },[]],
@@ -918,19 +1035,31 @@ Aplicacion.prototype.casosDePrueba.push({
         var rescate_f2;
         var futuro=this.newFuturo();
         var rta='todavía no recibí nada';
-        futuro.luego(function(mensaje,app){
-            return mensaje+' paso A';
-        }).luego(function(mensaje,app){
-            return mensaje+' paso B';
-        }).luego(function(mensaje,app){
-            throw new Error(mensaje+' paso C');
-        }).alFallar(function(mensaje,app){
-            rta=mensaje+' recibido como error';
-        }).luego(function(mensaje,app){
-            rta=mensaje+' paso D';
-        }).alFallar(function(mensaje,app){
-            rta=mensaje+' segundo error';
-        });
+        futuro.luego("agrega una A",
+            function(mensaje,app){
+                return mensaje+' paso A';
+            }
+        ).luego("suma el paso B",
+            function(mensaje,app){
+                return mensaje+' paso B';
+            }
+        ).luego("lanza un error, para ver",
+            function(mensaje,app){
+                throw new Error(mensaje+' paso C');
+            }
+        ).alFallar("alfallar recibido entre C y D",
+            function(mensaje,app){
+                rta=mensaje+' recibido como error';
+            }
+        ).luego("paso D",
+            function(mensaje,app){
+                rta=mensaje+' paso D';
+            }
+        ).alFallar("segundo error",
+            function(mensaje,app){
+                rta=mensaje+' segundo error';
+            }
+        );
         futuro.recibirListo('listo');
         return rta;
     },[]],
@@ -945,15 +1074,23 @@ Aplicacion.prototype.casosDePrueba.push({
         var rescate_f2;
         var futuro=this.newFuturo();
         var rta='todavía no recibí nada';
-        futuro.luego(function(mensaje,app){
-            return mensaje+' paso A';
-        }).alFallar(function(mensaje,app){
-            return mensaje+' recuperado';
-        }).luego(function(mensaje,app){
-            rta=mensaje+' paso B';
-        }).alFallar(function(mensaje,app){
-            rta=mensaje+' segundo error';
-        });
+        futuro.luego("paso A",
+            function(mensaje,app){
+                return mensaje+' paso A';
+            }
+        ).alFallar("recuperado",
+            function(mensaje,app){
+                return mensaje+' recuperado';
+            }
+        ).luego("paso B",
+            function(mensaje,app){
+                rta=mensaje+' paso B';
+            }
+        ).alFallar("segundo error",
+            function(mensaje,app){
+                rta=mensaje+' segundo error';
+            }
+        );
         futuro.recibirError('error');
         return rta;
     },[]],

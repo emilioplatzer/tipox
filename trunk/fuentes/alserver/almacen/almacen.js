@@ -11,11 +11,15 @@ Aplicacion.prototype.creadores.static_ajax={tipo:'tipox', descripcion:'para prob
         var nuevoId='static_ajax:'+definicion.label;
         destino.id=nuevoId;
         destino.ongrab=function(evento,elementoDestino){
-            this.enviarPaquete(definicion.params).luego(function(respuesta,app){
-                app.grab(elementoDestino,respuesta,futuro);
-            }).alFallar(function(mensaje,app){
-                app.grab(elementoDestino,{tipox:'span', className:'mensaje_error', nodes:mensaje},futuro);
-            });
+            this.enviarPaquete(definicion.params).luego("inserta en el documento lo recibido del servidor",
+                function(respuesta,app){
+                    app.grab(elementoDestino,respuesta,futuro);
+                }
+            ).alFallar("mostrar el error recibido del servidor en 'mensaje_error'",
+                function(mensaje,app){
+                    app.grab(elementoDestino,{tipox:'span', className:'mensaje_error', nodes:mensaje},futuro);
+                }
+            );
         }
     }
 }};

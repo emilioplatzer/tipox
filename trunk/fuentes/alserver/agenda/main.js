@@ -27,15 +27,18 @@ Aplicacion.prototype.paginas.agenda={
 };
 
 Aplicacion.prototype.traerAgenda=function(){
-    return this.accesoDb({hacer:'select',from:'agenda',where:true}).luego(function(respuesta,app){
-        app.grab(zona_agenda,{tipox:'tabla', filas:respuesta});
-    }).alFallar(function(mensaje,app){
+    return this.accesoDb({hacer:'select',from:'agenda',where:true}).luego("traer los datos de la agenda",
+        function(respuesta,app){
+            app.grab(zona_agenda,{tipox:'tabla', filas:respuesta});
+        }
+    ).alFallar(function(mensaje,app){
         app.grab(zona_agenda,"no se pueden leer los datos de la agenda: "+mensaje);
     });
 }
 
 var app=new Aplicacion();
-Aplicacion.run(app).luego(function(){
+Aplicacion.run(app)/*.luego("hago lo necesario después de iniciar la aplicación
+    function(){
     // setTimeout(MostrarControlCompatibilidad,1000);
 });
-    
+// */    
