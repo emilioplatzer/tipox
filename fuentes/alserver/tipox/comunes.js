@@ -53,3 +53,20 @@ function cambiandole(destino,cambios,borrando,borrar_si_es_este_valor){
 function estoMismo(estoMismoDevuelvo){
     return estoMismoDevuelvo;
 }
+
+function iterable(indice, objeto_o_lista_o_arreglo){
+    return objeto_o_lista_o_arreglo.hasOwnProperty(indice) &&
+        (!(objeto_o_lista_o_arreglo instanceof HTMLCollection 
+           || objeto_o_lista_o_arreglo instanceof NodeList
+           || 'TouchList' in window && objeto_o_lista_o_arreglo instanceof TouchList
+           ) || !isNaN(indice));
+}
+
+function array_keys(objeto_asociativo) {
+"use strict";
+    var rta=[];
+    for (var clave in objeto_asociativo) if(iterable(clave,objeto_asociativo)){
+        rta.push(clave);
+    }
+    return rta;
+}

@@ -170,9 +170,11 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicional
         elementoAgregado=nuevoElemento;
         if('ongrab' in nuevoElemento){
             console.assert(nuevoElemento.ongrab instanceof Function);
-            futuro.luego(function(respuesta,app){
-                return nuevoElemento.ongrab.call(app,app.eventoVacio,nuevoElemento);
-            });
+            futuro.luego("ongrab",
+                function(respuesta,app){
+                    return nuevoElemento.ongrab.call(app,app.eventoVacio,nuevoElemento);
+                }
+            );
         }
     }
     if(elementoAgregado && atributosAdicionales){
@@ -358,8 +360,8 @@ Aplicacion.prototype.nuevoIdDom=function(prefijo){
 }
 
 Aplicacion.prototype.creadores.funcion={tipo:'tipox', descripcion:'muestra la corrida de una función sobre la app', creador:{
-    nuevo:function(tipox){
-        return document.createElement('div');
+    nuevo:function(tipox,definicion){
+        return document.createElement(definicion.tagName||'div');
     },
     asignarAtributos:function(destino,definicion,futuro){
         var nuevoId=definicion.id||this.app.nuevoIdDom();
@@ -421,22 +423,31 @@ Aplicacion.prototype.creadores.formulario_simple={tipo:'tipox', descripcion:'for
 
 Aplicacion.prototype.creadores.parametro={tipo:'tipox', descripcion:'parámetro de formulario simple con autolabel', creador:{
     translate:function(definicion){
-        var input=cambiandole(definicion, {tipox:definicion.tipox_parametro||'input', name:definicion.name||definicion.id, label:null, aclaracion:null, tipox_parametro:null},null);
-        var label={tipox:'label', 'htmlFor':definicion.id, nodes:('label' in definicion?definicion.label:input.name)};
-        var nuevo={tipox:'tr', nodes:[
-            {tipox:'td', nodes:label},
-            {tipox:'td', nodes:input}
-        ]};
-        if('aclaracion' in definicion){
-            nuevo.nodes.push({tipox:'td', nodes:definicion.aclaracion});
+        var queCambiar={tipox:definicion.tipox_parametro||'input', name:definicion.name||definicion.id, label:null, aclaracion:null, tipox_parametro:null};
+        if(definicion.tipox_parametro=='button'){
+            queCambiar.innerText=definicion.value;
+            queCambiar.value=null;
+            queCambiar.name=null;
+            queCambiar.tipox_parametro=null;
+            queCambiar.type=null;
         }
-        return nuevo;
+        var input=cambiandole(definicion, queCambiar, true ,null);
+        var rta={tipox:'tr', nodes:[{tipox:'td', nodes:[input]}]};
+        if(definicion.label!==false){
+            rta.nodes.unshift({tipox:'td', nodes:{tipox:'label', 'htmlFor':definicion.id, nodes:('label' in definicion?definicion.label:input.name)}});
+        }else{
+            rta.nodes.unshift({tipox:'td'});
+        }
+        if('aclaracion' in definicion){
+            rta.nodes.push({tipox:'td', nodes:definicion.aclaracion});
+        }
+        return rta;
     },
 }}
 
 Aplicacion.prototype.creadores.parametro_boton={tipo:'tipox', descripcion:'botón para el formulario simple encolumnado a segunda columna', creador:{
     translate:function(definicion){
-        return cambiandole(definicion, {tipox:'parametro', tipox_parametro:'button', type:'button', label:'', innerText:!('nodes' in definicion) && !('innerText' in definicion)?definicion.id:definicion.innerText});
+        return cambiandole(definicion, {tipox:'parametro', tipox_parametro:'button', type:'button', label:false, innerText:!('nodes' in definicion) && !('innerText' in definicion)?definicion.id:definicion.innerText});
     },
 }}
 
@@ -503,18 +514,26 @@ Aplicacion.prototype.eventos.entrar_aplicacion=function(evento){
     resultado.innerText='';
     resultado.className='resultado_pendiente';
     var app=this;
-    this.enviarPaquete({proceso:'entrada',paquete:{usuario:usuario.value.toLowerCase(),password:hex_md5(usuario.value.toLowerCase()+password.value)}}).luego(function(respuesta){
-        resultado.innerText='Validado. Entrando...';
-        resultado.className='resultado_ok';
-        app.cambiarUrl(app.urlBienvenida);
-    }).alFallar(function(mensaje){
-        resultado.innerText=mensaje;
-        resultado.className='resultado_error';
-        boton_entrar.disabled=null;
-    });
+    this.enviarPaquete({
+        proceso:'entrada',
+        paquete:{usuario:usuario.value.toLowerCase(),password:hex_md5(usuario.value.toLowerCase()+password.value)}
+    }).luego("registra en el sistema el éxito de la entrada",
+        function(respuesta){
+            resultado.innerText='Validado. Entrando...';
+            resultado.className='resultado_ok';
+            app.cambiarUrl(app.urlBienvenida);
+        }
+    ).alFallar("muestra el error de entrada",
+        function(mensaje){
+            resultado.innerText=mensaje;
+            resultado.className='resultado_error';
+            boton_entrar.disabled=null;
+        }
+    );
 }
 
 Aplicacion.prototype.cargarJsRequeridos=function(){
+    this.lanzarExcepcion("faltan pruebas para poder usarlo");
     var cargoAlguno=false;
     this.mapLuego(this.jsRequeridos.slice(0),this.requiereJs,function(respuesta){
         cargoAlguno=cargoAlguno || respuesta.recienCargado;
@@ -566,7 +585,7 @@ Futuro.prototype.sincronizar=function(){
                 var hacer=manejador.funcion;
                 var rta;
                 try{
-                    rta=hacer(this.recibido.dato,this.app);
+                    rta=hacer(this.recibido.dato,this.app,this);
                     if(this.recibido.tipo=='error'){ 
                         if(rta){ // procesé un alFallar, si retorna algo es la recuperación
                             this.recibido.tipo='ok';
@@ -576,7 +595,6 @@ Futuro.prototype.sincronizar=function(){
                     }
                 }catch(err){
                     rta=descripcionError(err);
-                    console.log(err.stack);
                     this.recibido.tipo='error';
                 }
                 this.recibido.dato=rta;
@@ -602,15 +620,25 @@ Futuro.prototype.recibirError=function(mensajeError){
     this.controlInterno('recibirError');
 }
 
-Futuro.prototype.luego=function(hacer){
-    this.manejadores.push({funcion:hacer, tipo:'ok'});
+Futuro.prototype.luego=function(descripcion,hacer){
+    if(typeof descripcion != 'string'){
+        // this.lanzarExcepcion('Hay que poner la descripción '+hacer);
+        hacer=descripcion;
+        descripcion=null;
+    }
+    this.manejadores.push({descripcion:descripcion, funcion:hacer, tipo:'ok'});
     this.sincronizar();
     this.controlInterno('luego');
     return this;
 }
 
-Futuro.prototype.alFallar=function(hacer){
-    this.manejadores.push({funcion:hacer, tipo:'error'});
+Futuro.prototype.alFallar=function(descripcion,hacer){
+    if(typeof descripcion != 'string'){
+        // this.lanzarExcepcion('Hay que poner la descripción '+hacer);
+        hacer=descripcion;
+        descripcion=null;
+    }
+    this.manejadores.push({descripcion:descripcion, funcion:hacer, tipo:'error'});
     this.sincronizar();
     this.controlInterno('alFallar');
     return this;
@@ -627,6 +655,7 @@ Futuro.prototype.controlInterno=function(contador){
 }
 
 Aplicacion.prototype.mapLuego=function(arreglo,funcionParaCadaElemento,funcionParaElLuego){
+    this.lanzarExcepcion("faltan pruebas para poder usarlo");
     var futuro=this.newFuturo();
     if(arreglo.length==0){
         futuro.recibirListo(null);
@@ -666,12 +695,13 @@ Aplicacion.prototype.requiereJs=function(nombreJs){
             }
             app.jsCargados[nombreJs].estado='cargado';
         }
-        s.onerror=function(){
+        s.onerror=function(evento){
             var futuros=app.jsCargados[nombreJs].futuros;
             while(futuros.length){
                 var esteFuturo=futuros.shift();
                 esteFuturo.recibirError('error al cargar '+nombreJs);
             }
+            evento.preventDefault();
         }
         document.getElementsByTagName("head")[0].appendChild(s);
     }
@@ -791,37 +821,43 @@ Aplicacion.prototype.tiposCampo.decimal=function(definicion){
 
 Aplicacion.prototype.prepararTabla=function(nombreTabla){
     var futuro=this.requiereJs(((app.drTabla[nombreTabla]||{}).carpeta||'.')+'/'+'tabla_'+nombreTabla);
-    futuro.luego(function(respuesta,app){
-        if(!(nombreTabla in app.drTabla)){
-            app.drTabla[nombreTabla]={carpeta:''};
-        }
-        if(!('campos' in app.drTabla[nombreTabla])){
-            app.drTabla[nombreTabla].campos={};
-            for(var nombreTablaCampo in tabla[nombreTabla].campos){
-                var defCampo=tabla[nombreTabla].campos[nombreTablaCampo];
-                app.drTabla[nombreTabla].campos[nombreTablaCampo]=new app.tiposCampo[defCampo.tipo](defCampo);
+    futuro.luego("lee la definición de la tabla y construye los objetos campo para procesar las próximas operaciones sobre la tabla",
+        function(respuesta,app){
+            if(!(nombreTabla in app.drTabla)){
+                app.drTabla[nombreTabla]={carpeta:''};
             }
+            if(!('campos' in app.drTabla[nombreTabla])){
+                app.drTabla[nombreTabla].campos={};
+                for(var nombreTablaCampo in tabla[nombreTabla].campos){
+                    var defCampo=tabla[nombreTabla].campos[nombreTablaCampo];
+                    app.drTabla[nombreTabla].campos[nombreTablaCampo]=new app.tiposCampo[defCampo.tipo](defCampo);
+                }
+            }
+            return null;
         }
-        return null;
-    });
+    );
     return futuro;
 }
 
 Aplicacion.prototype.accesoDb=function(params){
-    return this.prepararTabla(params.from).luego(function(respuesta,app){
-        return app.enviarPaquete({proceso:'acceso_db',paquete:params});
-    }).luego(function(respuesta,app){
-        var campos=app.drTabla[params.from].campos;
-        for(var id_fila in respuesta) if(respuesta.hasOwnProperty(id_fila)){
-            var fila=respuesta[id_fila];
-            for(var campo in fila){
-                if(campo in campos){
-                    fila[campo]=fila[campo]==null?null:campos[campo].adaptarDatoTraidoDelServidor(fila[campo]);
+    return this.prepararTabla(params.from).luego("envía la petición al servidor "+JSON.stringify(params),
+        function(respuesta,app){
+            return app.enviarPaquete({proceso:'acceso_db',paquete:params});
+        }
+    ).luego("adapta los datos recibidos en función de los tipos de datos declarados en la tabla "+params.from,
+        function(respuesta,app){
+            var campos=app.drTabla[params.from].campos;
+            for(var id_fila in respuesta) if(respuesta.hasOwnProperty(id_fila)){
+                var fila=respuesta[id_fila];
+                for(var campo in fila){
+                    if(campo in campos){
+                        fila[campo]=fila[campo]==null?null:campos[campo].adaptarDatoTraidoDelServidor(fila[campo]);
+                    }
                 }
             }
+            return respuesta;
         }
-        return respuesta;
-    });
+    );
 }
 
 Aplicacion.prototype.controlarParametros=function(){}

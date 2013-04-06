@@ -71,7 +71,8 @@ Aplicacion.prototype.casosDePrueba.push({
     funcion:'probarEvento',
     caso:'ver los datos de la grilla',
     // mostrarAunqueNoFalleHasta:'2013-04-01',
-    relanzarExcepcionSiHay:true,
+    // ignorado:'sin ticket aún',
+    // relanzarExcepcionSiHay:true,
     elementos:{
         id3:{tipox:'grilla', tabla:'prueba_tabla_comun'}
     },
@@ -111,5 +112,30 @@ Aplicacion.prototype.casosDePrueba.push({
                     {localName:'td', innerText:'6/5/1991', className:'tipo_fecha'},
                 ]},
         ]}]},
+    }}
+});
+
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'grillas',
+    funcion:'probarEvento',
+    caso:'ver cómo la grilla indica que hay una tabla_inexistente',
+    // mostrarAunqueNoFalleHasta:'2013-04-01',
+    // ignorado:'sin ticket aún',
+    relanzarExcepcionSiHay:true,
+    elementos:{
+        id4:{tipox:'grilla', tabla:'tabla_inexistente'}
+    },
+    entrada:[{
+        nombre:'grilla_ver',
+        debugGrab:true,
+        sinMock:true,
+        idDestino:'id4',
+        incluirDocumentoEnSalida:true
+    }],
+    salidaDomAbundante:{documento:{
+        id4:{
+            style:{backgroundImage:new RegExp('^url\\(.*/imagenes/error\.png\\)$')}, 
+            title:'no existe la tabla tabla_inexistente'
+        },
     }}
 });
