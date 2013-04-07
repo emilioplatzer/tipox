@@ -132,7 +132,7 @@ Aplicacion.prototype.casosDePrueba.push({
         idDestino:'id4',
         incluirDocumentoEnSalida:true
     }],
-    salidaDomAbundante:{documento:{
+    salidaDom:{documento:{
         id4:{
             style:{backgroundImage:new RegExp('^url\\(.*/imagenes/error\.png\\)$')}, 
             title:'no existe la tabla tabla_inexistente'
