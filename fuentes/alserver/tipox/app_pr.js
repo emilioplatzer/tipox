@@ -241,24 +241,16 @@ Probador.prototype.probarElCaso=function(caso){
     var app=this.app;
     var este=this;
     if(obtenido instanceof Futuro){
-        console.log('obtuve un futuro del caso ',caso.caso,obtenido);
-        obtenido.luego("comparo lo obtenido (Listo) en el futuro",
-            function(caso,idCaso,salvarEntrada){
-                return function(respuesta,app,futuro){
-                    console.log('recibo respuesta positiva en el caso ',caso.caso,futuro);
-                    este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
-                }
-            }(caso,idCaso,salvarEntrada)
-        ).alFallar("comparo lo obtenido (Falla) en el futuro",
-            function(caso,idCaso,salvarEntrada){
-                return function(mensaje,app,futuro){
-                    console.log('recibo respuesta fallida en el caso ',caso.caso,futuro);
-                    este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada);
-                }
-            }(caso,idCaso,salvarEntrada)
+        obtenido.luego("comparo lo obtenido (Listo) en el futuro en "+caso.caso,
+            function(respuesta,app,futuro){
+                este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
+            }
+        ).alFallar("comparo lo obtenido (Falla) en el futuro en "+caso.caso,
+            function(mensaje,app,futuro){
+                este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada);
+            }
         );
     }else{
-        console.log('obtuve una respuesta común del caso ',caso.caso);
         este.compararObtenido(obtenido,errorObtenido,caso,idCaso,salvarEntrada);
     }
 }
@@ -276,7 +268,6 @@ Probador.prototype.cadenaParaMostrar=function(valor){
         return JSON.stringify(valor);
     }
 }
-
 
 Probador.prototype.mostrarCampos=function(objeto){
     var rta;

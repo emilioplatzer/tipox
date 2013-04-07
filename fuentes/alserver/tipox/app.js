@@ -555,17 +555,21 @@ Aplicacion.prototype.validarUsuario=function(){
 
 Aplicacion.prototype.controlDeFuturos=[];
 
+Aplicacion.prototype.obtenerStack=function(profundidadMinima, profundidadMaxima){
+    try{
+        necesito.el.stack="ahora";
+    }catch(err){
+        return err.stack.split('\n').slice(profundidadMinima,profundidadMaxima).join('\n');
+    }
+}
+
 var Futuro=function(app){
     this.app=app;
     this.recibido={tipo:'nada'};
     this.manejadores=[];
     this.futuroEncadenado=false;
     if(app.controlDeFuturos){
-        try{
-            necesito.el.stack="ahora";
-        }catch(err){
-            this.idFuturo=app.controlDeFuturos.push({stack:err.stack.split('\n').slice(2).join('\n')})-1;
-        }
+        this.idFuturo=app.controlDeFuturos.push({stack:this.app.obtenerStack(3)})-1;
     }
 }
 
@@ -646,6 +650,11 @@ Futuro.prototype.alFallar=function(descripcion,hacer){
 
 Futuro.prototype.controlInterno=function(contador){
     if(this.app.controlDeFuturos){
+        var mostrar=[];
+        for(var i=0; i<this.manejadores.length; i++){
+            mostrar.push(i+": "+this.manejadores[i].tipo+' '+this.manejadores[i].descripcion);
+        }
+        // console.log('control.Futuro',contador,this.idFuturo,this.app.obtenerStack(3),mostrar.join(' / '));
         var repositorio=this.app.controlDeFuturos[this.idFuturo];
         if(!(contador in repositorio)){
             repositorio[contador]=0;
@@ -858,6 +867,17 @@ Aplicacion.prototype.accesoDb=function(params){
             return respuesta;
         }
     );
+}
+
+Aplicacion.prototype.padreQueSea=function(params){
+    var elemento=params.elemento;
+    do{
+        elemento=elemento.parentNode;
+    }while(elemento && elemento.localName!=params.tipo && elemento.localName!='#document');
+    if(!elemento || elemento.localName!=params.tipo){
+        this.lanzarExcepcion('el elemento '+params.elemento.id+' no tiene padreQueSea '+params.tipo);
+    }
+    return elemento;
 }
 
 Aplicacion.prototype.controlarParametros=function(){}

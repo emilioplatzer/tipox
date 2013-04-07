@@ -65,11 +65,10 @@ Aplicacion.prototype.creadores.grilla={tipo:'tipox', descripcion:'grilla funcion
 }}
 
 Aplicacion.prototype.eventos.grilla_ver=function(evento,elemento,opciones){
-    var elementoTabla=elemento.parentNode.parentNode.parentNode.querySelectorAll('.grilla_cont_tabla')[0];
-    console.log('elemento elegido ',elementoTabla.id);
+    var elementoTabla=this.padreQueSea({elemento:elemento, tipo:'div'}).querySelectorAll('.grilla_cont_tabla')[0];
+    // EJEMPLO DE LO QUE NO HAY QUE HACER: var elementoTabla=elemento.parentNode.parentNode.parentNode.querySelectorAll('.grilla_cont_tabla')[0];
     var futuro=this.accesoDb({hacer:'select', from:elementoTabla.dataset.tabla, where:true}).luego("poblar el elementoTabla con los datos recibidos de la grilla: "+elementoTabla.dataset.tabla,
-        function(respuesta,app){
-            console.log('accedí positivamente con tabla ',elementoTabla.dataset.tabla);
+        function(respuesta,app,futuro){
             var ubicarElemento=function(clase){
                 var elementos=elementoTabla.querySelectorAll(clase);
                 if(!elementos.length){
@@ -94,14 +93,12 @@ Aplicacion.prototype.eventos.grilla_ver=function(evento,elemento,opciones){
                 }
                 app.grab(zonas[zona].destino,{tipox:'table',className:'grilla_tabla_int', nodes:filas});
             }
-            console.log('por retornar con tabla ',elementoTabla.dataset.tabla);
             if(opciones && opciones.probando){
                 return {documento:document};
             }
         }
     ).alFallar("mostrar el error que hubo para traer los datos",
-        function(mensaje,app){
-            console.log('encontré falla con ',elementoTabla.dataset.tabla);
+        function(mensaje,app,futuro){
             elemento.style.backgroundImage='url(../imagenes/error.png)';
             elemento.title='no existe la tabla '+elementoTabla.dataset.tabla;
             if(opciones && opciones.probando){
