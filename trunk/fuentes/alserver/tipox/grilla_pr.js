@@ -21,6 +21,9 @@ Aplicacion.prototype.casosDePrueba.push({
     ]},
 });
 
+var CH0=Aplicacion.prototype.grillas.anchoCero;
+var CH1=Aplicacion.prototype.grillas.anchoPorCaracter;
+
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'grillas',
     funcion:'probarEvento',
@@ -33,9 +36,9 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:[{
         nombre:'grilla_preparar_contenedor',
         debugGrab:true,
-        sinMock:true,
         idDestino:'id3_cont',
-        incluirDocumentoEnSalida:true
+        incluirDocumentoEnSalida:true,
+        sinMock:true
     }],
     salidaDom:{documento:{
         id3:{localName:'div', childNodes:[
@@ -44,16 +47,16 @@ Aplicacion.prototype.casosDePrueba.push({
                 {localName:'tr', childNodes:[
                     {localName:'td', className:'grilla_cont_td_home', childNodes:[
                         {localName:'table', className:'grilla_tabla_int', childNodes:[{localName:'tr', childNodes:[
-                            {localName:'th', innerText:'id'}
+                            {localName:'th', style:{width:CH0+4*CH1+'px'}, innerText:'id'}
                         ]}]}
                     ]},
                     {localName:'td', className:'grilla_cont_td_encabezados', childNodes:[
                         {localName:'table', className:'grilla_tabla_int', childNodes:[{localName:'tr', childNodes:[
-                            {localName:'th', innerText:"nombre"},
-                            {localName:'th', innerText:"importe"},
-                            {localName:'th', childNodes:[{textContent:"A"},{localName:"small", innerText:"ctv"}]},
-                            {localName:'th', innerText:"cantidad"},
-                            {localName:'th', innerText:"fecha"},
+                            {localName:'th', style:{width:'120px'}, innerText:"nombre"},
+                            {localName:'th', style:{width:CH0+10*CH1+'px'}, innerText:"importe"},
+                            {localName:'th', style:{width:CH0+ 2*CH1+'px'}, childNodes:[{textContent:"A"},{localName:"small", innerText:"ctv"}]},
+                            {localName:'th', style:{width:CH0+ 8*CH1+'px'}, innerText:"cantidad"},
+                            {localName:'th', style:{width:CH0+10*CH1+'px'}, innerText:"fecha"},
                         ]}]}
                     ]},
                 ]},
@@ -74,7 +77,7 @@ Aplicacion.prototype.casosDePrueba.push({
     // ignorado:'sin ticket aún',
     // relanzarExcepcionSiHay:true,
     elementos:{
-        id3:{tipox:'grilla', tabla:'prueba_tabla_comun'}
+        id3:{tipox:'grilla', tabla:'prueba_tabla_comun', title:'todo bien'}
     },
     entrada:[{
         nombre:'grilla_ver',
@@ -84,6 +87,7 @@ Aplicacion.prototype.casosDePrueba.push({
         incluirDocumentoEnSalida:true
     }],
     salidaDom:{documento:{
+        id3:{title:'todo bien'},
         id3_cont_td_l:{localName:'td', childNodes:[{localName:'table', childNodes:[
                 {localName:'tr', childNodes:[{localName:'td', innerText:'1', className:'tipo_serial'}]},
                 {localName:'tr', childNodes:[{localName:'td', innerText:'2', className:'tipo_serial'}]},

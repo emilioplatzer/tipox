@@ -52,8 +52,8 @@ Aplicacion.prototype.probarTodo=function(){
     var probador=new Probador(this);
     probador.cualesProbar={
         'preparar las columnas de la grilla':true,
-        'ver cómo la grilla indica que hay una tabla_inexistente':true,
-        'ver los datos de la grilla':true
+        //'ver cómo la grilla indica que hay una tabla_inexistente':true,
+        //'ver los datos de la grilla':true
     };
     delete probador.cualesProbar; // NUNCA BORRAR. COMENTAR PARA ACTIVAR
     if("capturar la excepción y mostrarla en debug directo"){
@@ -743,7 +743,7 @@ Aplicacion.prototype.casosDePrueba.push({
 });
 
 Aplicacion.prototype.appMock=function(definicion){
-    var mock={esAplicacion:true};
+    var mock=definicion.mockBasadoEnAplicacion?new Aplicacion():{esAplicacion:true};
     var rtaMock={obtenido:{}, esperado:{}};
     var app=this;
     if('mocks' in definicion){
@@ -771,6 +771,8 @@ Aplicacion.prototype.appMock=function(definicion){
                         }
                     }
                 }(defMock);
+            }else if('copiar' in defMock){
+                mock[definicion.mocks[paso].copiar]=app[definicion.mocks[paso].copiar];
             }else{
                 mock[definicion.mocks[paso].miembro]=definicion.mocks[paso].valor;
             }
@@ -1120,7 +1122,7 @@ Aplicacion.prototype.casosDePrueba.push({
     modulo:'acceso a datos del servidor',
     funcion:'accesoDb',
     caso:'traer los datos de la prueba_tabla_comun',
-    entrada:[{hacer:'select',from:'prueba_tabla_comun',where:true}],
+    entrada:[{hacer:'select',from:'prueba_tabla_comun',where:true,order_by:true}],
     mostrarAunqueNoFalleHasta:'2013-03-31',
     salida:[
         {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,fecha:new Date('2001-12-31'),"ultima_modificacion":"2001-01-01"},

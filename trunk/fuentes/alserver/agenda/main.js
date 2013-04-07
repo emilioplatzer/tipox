@@ -27,7 +27,7 @@ Aplicacion.prototype.paginas.agenda={
 };
 
 Aplicacion.prototype.traerAgenda=function(){
-    return this.accesoDb({hacer:'select',from:'agenda',where:true}).luego("traer los datos de la agenda",
+    return this.accesoDb({hacer:'select',from:this.drTabla.agenda,where:true,order_by:true}).luego("traer los datos de la agenda",
         function(respuesta,app){
             app.grab(zona_agenda,{tipox:'tabla', filas:respuesta});
         }
