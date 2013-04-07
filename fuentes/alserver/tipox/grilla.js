@@ -1,6 +1,11 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
 
+Aplicacion.prototype.grillas={
+    anchoCero:11,
+    anchoPorCaracter:10,
+};
+
 Aplicacion.prototype.eventos.grilla_preparar_contenedor=function(evento,tabla,opciones){
     var futuro=this.prepararTabla(tabla.dataset.tabla).luego("Poner los nombres de las columnas en el elementoTabla: "+tabla.dataset.tabla, 
         function(mensaje,app){
@@ -18,7 +23,11 @@ Aplicacion.prototype.eventos.grilla_preparar_contenedor=function(evento,tabla,op
                 for(var nombreCampo in campos){
                     var defCampo=campos[nombreCampo];
                     if(!!defCampo.esPk===zonas[zona].esPk){
-                        celdas.push({tipox:'th', nodes:defCampo.titulo||nombreCampo});
+                        celdas.push({
+                            tipox:'th', 
+                            nodes:defCampo.titulo, 
+                            style:{width:defCampo.ancho||defCampo.anchoCaracteres()*app.grillas.anchoPorCaracter+app.grillas.anchoCero}
+                        });
                     }
                 }
                 app.grab(zonas[zona].destino,{tipox:'table',className:'grilla_tabla_int', nodes:{tipox:'tr', id:tabla.id+'_tr_'+zona, nodes:celdas}});
@@ -67,7 +76,7 @@ Aplicacion.prototype.creadores.grilla={tipo:'tipox', descripcion:'grilla funcion
 Aplicacion.prototype.eventos.grilla_ver=function(evento,elemento,opciones){
     var elementoTabla=this.padreQueSea({elemento:elemento, tipo:'div'}).querySelectorAll('.grilla_cont_tabla')[0];
     // EJEMPLO DE LO QUE NO HAY QUE HACER: var elementoTabla=elemento.parentNode.parentNode.parentNode.querySelectorAll('.grilla_cont_tabla')[0];
-    var futuro=this.accesoDb({hacer:'select', from:elementoTabla.dataset.tabla, where:true}).luego("poblar el elementoTabla con los datos recibidos de la grilla: "+elementoTabla.dataset.tabla,
+    var futuro=this.accesoDb({hacer:'select', from:elementoTabla.dataset.tabla, where:true, order_by:true}).luego("poblar el elementoTabla con los datos recibidos de la grilla: "+elementoTabla.dataset.tabla,
         function(respuesta,app,futuro){
             var ubicarElemento=function(clase){
                 var elementos=elementoTabla.querySelectorAll(clase);
@@ -100,7 +109,7 @@ Aplicacion.prototype.eventos.grilla_ver=function(evento,elemento,opciones){
     ).alFallar("mostrar el error que hubo para traer los datos",
         function(mensaje,app,futuro){
             elemento.style.backgroundImage='url(../imagenes/error.png)';
-            elemento.title='no existe la tabla '+elementoTabla.dataset.tabla;
+            elemento.title='no existe la tabla '+elementoTabla.dataset.tabla+(app.debugueando?' '+mensaje:'');
             if(opciones && opciones.probando){
                 return {documento:document};
             }

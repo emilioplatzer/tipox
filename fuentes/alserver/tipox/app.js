@@ -14,6 +14,7 @@ function Aplicacion(){
     this.jsCargados={};
     this.autoIdDom=0;
     this.entornoDesarrollo=true;
+    // this.debugueando=true;
     this.hoyString=new Date().toISOString().substr(0,'2099-12-31'.length);
 }
 
@@ -800,32 +801,47 @@ Aplicacion.prototype.drTabla.prueba_tabla_comun={carpeta:'../tipox'};
 
 /* Manejadores de campos */
 Aplicacion.prototype.tiposCampo={};
-Aplicacion.prototype.tiposCampo.generico=function(definicion){
+Aplicacion.prototype.tiposCampo.generico=function(definicion,nombreCampo){
+    this.nombreCampo=nombreCampo;
     for(var attr in definicion){
         this[attr]=definicion[attr];
     }
+    if(!('titulo' in this)){
+        this.titulo=this.nombreCampo;
+    }
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo; }
     this.innerText=function(valor){ return valor===null?'':valor.toString(); }
+    this.caracteresDefault=10;
+    this.anchoCaracteres=function(){
+        return Math.max(this.caracteres||this.caracteresDefault,typeof this.titulo=='string'?this.titulo.length:0);
+    }
 }
+
 Aplicacion.prototype.tiposCampo.texto  =Aplicacion.prototype.tiposCampo.generico;
-Aplicacion.prototype.tiposCampo.fecha  =function(definicion){
-    Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
+
+Aplicacion.prototype.tiposCampo.fecha  =function(definicion,nombreCampo){
+    Aplicacion.prototype.tiposCampo.generico.call(this,definicion,nombreCampo);
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:new Date(valorCrudo); }
     this.innerText=function(valor){ return valor===null?'':valor.getUTCDate()+'/'+(valor.getUTCMonth()+1)+'/'+valor.getUTCFullYear(); }
-    //this.innerText=function(valor){ return valor===null?'':valor.toString(); }
 }
-Aplicacion.prototype.tiposCampo.entero =function(definicion){
-    Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
+
+Aplicacion.prototype.tiposCampo.entero =function(definicion,nombreCampo){
+    Aplicacion.prototype.tiposCampo.generico.call(this,definicion,nombreCampo);
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:Number(valorCrudo); }
+    this.caracteresDefault=4;
 }
+
 Aplicacion.prototype.tiposCampo.serial =Aplicacion.prototype.tiposCampo.entero;
-Aplicacion.prototype.tiposCampo.logico =function(definicion){
-    Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
+
+Aplicacion.prototype.tiposCampo.logico =function(definicion,nombreCampo){
+    Aplicacion.prototype.tiposCampo.generico.call(this,definicion,nombreCampo);
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:!!Number(valorCrudo); }
     this.innerText=function(valor){ return valor===null?'':(!valor?'no':'Sí'); }
+    this.caracteresDefault=2;
 }
-Aplicacion.prototype.tiposCampo.decimal=function(definicion){
-    Aplicacion.prototype.tiposCampo.generico.call(this,definicion);
+
+Aplicacion.prototype.tiposCampo.decimal=function(definicion,nombreCampo){
+    Aplicacion.prototype.tiposCampo.generico.call(this,definicion,nombreCampo);
     this.adaptarDatoTraidoDelServidor=function(valorCrudo){ return valorCrudo==null?null:Number(valorCrudo); }
 }
 
@@ -834,14 +850,22 @@ Aplicacion.prototype.prepararTabla=function(nombreTabla){
     futuro.luego("lee la definición de la tabla y construye los objetos campo para procesar las próximas operaciones sobre la tabla",
         function(respuesta,app){
             if(!(nombreTabla in app.drTabla)){
-                app.drTabla[nombreTabla]={carpeta:''};
+                app.drTabla[nombreTabla]={carpeta:'', nombreTabla:nombreTabla, nombresCamposPk:[]};
             }
+            app.drTabla[nombreTabla].nombreTabla=nombreTabla;
+            app.drTabla[nombreTabla].nombresCamposPk=app.drTabla[nombreTabla].nombresCamposPk||[];
             if(!('campos' in app.drTabla[nombreTabla])){
                 app.drTabla[nombreTabla].campos={};
                 for(var nombreTablaCampo in tabla[nombreTabla].campos){
                     var defCampo=tabla[nombreTabla].campos[nombreTablaCampo];
-                    app.drTabla[nombreTabla].campos[nombreTablaCampo]=new app.tiposCampo[defCampo.tipo](defCampo);
+                    app.drTabla[nombreTabla].campos[nombreTablaCampo]=new app.tiposCampo[defCampo.tipo](defCampo,nombreTablaCampo);
+                    if(defCampo.esPk){
+                        app.drTabla[nombreTabla].nombresCamposPk.push(nombreTablaCampo);
+                    }
                 }
+            }
+            if(app.drTabla[nombreTabla].nombresCamposPk.length==0){
+                app.lanzarExcepcion('No está definida la Pk de la tabla '+nombreTabla);
             }
             return null;
         }
@@ -850,9 +874,14 @@ Aplicacion.prototype.prepararTabla=function(nombreTabla){
 }
 
 Aplicacion.prototype.accesoDb=function(params){
+    var nombreTabla=typeof params.from == 'string'?params.from:params.from.nombreTabla;
     return this.prepararTabla(params.from).luego("envía la petición al servidor "+JSON.stringify(params),
         function(respuesta,app){
-            return app.enviarPaquete({proceso:'acceso_db',paquete:params});
+            var cambiar={from:nombreTabla};
+            if(params.order_by===true){
+                cambiar.order_by=app.drTabla[nombreTabla].nombresCamposPk;
+            }
+            return app.enviarPaquete({proceso:'acceso_db',paquete:cambiandole(params,cambiar)});
         }
     ).luego("adapta los datos recibidos en función de los tipos de datos declarados en la tabla "+params.from,
         function(respuesta,app){

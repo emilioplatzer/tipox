@@ -198,9 +198,17 @@ JSON
         if(!isset($params->where)){
             return $this->respuestaError("el acceso a datos debe tener una clausula where");
         }
+        if(!isset($params->order_by)){
+            return $this->respuestaError("el acceso a datos debe tener una clausula order by");
+        }
+        if(!count($params->order_by)){
+            return $this->respuestaError("la clausula order by debe tener al menos un campo");
+        }
         $this->assert(is_string($params->from),' from debe ser un nombre de tabla');
         if($params->hacer=='select'){
-            $sentencia="SELECT * FROM ".$db->dr->quote($params->from,Dr_sql::TABLA);
+            $sentencia="SELECT * ".
+                " FROM ".$db->dr->quote($params->from,Dr_sql::TABLA).
+                " ORDER BY ".implode(", ",array_map(function($campo) use ($db){ return $db->dr->quote($campo,Dr_sql::CAMPO); },$params->order_by));
             $cursor=$this->ejecutarSql($sentencia);
             return $this->respuestaOk($cursor->fetchAll(PDO::FETCH_CLASS));
         }else{
