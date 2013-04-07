@@ -538,6 +538,20 @@ Aplicacion.prototype.casosDePrueba.push({
     entrada:["texto de la excepcion obtenida"],
     error:"texto de la excepcion esperada"
 });
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_errores',
+    funcion:'estoMismo',
+    mostrarAunqueNoFalleHasta:'2013-03-31',
+    caso:'Hay un problema con las fechas porque el constructor de Date considera GMT0 pero al extraer usa el Locale',
+    entrada:[{
+        dia:new Date('1991-06-05').getDate(),
+        mostrar:new Date('1991-06-05').toString()
+    }],
+    salida:{
+        dia:5,
+        mostrar:'1991-06-05 sin hora ni GMT'
+    }
+});
 
 Aplicacion.prototype.asi_se_ven_los_ignorados=function(){
     this.lanzarExcepcion('Esto nunca debe ejecutarse porque es un ejemplo');
@@ -610,6 +624,18 @@ Aplicacion.prototype.casosDePrueba.push({
         simple:/^Palabra$/i,
         conBarra:/^uno\/otro$/,
         conEspacioOpcional:/^todo ?junto ?separado$/
+    }
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_ok',
+    funcion:'estoMismo',
+    mostrarAunqueNoFalleHasta:'2013-03-31',
+    caso:'prueba de Fechas, hay que usar UTC',
+    entrada:[{
+        dia:new Date('1991-06-05').getUTCDate(),
+    }],
+    salida:{
+        dia:5,
     }
 });
 
