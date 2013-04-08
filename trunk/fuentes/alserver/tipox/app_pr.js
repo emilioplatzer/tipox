@@ -202,6 +202,9 @@ Probador.prototype.probarElCaso=function(caso){
             }
         }
     }
+    if(caso.preparar){
+        caso.preparar.call(this.app);
+    }
     var idModulo='TDD_modulo:'+caso.modulo;
     var idCaso='TDD_caso:'+caso.caso;
     var esto=null;
@@ -480,7 +483,7 @@ Probador.prototype.cambioEstado=function(caso,nombreClase){
             maxPrioridad=claseHijo;
         }
     }
-    this.cambioEstadoDeUno(elementoTitulo,claseHijo);
+    this.cambioEstadoDeUno(elementoTitulo,maxPrioridad);
 }
 
 Probador.prototype.cambioEstadoDeUno=function(elemento,nombreClase){
