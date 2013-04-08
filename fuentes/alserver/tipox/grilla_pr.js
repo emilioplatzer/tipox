@@ -77,7 +77,13 @@ Aplicacion.prototype.casosDePrueba.push({
     // ignorado:'sin ticket aún',
     // relanzarExcepcionSiHay:true,
     elementos:{
-        id3:{tipox:'grilla', tabla:'prueba_tabla_comun', title:'todo bien'}
+        id3:{tipox:'grilla', tabla:'prueba_tabla_comun', title:'todo bien'},
+        idd:{tipox:'div', innerText:'ver si esto se cambia con el preparar'}
+    },
+    preparar:function(){
+        this.grab(id3_cont_td_l,{tipox:'div', innerText:'esto debe borrarse'});
+        this.grab(id3_cont_td_d,{tipox:'div', innerText:'esto también'});
+        idd.innerText='ok el preparar';
     },
     entrada:[{
         nombre:'grilla_ver',
@@ -88,12 +94,13 @@ Aplicacion.prototype.casosDePrueba.push({
     }],
     salidaDom:{documento:{
         id3:{title:'todo bien'},
+        idd:{innerText:'ok el preparar'},
         id3_cont_td_l:{localName:'td', childNodes:[{localName:'table', childNodes:[
                 {localName:'tr', childNodes:[{localName:'td', style:{width:CH0+4*CH1+'px'}, innerText:'1', className:'tipo_serial'}]},
                 {localName:'tr', childNodes:[{localName:'td', innerText:'2', className:'tipo_serial'}]},
                 {localName:'tr', childNodes:[{localName:'td', innerText:'3', className:'tipo_serial'}]},
         ]}]},
-        id3_cont_td_d:{localName:'td', childNodes:[{localName:'table', childNodes:[
+        id3_cont_td_d:{localName:'td', childNodes:[{localName:'table', childElementCount:3, childNodes:[
                 {localName:'tr', childNodes:[
                     {localName:'td', style:{width:'120px'}, innerText:'uno', className:'tipo_texto'},
                     {localName:'td', style:{width:CH0+10*CH1+'px'},innerText:'', className:'tipo_decimal'},

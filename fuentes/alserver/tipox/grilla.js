@@ -88,6 +88,7 @@ Aplicacion.prototype.eventos.grilla_ver=function(evento,elemento,opciones){
             var zonas={h:{esPk:true, destino:ubicarElemento('.grilla_cont_td_lateral')}, e:{esPk:false, destino:ubicarElemento('.grilla_cont_td_datos')}};
             var campos=app.drTabla[elementoTabla.dataset.tabla].campos;
             for(var zona in zonas){
+                zonas[zona].destino.innerHTML='';
                 var filas=[];
                 for(var i_fila in respuesta) if(respuesta.hasOwnProperty(i_fila)){
                     var fila=respuesta[i_fila];
