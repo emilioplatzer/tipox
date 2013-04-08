@@ -16,6 +16,11 @@
     padding:0px;
 }
 
+.grilla_cont_tabla th{
+    border-collapse:collapse;
+    padding:0px;
+}
+
 .grilla_cont_tabla td{
     border-collapse:collapse;
     padding:0px;
