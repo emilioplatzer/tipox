@@ -26,7 +26,7 @@ Aplicacion.prototype.eventos.grilla_preparar_contenedor=function(evento,tabla,op
                         celdas.push({
                             tipox:'th', 
                             nodes:defCampo.titulo, 
-                            style:{width:defCampo.ancho||defCampo.anchoCaracteres()*app.grillas.anchoPorCaracter+app.grillas.anchoCero}
+                            style:{width:defCampo.anchoPx()}
                         });
                     }
                 }
@@ -95,7 +95,7 @@ Aplicacion.prototype.eventos.grilla_ver=function(evento,elemento,opciones){
                     for(var nombreCampo in campos){
                         var defCampo=campos[nombreCampo];
                         if(!!defCampo.esPk===zonas[zona].esPk){
-                            celdas.push({tipox:'td', innerText:defCampo.innerText(fila[nombreCampo]), className:'tipo_'+defCampo.tipo});
+                            celdas.push({tipox:'td', innerText:defCampo.innerText(fila[nombreCampo]), className:'tipo_'+defCampo.tipo, style:{width:defCampo.anchoPx()}});
                         }
                     }
                     filas.push({tipox:'tr', id:elementoTabla.id+'_tr_'+zona, nodes:celdas});
@@ -109,7 +109,7 @@ Aplicacion.prototype.eventos.grilla_ver=function(evento,elemento,opciones){
     ).alFallar("mostrar el error que hubo para traer los datos",
         function(mensaje,app,futuro){
             elemento.style.backgroundImage='url(../imagenes/error.png)';
-            elemento.title='no existe la tabla '+elementoTabla.dataset.tabla+(app.debugueando?' '+mensaje:'');
+            elemento.title='problemas al leer la tabla '+elementoTabla.dataset.tabla+': '+mensaje;
             if(opciones && opciones.probando){
                 return {documento:document};
             }

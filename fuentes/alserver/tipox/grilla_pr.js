@@ -89,17 +89,17 @@ Aplicacion.prototype.casosDePrueba.push({
     salidaDom:{documento:{
         id3:{title:'todo bien'},
         id3_cont_td_l:{localName:'td', childNodes:[{localName:'table', childNodes:[
-                {localName:'tr', childNodes:[{localName:'td', innerText:'1', className:'tipo_serial'}]},
+                {localName:'tr', childNodes:[{localName:'td', style:{width:CH0+4*CH1+'px'}, innerText:'1', className:'tipo_serial'}]},
                 {localName:'tr', childNodes:[{localName:'td', innerText:'2', className:'tipo_serial'}]},
                 {localName:'tr', childNodes:[{localName:'td', innerText:'3', className:'tipo_serial'}]},
         ]}]},
         id3_cont_td_d:{localName:'td', childNodes:[{localName:'table', childNodes:[
                 {localName:'tr', childNodes:[
-                    {localName:'td', innerText:'uno', className:'tipo_texto'},
-                    {localName:'td', innerText:'', className:'tipo_decimal'},
-                    {localName:'td', innerText:'Sí', className:'tipo_logico'},
-                    {localName:'td', innerText:'-9', className:'tipo_entero'},
-                    {localName:'td', innerText:'31/12/2001', className:'tipo_fecha'},
+                    {localName:'td', style:{width:'120px'}, innerText:'uno', className:'tipo_texto'},
+                    {localName:'td', style:{width:CH0+10*CH1+'px'},innerText:'', className:'tipo_decimal'},
+                    {localName:'td', style:{width:CH0+ 2*CH1+'px'},innerText:'Sí', className:'tipo_logico'},
+                    {localName:'td', style:{width:CH0+ 8*CH1+'px'},innerText:'-9', className:'tipo_entero'},
+                    {localName:'td', style:{width:CH0+10*CH1+'px'},innerText:'31/12/2001', className:'tipo_fecha'},
                 ]},
                 {localName:'tr', childNodes:[
                     {localName:'td', innerText:'dos', className:'tipo_texto'},
@@ -139,7 +139,7 @@ Aplicacion.prototype.casosDePrueba.push({
     salidaDom:{documento:{
         id4:{
             style:{backgroundImage:new RegExp('^url\\(.*/imagenes/error\.png\\)$')}, 
-            title:'no existe la tabla tabla_inexistente'
+            title:/^problemas al leer la tabla tabla_inexistente/
         },
     }}
 });
