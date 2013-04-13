@@ -70,3 +70,12 @@ function array_keys(objeto_asociativo) {
     }
     return rta;
 }
+
+function coalesce(){
+    for(var i=0; i<arguments.length; i++){
+        if(arguments[i]!==null && arguments[i]!==undefined){
+            return arguments[i];
+        }
+    }
+    return undefined;
+}

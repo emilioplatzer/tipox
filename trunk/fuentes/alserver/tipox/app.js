@@ -414,7 +414,7 @@ Aplicacion.prototype.creadores.app_alternativa={tipo:'tipox', descripcion:'menú
 
 Aplicacion.prototype.creadores.formulario_simple={tipo:'tipox', descripcion:'formulario simple basado en una tabla de 3 columnas, label, input, aclaraciones', creador:{
     translate:function(definicion){
-        var nuevo=cambiandole(definicion, {tipox:'form', className:'form_simple3'});
+        var nuevo=cambiandole(definicion, {tipox:'div', className:'form_simple3'});
         var tabla={tipox:'table'};
         nuevo.nodes=tabla;
         tabla.nodes=definicion.nodes;
@@ -435,12 +435,12 @@ Aplicacion.prototype.creadores.parametro={tipo:'tipox', descripcion:'parámetro 
         var input=cambiandole(definicion, queCambiar, true ,null);
         var rta={tipox:'tr', nodes:[{tipox:'td', nodes:[input]}]};
         if(definicion.label!==false){
-            rta.nodes.unshift({tipox:'td', nodes:{tipox:'label', 'htmlFor':definicion.id, nodes:('label' in definicion?definicion.label:input.name)}});
+            rta.nodes.unshift({tipox:'td', nodes:{tipox:'label', id:definicion.id+'_label', 'htmlFor':definicion.id, nodes:('label' in definicion?definicion.label:input.name)}});
         }else{
             rta.nodes.unshift({tipox:'td'});
         }
         if('aclaracion' in definicion){
-            rta.nodes.push({tipox:'td', nodes:definicion.aclaracion});
+            rta.nodes.push({tipox:'td', id:definicion.id+'_aclaracion', nodes:definicion.aclaracion});
         }
         return rta;
     },
@@ -779,6 +779,10 @@ Aplicacion.prototype.enviarPaquete=function(params){
     return futuro;
 }
 
+Aplicacion.prototype.irAMenu=function(hash){
+    location.hash='#!'+JSON.stringify(hash);
+}
+
 Aplicacion.prototype.cambiarPaginaLocationHash=function(){
     this.validarUsuario();
     if(location.hash.substr(0,2)==='#!'){
@@ -911,6 +915,15 @@ Aplicacion.prototype.padreQueSea=function(params){
         this.lanzarExcepcion('el elemento '+params.elemento.id+' no tiene padreQueSea '+params.tipo);
     }
     return elemento;
+}
+
+Aplicacion.prototype.leerLocalStorage=function(clave, datos){
+    return JSON.parse(localStorage.getItem(clave));
+}
+
+Aplicacion.prototype.guardarEnLocalStorage=function(clave, datos){
+    localStorage.removeItem(clave);
+    localStorage.setItem(clave,JSON.stringify(datos));
 }
 
 Aplicacion.prototype.controlarParametros=function(){}

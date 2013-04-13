@@ -164,15 +164,24 @@ JSON
         }
         return $this->respuestaOk("instalada");
     }
+    function verificar_existencia_tabla($nombreTabla, $queHayaRegistros=false){
+        try{
+            $sentencia=$this->ejecutarSql("select count(*) as cantidad from {$nombreTabla}");
+            $fila=$sentencia->fetchObject();
+            if($queHayaRegistros && !$fila->cantidad){
+                return $this->respuestaError("no hay registros en la tabla {$nombreTabla}");
+            }
+        }catch(Exception $err){
+            return $this->respuestaError("no se puede acceder a la tabla {$nombreTabla}");
+        }
+        return false;
+    }
     function proceso_control_instalacion($params){
+        $rtaError=false;
         if($params->tipo=='tdd'){
             $db=$this->baseDeDatos();
             $this->ejecutarSql('/*POSTGRESQL*/set search_path to tests,public--DB*/');
-            try{
-                $sentencia=$this->ejecutarSql('select count(*) from prueba_tabla_comun');
-            }catch(Exception $err){
-                return $this->respuestaError('no se puede acceder a la prueba_tabla_comun');
-            }
+            $rtaError=$this->verificar_existencia_tabla('prueba_tabla_comun');
         }else{
             if(!file_exists('configuracion_local.json')){
                 return $this->respuestaError('no existe la configuracion_local.json'); // se puede crear con un json vacío. Así: {}
@@ -181,15 +190,10 @@ JSON
             if(!$db){
                 return $this->respuestaError('base de datos no inexistente');
             }
-            try{
-                $sentencia=$this->ejecutarSql('select count(*) as cantidad from usuarios');
-                $fila=$sentencia->fetchObject();
-                if(!$fila->cantidad){
-                    return $this->respuestaError('no hay usuarios en la tabla de usuarios');
-                }
-            }catch(Exception $err){
-                return $this->respuestaError('no se puede acceder a la tabla usuarios');
-            }
+            $rtaError=$this->verificar_existencia_tabla('usuarios',true);
+        }
+        if($rtaError){
+            return $rtaError;
         }
         return $this->respuestaOk(array('estadoInstalacion'=>'completa'));
     }
