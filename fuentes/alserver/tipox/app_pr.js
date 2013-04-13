@@ -208,11 +208,18 @@ Probador.prototype.probarElCaso=function(caso){
     var idModulo='TDD_modulo:'+caso.modulo;
     var idCaso='TDD_caso:'+caso.caso;
     var esto=null;
-    var estos=[this.app,window,caso.entrada[0]];
-    for(var i_esto=0;i_esto<estos.length;i_esto++){
-        if(caso.funcion in estos[i_esto]){
-            esto=estos[i_esto];
-            break;
+    if('mocks' in caso){
+        esto=this.app.appMock(caso);
+        esto[caso.funcion]=this.app[caso.funcion];
+        esto.domCreator=this.app.domCreator;
+        esto.creadores=this.app.creadores;
+    }else{
+        var estos=[this.app,window,caso.entrada[0]];
+        for(var i_esto=0;i_esto<estos.length;i_esto++){
+            if(caso.funcion in estos[i_esto]){
+                esto=estos[i_esto];
+                break;
+            }
         }
     }
     var obtenido=null;
@@ -228,7 +235,7 @@ Probador.prototype.probarElCaso=function(caso){
             obtenido=esto[caso.funcion].apply(esto,caso.entrada);
         }
         if(caso.incluirDocumentoEnSalida){
-            obtenido.documento=document;
+            obtenido={documento:document, dato:obtenido};
         }
     }
     if(caso.relanzarExcepcionSiHay){
@@ -246,15 +253,15 @@ Probador.prototype.probarElCaso=function(caso){
     if(obtenido instanceof Futuro){
         obtenido.luego("comparo lo obtenido (Listo) en el futuro en "+caso.caso,
             function(respuesta,app,futuro){
-                este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada);
+                este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada,esto);
             }
         ).alFallar("comparo lo obtenido (Falla) en el futuro en "+caso.caso,
             function(mensaje,app,futuro){
-                este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada);
+                este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada,esto);
             }
         );
     }else{
-        este.compararObtenido(obtenido,errorObtenido,caso,idCaso,salvarEntrada);
+        este.compararObtenido(obtenido,errorObtenido,caso,idCaso,salvarEntrada,esto);
     }
 }
 
@@ -289,17 +296,20 @@ Probador.prototype.mostrarCampos=function(objeto){
     return rta;
 }
 
-Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCaso,salvarEntrada){
+Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCaso,salvarEntrada,appMock){
     this.cantidadPruebas++;
     if(!(caso.modulo in this.cantidadPruebasPorModulos)){
         this.cantidadPruebasPorModulos[caso.modulo]=0;
     }
     this.cantidadPruebasPorModulos[caso.modulo]++;
     var entradaDespuesDeCorrer=this.mostrarCampos(caso.entrada);
-    var esperado=caso.salida||caso.salidaMinima||caso.salidaDom||caso.salidaDomAbundante;
+    var esperado=coalesce(caso.salida,caso.salidaMinima,caso.salidaDom,caso.salidaDomAbundante);
     var visualizacionBidireccional=!('salidaDom' in caso);
     var visualizacionBidireccionalIgnorandoVacios=('salidaDomAbundante' in caso)
     var controlBidireccional=true;
+    if('mocks' in caso && !(obtenidoOk||{}).mock){
+        obtenidoOk={mock:appMock.mock,dato:obtenidoOk};
+    }
     var obtenido=obtenidoOk;
     if(obtenido && obtenido.mock || errorObtenido || caso.error || salvarEntrada!=entradaDespuesDeCorrer){
         if(obtenidoOk && obtenidoOk.mock){
@@ -322,9 +332,8 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
             obtenido.entrada_alterada=JSON.parse(entradaDespuesDeCorrer);
             esperado.entrada_alterada=JSON.parse(salvarEntrada);
         }
-    }else{
-        controlBidireccional='salida' in caso;
     }
+    controlBidireccional='salida' in caso;
     var probador=this;
     var nodoBonito=function(esperado,obtenido,claseEsperado,claseObtenido){
         return {tipox:'table', nodes:[
@@ -337,7 +346,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
         '[object NodeList]':true,
         '[object DOMTokenList]':true
     };
-    var compararBonito=function(esperado,obtenido){
+    var compararBonito=function(esperado,obtenido,bidireccional){
         var rta={tieneError:false, tieneAdvertencias:false};
         if( typeof esperado =='object'?(
                 esperado instanceof RegExp?(
@@ -390,7 +399,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
                 }else{
                     valorObtenido=obtenido[campo];
                 }
-                var rtaInterna=compararBonito(esperado[campo],valorObtenido);
+                var rtaInterna=compararBonito(esperado[campo],valorObtenido,bidireccional && campo!='documento');
                 definirClaseContenedor(esperado[campo]);
                 nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
                     {tipox:'td', className:'TDD_label', innerText:campo},
@@ -400,7 +409,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
                 rta.tieneError=rta.tieneError||rtaInterna.tieneError;
                 rta.tieneAdvertencias=rta.tieneAdvertencias||rtaInterna.tieneAdvertencias;
             }
-            if(visualizacionBidireccional){
+            if(bidireccional){
                 for(var campo in obtenido) if(obtenido.hasOwnProperty(campo)){
                     if(!(campo in esperado) && (!visualizacionBidireccionalIgnorandoVacios || !!obtenido[campo])){
                         var claseObtenido;
@@ -423,7 +432,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
         }
         return rta;
     };
-    var resultado=compararBonito(esperado,obtenido);
+    var resultado=compararBonito(esperado,obtenido,true);
     var idModulo='TDD_modulo:'+caso.modulo;
     var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
     var elementoCasoTitulo=document.getElementById(idCaso+'_titulo');
@@ -548,11 +557,13 @@ Aplicacion.prototype.casosDePrueba.push({
     caso:'Hay un problema con las fechas porque el constructor de Date considera GMT0 pero al extraer usa el Locale',
     entrada:[{
         dia:new Date('1991-06-05').getDate(),
-        mostrar:new Date('1991-06-05').toString()
+        mostrar:new Date('1991-06-05').toString(),
+        mostrarUTC:new Date('1991-06-05').toUTCString()
     }],
     salida:{
         dia:5,
-        mostrar:'1991-06-05 sin hora ni GMT'
+        mostrar:'1991-06-05 sin hora ni GMT',
+        mostrarUTC:'1991-06-05 sin hora ni GMT'
     }
 });
 
@@ -640,6 +651,27 @@ Aplicacion.prototype.casosDePrueba.push({
     salida:{
         dia:5,
     }
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_ok',
+    funcion:'estoMismo',
+    caso:'veo que el sort ordene bien',
+    entrada:[[91,1,9,11,111].sort(function(a,b){return a-b})],
+    salida:[1,9,11,91,111]
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_ok',
+    funcion:'estoMismo',
+    caso:'veo que el reverse dé vuelta',
+    entrada:[[91,1,9,11,111].reverse()],
+    salida:[111,11,9,1,91]
+});
+Aplicacion.prototype.casosDePrueba.push({
+    modulo:'asi_se_ven_los_ok',
+    funcion:'estoMismo',
+    caso:'veo que el sort ordene al revés',
+    entrada:[[91,1,9,11,111].sort(function(a,b){return b-a})],
+    salida:[111,91,11,9,1]
 });
 
 Aplicacion.prototype.casosDePrueba.push({
@@ -753,24 +785,52 @@ Aplicacion.prototype.appMock=function(definicion){
         for(var paso=0; paso<definicion.mocks.length; paso++){
             var defMock=definicion.mocks[paso];
             if('funcion' in defMock){
-                rtaMock.esperado[defMock.funcion]={argumentos:defMock.argumentos, invocaciones:defMock.invocaciones||1};
-                rtaMock.obtenido[defMock.funcion]={invocaciones:0};
+                if(defMock.llamadas){
+                    rtaMock.esperado[defMock.funcion]={llamadas:[]};
+                    rtaMock.obtenido[defMock.funcion]={llamadas:[]};
+                    for(var iLlamada=0; iLlamada<defMock.llamadas.length; iLlamada++){
+                        rtaMock.esperado[defMock.funcion].llamadas.push({argumentos:defMock.llamadas[iLlamada].argumentos, invocaciones:defMock.llamadas[iLlamada].invocaciones||1});
+                        rtaMock.obtenido[defMock.funcion].llamadas.push({argumentos:defMock.llamadas[iLlamada].argumentos, invocaciones:0});
+                    }
+                }else{
+                    rtaMock.esperado[defMock.funcion]={argumentos:defMock.argumentos, invocaciones:defMock.invocaciones||1};
+                    rtaMock.obtenido[defMock.funcion]={invocaciones:0};
+                }
                 mock[defMock.funcion]=function(defMock){
                     return function(){
+                        var defRta;
                         var args_obtenidos=[];
                         for(var ia=0; ia<arguments.length; ia++){
                             args_obtenidos.push(arguments[ia]);
                         }
-                        rtaMock.obtenido[defMock.funcion].argumentos=args_obtenidos;
-                        rtaMock.obtenido[defMock.funcion].invocaciones++;
-                        if(defMock.futuro){
-                            var futuro=app.newFuturo();
-                            for(var aplicar in defMock.futuro){
-                                futuro[aplicar](defMock.futuro[aplicar]);
+                        if(defMock.llamadas){
+                            var json_args_obtenidos=JSON.stringify(args_obtenidos);
+                            for(var ill=0; ill<defMock.llamadas.length; ill++){
+                                var defLlamada=defMock.llamadas[ill];
+                                if(json_args_obtenidos==JSON.stringify(defLlamada.argumentos)){
+                                    break;
+                                }
+                            }
+                            if(ill<defMock.llamadas.length){ // encontré
+                                rtaMock.obtenido[defMock.funcion].llamadas[ill].invocaciones++;
+                                defRta=defLlamada;
+                            }else{
+                                rtaMock.obtenido[defMock.funcion].llamadas.push({argumentos:args_obtenidos, invocaciones:1});
+                                defRta={retornar:null};
+                            }
+                        }else{
+                            rtaMock.obtenido[defMock.funcion].argumentos=args_obtenidos;
+                            rtaMock.obtenido[defMock.funcion].invocaciones++;
+                            defRta=defMock;
+                        }
+                        if(defRta.futuro){
+                            var futuro=mock.newFuturo();
+                            for(var aplicar in defRta.futuro){
+                                futuro[aplicar](defRta.futuro[aplicar]);
                             }
                             return futuro;
                         }else{
-                            return defMock.retornar;
+                            return defRta.retornar;
                         }
                     }
                 }(defMock);
@@ -780,6 +840,9 @@ Aplicacion.prototype.appMock=function(definicion){
                 mock[definicion.mocks[paso].miembro]=definicion.mocks[paso].valor;
             }
         }
+    }
+    if(!('newFuturo' in mock)){
+        mock.newFuturo=this.newFuturo;
     }
     mock.mock=rtaMock;
     return mock;
@@ -924,7 +987,7 @@ Aplicacion.prototype.casosDePrueba.push({
 });
 
 Aplicacion.prototype.aplicarFuncion=function(hacer,parametros){
-    return hacer.apply(app,parametros)
+    return hacer.apply(this,parametros)
 }
 
 Aplicacion.prototype.casosDePrueba.push({
