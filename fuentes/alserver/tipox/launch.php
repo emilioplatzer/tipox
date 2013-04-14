@@ -10,9 +10,9 @@ $def['css']=@$def['css']?:array();
 $def['para_ipad']=@$def['para_ipad']?:false;
 $def['jss']=array_merge(array(
     '../tercera/modernizr.custom.74701',
-    '../tipox/comunes'
-    ,'../tipox/app'
-    ,'../tipox/grilla'
+    '../tipox/comunes',
+    '../tipox/app',
+    '../tipox/grilla'
 ),$def['jss']);
 $def['css']=array_merge(array(
     '../tipox/tipox.css',

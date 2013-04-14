@@ -55,6 +55,22 @@ Aplicacion.prototype.eventoVacio={}; // para pasarle de parámetro a los eventos
 
 Aplicacion.prototype.eventos={}; // colección de eventos asignables
 
+Aplicacion.prototype.RegistrarExcepcion=function(err,elemento){
+    var mostrar=err.message+' '+err.stack;
+    var errores=JSON.parse(localStorage['ferlib_errores']||'{}');
+    if(!(mostrar in errores)){
+        errores[mostrar]={veces:1, ultimaVez:new Date().toISOString()};
+    }else{
+        errores[mostrar].veces++;
+        errores[mostrar].ultimaVez=new Date().toISOString();
+    }
+    localStorage.removeItem('ferlib_errores');
+    localStorage['ferlib_errores']=JSON.stringify(errores);
+    if(this.entornoDesarrollo){
+        this.grab(document.body,{tipox:'aviso_error_evento', innerText:mostrar, posicionarCon:elemento});
+    }
+}
+
 Aplicacion.prototype.creadorElementoDOM={
     nuevo:function(tagName){ return document.createElement(tagName); },
     asignarAtributos:function(destino,definicion,futuro){
@@ -67,7 +83,17 @@ Aplicacion.prototype.creadorElementoDOM={
             case 'eventos': 
                 for(var id_evento in definicion.eventos) if(definicion.eventos.hasOwnProperty(id_evento)){
                     var app=this.app;
-                    destino.addEventListener(id_evento,function(evento){return app.eventos[definicion.eventos[id_evento]].call(app,evento,this);});
+                    destino.addEventListener(id_evento,function(evento){
+                        if("registro excepciones"){
+                            try{
+                                return app.eventos[definicion.eventos[id_evento]].call(app,evento,this);
+                            }catch(err){
+                                app.RegistrarExcepcion(err,elemento);
+                            }
+                        }else{
+                            return app.eventos[definicion.eventos[id_evento]].call(app,evento,this);
+                        }
+                    });
                 }
                 break;
             default:
@@ -342,6 +368,12 @@ Aplicacion.prototype.creadores.app_vinculo={tipo:'tipox', descripcion:'vínculo 
     translate:function(definicion){
         return cambiandole(definicion, {tipox:'a', className:(definicion.className||'app_vinculo'), href:'#!'+JSON.stringify(definicion.destino), destino:null},true,null);
     },
+}}
+
+Aplicacion.prototype.creadores.aviso_error_evento={tipo:'tipox', descripcion:'para avisar de un error en un evento durante el desarrollo', creador:{
+    translate:function(definicion){
+        return cambiandole(definicion, {tipox:'div', className:'aviso_error_evento', style:{top:obtener_top_global(definicion.posicionarCon)||50, left:50}, posicionarCon:null}, true, null);
+    }
 }}
 
 Aplicacion.prototype.creadores.lista={tipo:'tipox', descripcion:'lista genérica <tagList> de elementos <tagElement> ', creador:{
