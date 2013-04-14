@@ -79,3 +79,13 @@ function coalesce(){
     }
     return undefined;
 }
+
+function obtener_top_global(elemento){
+"use strict";
+    var posicion_global = 0;
+    while( elemento != null ) {
+        posicion_global += elemento.offsetTop;
+        elemento = elemento.offsetParent;
+    }
+    return posicion_global;
+}

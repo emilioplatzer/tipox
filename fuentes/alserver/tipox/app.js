@@ -377,7 +377,7 @@ Aplicacion.prototype.creadores.funcion={tipo:'tipox', descripcion:'muestra la co
 
 Aplicacion.prototype.creadores.app_menu_principal={tipo:'tipox', descripcion:'menú principal', creador:{
     translate:function(definicion){
-        var nuevo=cambiandole(definicion, {tipox:'header', className:'app_menu_principal'});
+        var nuevo=cambiandole(definicion, {tipox:'header', className:'app_menu_principal', id:'app_menu_principal'});
         delete nuevo.elementos;
         nuevo.nodes=[];
         for(var i in definicion.elementos) if(definicion.elementos.hasOwnProperty(i)){

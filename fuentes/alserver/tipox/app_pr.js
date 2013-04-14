@@ -51,7 +51,7 @@ function Probador(app){
 Aplicacion.prototype.probarTodo=function(){
     var probador=new Probador(this);
     probador.cualesProbar={
-        'preparar las columnas de la grilla':true,
+        'la función que guarda el valor':true,
         //'ver cómo la grilla indica que hay una tabla_inexistente':true,
         //'ver los datos de la grilla':true
     };
