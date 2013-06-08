@@ -1,5 +1,8 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
+
+Aplicacion.prototype.nombreAplicacion='almacen';
+
 var antes={tipox:"app_alternativa", 'default':'menu', id:'alfa', 
     'menu':[
         {tipox:'app_menu_principal', 'for':'menu', elementos:{intr:'Introducción', entrar:'Entrar', info:[{tipox:'span', className:'i_logo', innerText:'i'}]}},

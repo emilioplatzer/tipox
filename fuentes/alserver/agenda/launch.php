@@ -8,6 +8,10 @@ lanzar(array(
         "../tipox/app_pr",
         "../tipox/grilla_pr",
         "../extensiones/compatibilidad",
+        "temporario",
         "main"
+    ),
+    'css'=>array(
+        "temporario.css"
     )
 ));

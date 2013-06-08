@@ -1,6 +1,8 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
 
+Aplicacion.prototype.nombreAplicacion='agenda';
+
 Aplicacion.prototype.paginas.intr={ 
     labelMenu:'Introducción',
     nodes:["Agenda mínima. Esta es una prueba de concepto, una agenda funcional mínima basada en una sola tabla. ",

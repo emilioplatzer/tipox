@@ -71,6 +71,23 @@ function array_keys(objeto_asociativo) {
     return rta;
 }
 
+function array_map(objeto_asociativo,aplicar,esto){
+"use strict";
+    var rta=[];
+    var funcion;
+    if(typeof aplicar=='string'){
+        funcion=function(dato){
+            return dato[aplicar];
+        }
+    }else{  
+        funcion=aplicar;
+    }
+    for (var clave in objeto_asociativo) if(iterable(clave,objeto_asociativo)){
+        rta.push(funcion.call(esto,objeto_asociativo[clave],clave));
+    }
+    return rta;
+}
+
 function coalesce(){
     for(var i=0; i<arguments.length; i++){
         if(arguments[i]!==null && arguments[i]!==undefined){
