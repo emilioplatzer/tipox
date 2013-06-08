@@ -50,8 +50,23 @@ body{
     border:1px solid gray;
     border-radius:3px;
     background-color:#BBC;
+    color:black;
+    font-weight:bold;
+    font-size:90%;
     padding:3px;
     margin:3px;
+    font-family:Arial;
+    text-decoration:none;
+}
+
+.app_elemento_menu_principal_actual{
+    background-color:#FFF;
+    /*
+    border:1px solid gray;
+    border-radius:3px;
+    padding:3px;
+    margin:3px;
+    */
 }
 
 .div_aplicacion{

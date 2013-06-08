@@ -96,10 +96,16 @@ Aplicacion.prototype.eventos.grilla_ver=function(evento,elemento,opciones){
                     for(var nombreCampo in campos){
                         var defCampo=campos[nombreCampo];
                         if(!!defCampo.esPk===zonas[zona].esPk){
-                            celdas.push({tipox:'td', innerText:defCampo.innerText(fila[nombreCampo]), className:'tipo_'+defCampo.tipo, style:{width:defCampo.anchoPx()}});
+                            celdas.push({
+                                tipox:'td', 
+                                datum:nombreCampo,
+                                innerText:defCampo.innerText(fila[nombreCampo]), 
+                                className:'tipo_'+defCampo.tipo, 
+                                style:{width:defCampo.anchoPx()}
+                            });
                         }
                     }
-                    filas.push({tipox:'tr', id:elementoTabla.id+'_tr_'+zona, nodes:celdas});
+                    filas.push({tipox:'tr', datum:i_fila, nodes:celdas});
                 }
                 app.grab(zonas[zona].destino,{tipox:'table',className:'grilla_tabla_int', nodes:filas});
             }

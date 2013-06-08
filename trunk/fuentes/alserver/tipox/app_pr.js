@@ -51,7 +51,7 @@ function Probador(app){
 Aplicacion.prototype.probarTodo=function(){
     var probador=new Probador(this);
     probador.cualesProbar={
-        'la función que guarda el valor':true,
+        'programar descargar. Comando D. exitoso':true,
         //'ver cómo la grilla indica que hay una tabla_inexistente':true,
         //'ver los datos de la grilla':true
     };
@@ -357,6 +357,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
                         (esperado===undefined)!==(obtenido===undefined) ||
                         (esperado instanceof Array)!==(obtenido instanceof Array || controlandoDom && !!considerarArray[({}).toString.call(obtenido)]) ||
                         (esperado instanceof Date)!==(esperado instanceof Date) ||
+                        (esperado instanceof ArgumentoEspecialParaMock) && !esperado.compatible(obtenido) || 
                         (esperado instanceof Date) && esperado.toString()!=obtenido.toString()
                 )
             ):(
@@ -377,6 +378,8 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
             rta.tieneError=!caso.ignorarDiferenciaDeTiposNumericos || isNaN(esperado) || isNaN(obtenido) || esperado!=obtenido;
             rta.tieneAdvertencias=true;
             rta.bonito=nodoBonito(esperado, obtenido,'TDD_esperado',rta.tieneError?'TDD_obtenido':'TDD_obtenido_sobrante');
+        }else if(typeof(esperado)=='object' && esperado instanceof ArgumentoEspecialParaMock){
+            rta.bonito={tipox:'div', className:'TDD_iguales', innerText:probador.cadenaParaMostrar(esperado)};
         }else if(typeof(esperado)!='object' || esperado==null && obtenido==null || esperado instanceof Date || esperado instanceof RegExp){
             rta.bonito={tipox:'div', className:'TDD_iguales', innerText:probador.cadenaParaMostrar(obtenido)};
         }else{
@@ -777,6 +780,23 @@ Aplicacion.prototype.casosDePrueba.push({
     }}
 });
 
+var ArgumentoEspecialParaMock=function(definicion){
+    this.id=definicion.id;
+}
+
+ArgumentoEspecialParaMock.stringify=function(clave, valor){
+    if(valor instanceof HTMLElement){
+    
+        return JSON.stringify(new ArgumentoEspecialParaMock({id:valor.id}));
+    }
+    return valor;
+}
+
+ArgumentoEspecialParaMock.prototype.compatible=function(valor){
+    var rta=valor instanceof HTMLElement && this.id==valor.id;
+    return rta;
+}
+
 Aplicacion.prototype.appMock=function(definicion){
     var mock=definicion.mockBasadoEnAplicacion?new Aplicacion():{esAplicacion:true};
     var rtaMock={obtenido:{}, esperado:{}};
@@ -804,7 +824,7 @@ Aplicacion.prototype.appMock=function(definicion){
                             args_obtenidos.push(arguments[ia]);
                         }
                         if(defMock.llamadas){
-                            var json_args_obtenidos=JSON.stringify(args_obtenidos);
+                            var json_args_obtenidos=JSON.stringify(args_obtenidos,ArgumentoEspecialParaMock.stringify);
                             for(var ill=0; ill<defMock.llamadas.length; ill++){
                                 var defLlamada=defMock.llamadas[ill];
                                 if(json_args_obtenidos==JSON.stringify(defLlamada.argumentos)){

@@ -9,8 +9,8 @@ class ExceptionTipox extends Exception{
 
 class AplicacionBase{
     // parte manejo de procesos
-    private $db;
-    private $configuracion;
+    protected $db;
+    protected $configuracion;
     var $ahora;
     var $hoy;
     function __construct(){
@@ -61,7 +61,8 @@ class AplicacionBase{
         if(!$this->configuracion){
             // Nunca cambiar una configuración acá. Cambiarla en configuracion_global.json de la aplicacion o configuracion_local.json de la instancia
             $this->configuracion=json_decode(<<<JSON
-                {"loguear_sql":{
+              {
+                "loguear_sql":{
                     "todo":{
                         "hasta":"2001-01-01",
                         "donde":"../logs/todos_los_sql.sql"
@@ -70,7 +71,9 @@ class AplicacionBase{
                         "hasta":"2099-01-01",
                         "donde":"../logs/sqls_con_error.sql"
                     }
-                }}
+                },
+                "entorno":"desarrollo"
+              }
 JSON
             );
             $configuracionGlobal=json_decode(file_get_contents('configuracion_global.json')); 
@@ -84,8 +87,6 @@ JSON
             }
             cambiarRecursivamente($this->configuracion,$configuracionLocal);
         }
-        $this->loguear('2013-03-23',json_encode($this->configuracion));
-        return $this->respuestaOk('base de datos instalada');
     }
     function loguearSql($mensaje, $razonParaLoguear){
         $this->loguear(
@@ -237,7 +238,6 @@ JSON
         if(!$datos_usuario){
             return $this->respuestaError('el usuario o la clave no corresponden a un usuario activo');
         }else{
-            $this->loguear('2013-03-24',json_encode($datos_usuario));
             $this->db->dr->adaptarBool($datos_usuario->activo);
             if(!$datos_usuario->activo){
                 return $this->respuestaError('el usuario '.json_encode($params->usuario).' no esta activo');

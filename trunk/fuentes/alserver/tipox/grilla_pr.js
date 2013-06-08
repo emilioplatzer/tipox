@@ -77,7 +77,7 @@ Aplicacion.prototype.casosDePrueba.push({
     // ignorado:'sin ticket aún',
     // relanzarExcepcionSiHay:true,
     elementos:{
-        id3:{tipox:'grilla', tabla:'prueba_tabla_comun', title:'todo bien'},
+        id3:{tipox:'grilla', tabla:'prueba_tabla_comun', datum:'prueba_tabla_comun', title:'todo bien'},
         idd:{tipox:'div', innerText:'ver si esto se cambia con el preparar'}
     },
     preparar:function(){
@@ -96,31 +96,31 @@ Aplicacion.prototype.casosDePrueba.push({
         id3:{title:'todo bien'},
         idd:{innerText:'ok el preparar'},
         id3_cont_td_l:{localName:'td', childNodes:[{localName:'table', childNodes:[
-                {localName:'tr', childNodes:[{localName:'td', style:{width:CH0+4*CH1+'px'}, innerText:'1', className:'tipo_serial'}]},
-                {localName:'tr', childNodes:[{localName:'td', innerText:'2', className:'tipo_serial'}]},
-                {localName:'tr', childNodes:[{localName:'td', innerText:'3', className:'tipo_serial'}]},
+                {localName:'tr', childNodes:[{localName:'td', datum:'id', style:{width:CH0+4*CH1+'px'}, innerText:'1', className:'tipo_serial'}]},
+                {localName:'tr', childNodes:[{localName:'td', datum:'id', innerText:'2', className:'tipo_serial'}]},
+                {localName:'tr', childNodes:[{localName:'td', datum:'id', innerText:'3', className:'tipo_serial'}]},
         ]}]},
         id3_cont_td_d:{localName:'td', childNodes:[{localName:'table', childElementCount:3, childNodes:[
-                {localName:'tr', childNodes:[
-                    {localName:'td', style:{width:'120px'}, innerText:'uno', className:'tipo_texto'},
-                    {localName:'td', style:{width:CH0+10*CH1+'px'},innerText:'', className:'tipo_decimal'},
-                    {localName:'td', style:{width:CH0+ 2*CH1+'px'},innerText:'Sí', className:'tipo_logico'},
-                    {localName:'td', style:{width:CH0+ 8*CH1+'px'},innerText:'-9', className:'tipo_entero'},
-                    {localName:'td', style:{width:CH0+10*CH1+'px'},innerText:'31/12/2001', className:'tipo_fecha'},
+                {localName:'tr', datum:'0', childNodes:[
+                    {localName:'td', datum:'nombre'  , style:{width:'120px'}, innerText:'uno', className:'tipo_texto'},
+                    {localName:'td', datum:'importe' , style:{width:CH0+10*CH1+'px'},innerText:'', className:'tipo_decimal'},
+                    {localName:'td', datum:'activo'  , style:{width:CH0+ 2*CH1+'px'},innerText:'Sí', className:'tipo_logico'},
+                    {localName:'td', datum:'cantidad', style:{width:CH0+ 8*CH1+'px'},innerText:'-9', className:'tipo_entero'},
+                    {localName:'td', datum:'fecha'   , style:{width:CH0+10*CH1+'px'},innerText:'31/12/2001', className:'tipo_fecha'},
                 ]},
-                {localName:'tr', childNodes:[
-                    {localName:'td', innerText:'dos', className:'tipo_texto'},
-                    {localName:'td', innerText:'0.11', className:'tipo_decimal'},
-                    {localName:'td', innerText:'no', className:'tipo_logico'},
-                    {localName:'td', innerText:'1', className:'tipo_entero'},
-                    {localName:'td', innerText:'', className:'tipo_fecha'},
+                {localName:'tr', datum:'1', childNodes:[
+                    {localName:'td', datum:'nombre'  ,innerText:'dos', className:'tipo_texto'},
+                    {localName:'td', datum:'importe' ,innerText:'0.11', className:'tipo_decimal'},
+                    {localName:'td', datum:'activo'  ,innerText:'no', className:'tipo_logico'},
+                    {localName:'td', datum:'cantidad',innerText:'1', className:'tipo_entero'},
+                    {localName:'td', datum:'fecha'   ,innerText:'', className:'tipo_fecha'},
                 ]},
-                {localName:'tr', childNodes:[
-                    {localName:'td', innerText:'año', className:'tipo_texto'},
-                    {localName:'td', innerText:'2000', className:'tipo_decimal'},
-                    {localName:'td', innerText:'', className:'tipo_logico'},
-                    {localName:'td', innerText:'', className:'tipo_entero'},
-                    {localName:'td', innerText:'6/5/1991', className:'tipo_fecha'},
+                {localName:'tr', datum:'2', childNodes:[
+                    {localName:'td', datum:'nombre'  ,innerText:'año', className:'tipo_texto'},
+                    {localName:'td', datum:'importe' ,innerText:'2000', className:'tipo_decimal'},
+                    {localName:'td', datum:'activo'  ,innerText:'', className:'tipo_logico'},
+                    {localName:'td', datum:'cantidad',innerText:'', className:'tipo_entero'},
+                    {localName:'td', datum:'fecha'   ,innerText:'6/5/1991', className:'tipo_fecha'},
                 ]},
         ]}]},
     }}

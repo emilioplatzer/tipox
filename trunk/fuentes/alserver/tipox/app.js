@@ -13,9 +13,18 @@ function Aplicacion(){
     this.cursorNuevo=[];
     this.jsCargados={};
     this.autoIdDom=0;
-    this.entornoDesarrollo=true;
+    if(!this.nombreAplicacion){
+        this.lanzarExcepcion('no está puesto el nombre de la aplicación');
+    }
+    this.entorno=this.leerLocalStorage(this.nombreAplicacion+'_entorno');
+    this.entornoDesarrollo=this.entorno!='prueba' && this.entorno!='produccion';
+    this.entornoPrueba=this.entorno=='prueba';
     // this.debugueando=true;
     this.hoyString=new Date().toISOString().substr(0,'2099-12-31'.length);
+}
+
+Aplicacion.prototype.currentTimeStamp=function(){
+    return new Date().toISOString();
 }
 
 Aplicacion.prototype.urlBienvenida='#!{"menu":"intr"}';
@@ -66,7 +75,7 @@ Aplicacion.prototype.RegistrarExcepcion=function(err,elemento){
     }
     localStorage.removeItem('ferlib_errores');
     localStorage['ferlib_errores']=JSON.stringify(errores);
-    if(this.entornoDesarrollo){
+    if(this.entornoDesarrollo || this.entornoPrueba){
         this.grab(document.body,{tipox:'aviso_error_evento', innerText:mostrar, posicionarCon:elemento});
     }
 }
@@ -83,12 +92,12 @@ Aplicacion.prototype.creadorElementoDOM={
             case 'eventos': 
                 for(var id_evento in definicion.eventos) if(definicion.eventos.hasOwnProperty(id_evento)){
                     var app=this.app;
-                    destino.addEventListener(id_evento,function(evento){
+                    destino.addEventListener(id_evento,function(evento,elemento){
                         if("registro excepciones"){
                             try{
                                 return app.eventos[definicion.eventos[id_evento]].call(app,evento,this);
                             }catch(err){
-                                app.RegistrarExcepcion(err,elemento);
+                                app.RegistrarExcepcion(err,elemento||menu);
                             }
                         }else{
                             return app.eventos[definicion.eventos[id_evento]].call(app,evento,this);
@@ -366,7 +375,13 @@ Aplicacion.prototype.creadores.tipox_logo={tipo:'tipox', descripcion:'el logo de
 
 Aplicacion.prototype.creadores.app_vinculo={tipo:'tipox', descripcion:'vínculo que cambia a una página interna', creador:{
     translate:function(definicion){
-        return cambiandole(definicion, {tipox:'a', className:(definicion.className||'app_vinculo'), href:'#!'+JSON.stringify(definicion.destino), destino:null},true,null);
+        var rta=cambiandole(definicion, {tipox:'a', className:(definicion.className||'app_vinculo'), href:'#!'+JSON.stringify(definicion.destino), destino:null},true,null);
+        if(definicion.accionEspecial){
+            // rta.tipox='span';
+            delete rta.href;
+            rta.eventos={click:definicion.accionEspecial};
+        }
+        return rta;
     },
 }}
 
@@ -407,15 +422,29 @@ Aplicacion.prototype.creadores.funcion={tipo:'tipox', descripcion:'muestra la co
     },
 }};
 
+Aplicacion.prototype.eventos.marcarOpcionMenuActual=function(evento,elemento){
+    var elementoMenu=document.getElementById('menu_'+this.cursorActual.menu);
+    elementoMenu.classList.add('app_elemento_menu_principal_actual');
+}
+
 Aplicacion.prototype.creadores.app_menu_principal={tipo:'tipox', descripcion:'menú principal', creador:{
     translate:function(definicion){
-        var nuevo=cambiandole(definicion, {tipox:'header', className:'app_menu_principal', id:'app_menu_principal'});
+        var nuevo=cambiandole(definicion, {tipox:'header', className:'app_menu_principal', id:'app_menu_principal', ongrab:Aplicacion.prototype.eventos.marcarOpcionMenuActual});
         delete nuevo.elementos;
         nuevo.nodes=[];
         for(var i in definicion.elementos) if(definicion.elementos.hasOwnProperty(i)){
             var destino={};
             destino[definicion['for']]=i;
-            nuevo.nodes.push({tipox:'app_vinculo', className:'app_elemento_menu_principal', destino:destino, nodes:definicion.elementos[i]});
+            var esteElemento={
+                tipox:'app_vinculo', 
+                id:'menu_'+i, 
+                className:'app_elemento_menu_principal', 
+                destino:destino, nodes:definicion.elementos[i].label
+            };
+            if(definicion.elementos[i].accionEspecial){
+                esteElemento.accionEspecial=definicion.elementos[i].accionEspecial;
+            }
+            nuevo.nodes.push(esteElemento);
         }
         return nuevo;
     },
@@ -512,8 +541,11 @@ Aplicacion.prototype.creadores.aplicacion={tipo:'tipox', descripcion:'estructura
         var divSecciones={tipox:'section', className:'div_aplicacion', nodes:secciones};
         for(var id in definicion.paginas){
             var estaSeccion=definicion.paginas[id];
-            if(id!='tipox' && !estaSeccion.ocultar){
-                menu.elementos[id]=estaSeccion.labelMenu||id;
+            if(id!='tipox' && (!estaSeccion.filtro || estaSeccion.filtro(app)) && (!estaSeccion.ocultar || this.app.cursorActual.menu==id)){
+                menu.elementos[id]={label:estaSeccion.labelMenu||id};
+                if(estaSeccion.accionEspecial){
+                    menu.elementos[id].accionEspecial=estaSeccion.accionEspecial;
+                }
                 secciones[id]=estaSeccion.nodes;
             }
         }
@@ -796,7 +828,7 @@ Aplicacion.prototype.enviarPaquete=function(params){
         peticion.open('POST', params.destino||'app.php', !params.sincronico); // !sincronico);
         peticion.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
         var parametros='';
-        var parametrosTipo={paquete:JSON.stringify, proceso:estoMismo};
+        var parametrosTipo={paquete:JSON.stringify, proceso:estoMismo, grupo:estoMismo};
         var separador='';
         for(var nombreParametro in parametrosTipo) if(parametrosTipo.hasOwnProperty(nombreParametro)){
             if(nombreParametro in params){
@@ -950,7 +982,7 @@ Aplicacion.prototype.padreQueSea=function(params){
 }
 
 Aplicacion.prototype.leerLocalStorage=function(clave, datos){
-    return JSON.parse(localStorage.getItem(clave));
+    return JSON.parse(localStorage.getItem(clave)||'null');
 }
 
 Aplicacion.prototype.guardarEnLocalStorage=function(clave, datos){
@@ -960,17 +992,28 @@ Aplicacion.prototype.guardarEnLocalStorage=function(clave, datos){
 
 Aplicacion.prototype.controlarParametros=function(){}
 
+Aplicacion.prototype.eventos.mostrar_online_offline=function(event){
+    var elemento=document.getElementById('version_app');
+    if(elemento){
+        elemento.style.color=navigator.onLine?'green':'black';
+    }
+}
+
 Aplicacion.run=function(app){
     app.controlarParametros({app:app},{app:{validar:function(app){ return app instanceof Aplicacion; }}});
     var futuro=app.newFuturo();
     window.addEventListener('load',function(){
+        app.eventos.mostrar_online_offline();
+        document.body.addEventListener('online',app.eventos.mostrar_online_offline);
+        document.body.addEventListener('offline',app.eventos.mostrar_online_offline);
         app.cambiarPaginaLocationHash();
         futuro.recibirListo(true);
+        app.eventos.mostrar_online_offline();
     });    
     window.addEventListener("hashchange", function(){
         app.cambiarPaginaLocationHash();
     }
-    , false);
+    ,false);
     return futuro;
 }
 
