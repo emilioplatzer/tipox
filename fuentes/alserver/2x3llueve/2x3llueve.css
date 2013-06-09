@@ -1,0 +1,163 @@
+@font-face {
+	font-family: 'MyWebFont';
+	src: url('webfont.eot'); /* IE9 Compat Modes */
+	src: url('webfont.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+	     url('webfont.woff') format('woff'), /* Modern Browsers */
+	     url('webfont.ttf')  format('truetype'), /* Safari, Android, iOS */
+	     url('webfont.svg#svgFontName') format('svg'); /* Legacy iOS */
+	}
+    
+body { 
+	background-color: #90C0A0 ; 
+	font-family: Helvetica, sans-serif ;
+    -webkit-user-select: none;
+	width:1024px;
+}
+
+.zona { 
+	width: 200px; 
+	height: 160px; 
+	border:2px solid black;
+	position: absolute;
+	margin: 5px;
+	text-align:center;
+	border-radius: 10px;
+}
+
+.panel { 
+	top:5px;
+	bottom:5px;
+	left:-100px;
+	right:-100px;
+	width:auto;
+	height:auto;
+	/* border:2px solid cyan;   */
+	position: absolute;
+	vertical-align:center;
+	text-align:center;
+}
+
+.rotacion_i{
+	-webkit-transform:rotate(90deg);  
+}
+
+.rotacion_d{
+	-webkit-transform:rotate(-90deg);
+}
+
+.contenido{
+	position:absolute;
+	left:0px; 
+	right:0px;
+	top:50%; 
+	height:50px;
+	text-align:center;
+	margin-top:-25px;
+	/* border: 1px solid green; */
+}
+
+.contenido2{
+	line-height:100px;
+}
+
+.texto_rotadox{
+	writing-mode: vertical-lr;
+	text-orientation: sideways-right;
+	color:red;
+	display:block; 
+}
+
+#pantalla{
+	width:1024px;
+	height:768px;
+	left:0px;
+	top:0px;
+	margin:0px;
+	border:1px solid red;
+	position:absolute;
+}
+
+#pantalla2{
+	width:768px;
+	height:1024px;
+	left:0px;
+	top:0px;
+	margin:0px;
+	border:1px dotted red;
+	position:absolute;
+}
+
+#panel_der1 {
+	right:0px;
+	top:0px;
+}
+
+#panel_der2 {
+	right:0px;
+	bottom:0px;
+}
+
+
+#panel_izq1 {
+	left:0px;
+	top:0px;
+}
+
+#panel_izq2 {
+	left:0px;
+	bottom:0px;
+}
+
+#panel_izq_cuenta{
+	left:120px;
+	width:220px;
+	top:180px;
+	height:auto;
+	bottom:180px;
+}
+
+#panel_izq_puntos{
+	left:20px;
+	width:80px;
+	top:180px;
+	height:auto;
+	bottom:180px;
+}
+
+#panel_der_puntos{
+	right:20px;
+	width:80px;
+	height:auto;
+	top:180px;
+	bottom:180px;
+}
+
+#panel_der_cuenta{
+	right:120px;
+	width:220px;
+	height:auto;
+	top:180px;
+	bottom:180px;
+}
+
+#separacion{
+	border-left: 2px dashed black;
+	border-right: 2px dashed black;
+	left:370px;
+	right:370px;
+	bottom:0px;
+	top:0px;
+	position:absolute;
+}
+
+.botonera{
+	position:absolute;
+	text-align:center;
+	left:0px;
+	right:0px;
+	top:30%;
+}
+
+.resultado{
+	font-size:65%;
+}

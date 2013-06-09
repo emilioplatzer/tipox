@@ -1,5 +1,8 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
+"use strict";
 
+Aplicacion.prototype.paraCargarCasosDePrueba.push(function(){
+//////////////////// CASOS DE PRUEBA /////////////////////
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'grillas',
     funcion:'pruebaTraduccion',
@@ -149,4 +152,6 @@ Aplicacion.prototype.casosDePrueba.push({
             title:/^problemas al leer la tabla tabla_inexistente/
         },
     }}
+});
+//////////////////// FIN-CASOS DE PRUEBA /////////////////////
 });

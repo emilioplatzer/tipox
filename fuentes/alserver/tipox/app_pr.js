@@ -1,6 +1,5 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
-
 Aplicacion.prototype.paginas.tdd={ 
     labelMenu:{tipox:'span', className:'TDD_menu', innerText:'T.D.D.'},
     filtro:function(app){ return app.entornoDesarrollo },
@@ -49,6 +48,7 @@ function Probador(app){
 }
 
 Aplicacion.prototype.probarTodo=function(){
+    Aplicacion.prototype.cargarCasosDePrueba();
     var probador=new Probador(this);
     probador.cualesProbar={
         'programar descargar. Comando D. exitoso':true,
@@ -144,8 +144,10 @@ Probador.prototype.probarTodo=function(){
     document.getElementById('TDD_caso:así se ven lo errores en los casos de prueba fallidos').parentNode.style.display='none';
 }
 
+/*
 Aplicacion.prototype.paginas.info.nodes.push({tipox:'button', innerText:'Controlar Futuros', eventos:{click:'controlar_futuros'}});
 Aplicacion.prototype.paginas.info.nodes.push({tipox:'div', id:'destinoControlFuturos', style:{display:'none'}});
+*/
 
 Aplicacion.prototype.eventos.controlar_futuros=function(evento,elemento){
     var h2=document.createElement('h2');
@@ -506,8 +508,158 @@ Probador.prototype.cambioEstadoDeUno=function(elemento,nombreClase){
     elemento.dataset.clasePrueba=nombreClase;
 }
 
-Aplicacion.prototype.casosDePrueba=[];
+Aplicacion.prototype.cargarCasosDePrueba=function(){
+    Aplicacion.prototype.casosDePrueba=[];
+    for(var i=0; i<Aplicacion.prototype.paraCargarCasosDePrueba.length; i++){
+        Aplicacion.prototype.paraCargarCasosDePrueba[i]();
+    }
+}
 
+var ArgumentoEspecialParaMock=function(definicion){
+    this.id=definicion.id;
+}
+
+ArgumentoEspecialParaMock.stringify=function(clave, valor){
+    if(valor instanceof HTMLElement){
+    
+        return JSON.stringify(new ArgumentoEspecialParaMock({id:valor.id}));
+    }
+    return valor;
+}
+
+ArgumentoEspecialParaMock.prototype.compatible=function(valor){
+    var rta=valor instanceof HTMLElement && this.id==valor.id;
+    return rta;
+}
+
+Aplicacion.prototype.appMock=function(definicion){
+    var mock=definicion.mockBasadoEnAplicacion?new Aplicacion():{esAplicacion:true};
+    var rtaMock={obtenido:{}, esperado:{}};
+    var app=this;
+    if('mocks' in definicion){
+        for(var paso=0; paso<definicion.mocks.length; paso++){
+            var defMock=definicion.mocks[paso];
+            if('funcion' in defMock){
+                if(defMock.llamadas){
+                    rtaMock.esperado[defMock.funcion]={llamadas:[]};
+                    rtaMock.obtenido[defMock.funcion]={llamadas:[]};
+                    for(var iLlamada=0; iLlamada<defMock.llamadas.length; iLlamada++){
+                        rtaMock.esperado[defMock.funcion].llamadas.push({argumentos:defMock.llamadas[iLlamada].argumentos, invocaciones:defMock.llamadas[iLlamada].invocaciones||1});
+                        rtaMock.obtenido[defMock.funcion].llamadas.push({argumentos:defMock.llamadas[iLlamada].argumentos, invocaciones:0});
+                    }
+                }else{
+                    rtaMock.esperado[defMock.funcion]={argumentos:defMock.argumentos, invocaciones:defMock.invocaciones||1};
+                    rtaMock.obtenido[defMock.funcion]={invocaciones:0};
+                }
+                mock[defMock.funcion]=function(defMock){
+                    return function(){
+                        var defRta;
+                        var args_obtenidos=[];
+                        for(var ia=0; ia<arguments.length; ia++){
+                            args_obtenidos.push(arguments[ia]);
+                        }
+                        if(defMock.llamadas){
+                            var json_args_obtenidos=JSON.stringify(args_obtenidos,ArgumentoEspecialParaMock.stringify);
+                            for(var ill=0; ill<defMock.llamadas.length; ill++){
+                                var defLlamada=defMock.llamadas[ill];
+                                if(json_args_obtenidos==JSON.stringify(defLlamada.argumentos)){
+                                    break;
+                                }
+                            }
+                            if(ill<defMock.llamadas.length){ // encontré
+                                rtaMock.obtenido[defMock.funcion].llamadas[ill].invocaciones++;
+                                defRta=defLlamada;
+                            }else{
+                                rtaMock.obtenido[defMock.funcion].llamadas.push({argumentos:args_obtenidos, invocaciones:1});
+                                defRta={retornar:null};
+                            }
+                        }else{
+                            rtaMock.obtenido[defMock.funcion].argumentos=args_obtenidos;
+                            rtaMock.obtenido[defMock.funcion].invocaciones++;
+                            defRta=defMock;
+                        }
+                        if(defRta.futuro){
+                            var futuro=mock.newFuturo();
+                            for(var aplicar in defRta.futuro){
+                                futuro[aplicar](defRta.futuro[aplicar]);
+                            }
+                            return futuro;
+                        }else{
+                            return defRta.retornar;
+                        }
+                    }
+                }(defMock);
+            }else if('copiar' in defMock){
+                mock[definicion.mocks[paso].copiar]=app[definicion.mocks[paso].copiar];
+            }else{
+                mock[definicion.mocks[paso].miembro]=definicion.mocks[paso].valor;
+            }
+        }
+    }
+    if(!('newFuturo' in mock)){
+        mock.newFuturo=this.newFuturo;
+    }
+    mock.mock=rtaMock;
+    return mock;
+}
+
+Aplicacion.prototype.probarEvento=function(definicion){
+    var funcionEvento=this.eventos[definicion.nombre];
+    if(definicion.sinMock){
+        return funcionEvento.call(this,definicion.evento,document.getElementById(definicion.idDestino),{probando:true});
+    }else{
+        var mock=this.appMock(definicion);
+        if('localStorage' in definicion){
+            for(var clave_ls in definicion.localStorage){
+                localStorage[clave_ls]=JSON.stringify(definicion.localStorage[clave_ls]);
+            }
+        }
+        funcionEvento.call(mock,definicion.evento,document.getElementById(definicion.idDestino));
+        mock.dato={};
+        if(definicion.incluirDocumentoEnSalida){
+            mock.dato.documento=document;
+        }
+        if('localStorage' in definicion){
+            mock.dato.localStorage={};
+            for(var clave_ls in definicion.localStorage){
+                mock.dato.localStorage[clave_ls]=JSON.parse(localStorage[clave_ls]);
+            }
+        }
+        return mock;
+    }
+}
+
+Aplicacion.prototype.probarFuncionModificadoraApp=function(definicion){
+    var mock=this.appMock(definicion);
+    mock[definicion.funcion]=this[definicion.funcion];
+    for(var variable in definicion.miembrosModificables){
+        mock[variable]=JSON.parse(JSON.stringify(definicion.miembrosModificables[variable]));
+    }
+    mock[definicion.funcion].apply(mock,definicion.argumentos);
+    var rta={};
+    for(var variable in definicion.miembrosModificables){
+        rta[variable]=mock[variable]; 
+    }
+    mock.dato=rta;
+    return mock;
+}
+
+Aplicacion.prototype.pruebaGrabSimple=function(definicion){
+    this.grab(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_de_pruebas_simple', nodes:definicion});
+    var rta=TDD_zona_de_pruebas_simple.innerHTML;
+    TDD_zona_de_pruebas.removeChild(TDD_zona_de_pruebas_simple);
+    return rta;
+}
+
+Aplicacion.prototype.pruebaTraduccion=function(definicion){
+    var creador=this.domCreator(definicion.tipox);
+    return creador.translate(definicion);
+}
+
+Aplicacion.prototype.paraCargarCasosDePrueba=[];
+
+Aplicacion.prototype.paraCargarCasosDePrueba.push(function(){
+//////////////// CASOS DE PRUEBA ////////////////////
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'asi_se_ven_los_errores',
     funcion:'estoMismo',
@@ -695,230 +847,91 @@ Aplicacion.prototype.casosDePrueba.push({
     salidaMinima:{estadoInstalacion:'completa'}
 });
 
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'control de usuarios',
-    funcion:'enviarPaquete',
-    caso:'entrada al sistema exitosa',
-    entrada:[{proceso:'entrada',paquete:{usuario:'abel',password:hex_md5('abel'+'clave1')}}],
-    salidaMinima:{activo:true}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'control de usuarios',
-    funcion:'enviarPaquete',
-    caso:'entrada al sistema fallida por clave erronea',
-    entrada:[{proceso:'entrada',paquete:{usuario:'abel',password:hex_md5('abel'+'clave2')}}],
-    error:'el usuario o la clave no corresponden a un usuario activo'
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'control de usuarios',
-    funcion:'enviarPaquete',
-    caso:'entrada al sistema fallida por usuario inexistente',
-    entrada:[{proceso:'entrada',paquete:{usuario:'beto',password:hex_md5('beto')}}],
-    error:'el usuario o la clave no corresponden a un usuario activo'
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'control de usuarios',
-    funcion:'enviarPaquete',
-    caso:'entrada al sistema fallida por usuario inactivo',
-    entrada:[{proceso:'entrada',paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
-    error:'el usuario "cain" no esta activo'
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'control de usuarios',
-    funcion:'probarEvento',
-    caso:'entrada al sistema errónea a través del evento entrada',
-    elementos:{
-        usuario:{tipox:'input', type:'text', value:'abel'}, 
-        password:{tipox:'input', type:'password', value:'clave2'},
-        resultado:{tipox:'div'},
-        boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
-    },
-    entrada:[{
-        nombre:'entrar_aplicacion',
-        incluirDocumentoEnSalida:true,
-        mocks:[{ 
-            funcion:'enviarPaquete', 
-            argumentos:[{proceso:'entrada', paquete:{usuario:'abel', password:hex_md5('abel'+'clave2')}}], 
-            futuro:{recibirError:"clave errónea"}
-        }]
-    }],
-    salidaDom:{documento:{
-        resultado:{innerText:'clave errónea', className:'resultado_error'}, 
-        boton_entrar:{disabled:false}
-    }}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'control de usuarios',
-    funcion:'probarEvento',
-    caso:'entrada al sistema exitosa a través del evento entrada',
-    // relanzarExcepcionSiHay:true,
-    elementos:{
-        usuario:{tipox:'input', type:'text', value:'abel'}, 
-        password:{tipox:'input', type:'password', value:'clave1'},
-        resultado:{tipox:'div'},
-        boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
-    },
-    entrada:[{
-        nombre:'entrar_aplicacion',
-        incluirDocumentoEnSalida:true,
-        mocks:[{ 
-            funcion:'enviarPaquete', 
-            argumentos:[{proceso:'entrada', paquete:{usuario:'abel', password:hex_md5('abel'+'clave1')}}], 
-            futuro:{recibirListo:{activo:true}}
-        },{ 
-            funcion:'cambiarUrl', 
-            argumentos:['{"menu":"donde_entra"}'], 
-            retornar:null
-        },{ 
-            miembro:'urlBienvenida', 
-            valor:'{"menu":"donde_entra"}'
-        }]
-    }],
-    salidaDom:{documento:{
-        resultado:{innerText:'Validado. Entrando...', className:'resultado_ok'}, 
-        boton_entrar:{disabled:true}
-    }}
-});
-
-var ArgumentoEspecialParaMock=function(definicion){
-    this.id=definicion.id;
-}
-
-ArgumentoEspecialParaMock.stringify=function(clave, valor){
-    if(valor instanceof HTMLElement){
-    
-        return JSON.stringify(new ArgumentoEspecialParaMock({id:valor.id}));
-    }
-    return valor;
-}
-
-ArgumentoEspecialParaMock.prototype.compatible=function(valor){
-    var rta=valor instanceof HTMLElement && this.id==valor.id;
-    return rta;
-}
-
-Aplicacion.prototype.appMock=function(definicion){
-    var mock=definicion.mockBasadoEnAplicacion?new Aplicacion():{esAplicacion:true};
-    var rtaMock={obtenido:{}, esperado:{}};
-    var app=this;
-    if('mocks' in definicion){
-        for(var paso=0; paso<definicion.mocks.length; paso++){
-            var defMock=definicion.mocks[paso];
-            if('funcion' in defMock){
-                if(defMock.llamadas){
-                    rtaMock.esperado[defMock.funcion]={llamadas:[]};
-                    rtaMock.obtenido[defMock.funcion]={llamadas:[]};
-                    for(var iLlamada=0; iLlamada<defMock.llamadas.length; iLlamada++){
-                        rtaMock.esperado[defMock.funcion].llamadas.push({argumentos:defMock.llamadas[iLlamada].argumentos, invocaciones:defMock.llamadas[iLlamada].invocaciones||1});
-                        rtaMock.obtenido[defMock.funcion].llamadas.push({argumentos:defMock.llamadas[iLlamada].argumentos, invocaciones:0});
-                    }
-                }else{
-                    rtaMock.esperado[defMock.funcion]={argumentos:defMock.argumentos, invocaciones:defMock.invocaciones||1};
-                    rtaMock.obtenido[defMock.funcion]={invocaciones:0};
-                }
-                mock[defMock.funcion]=function(defMock){
-                    return function(){
-                        var defRta;
-                        var args_obtenidos=[];
-                        for(var ia=0; ia<arguments.length; ia++){
-                            args_obtenidos.push(arguments[ia]);
-                        }
-                        if(defMock.llamadas){
-                            var json_args_obtenidos=JSON.stringify(args_obtenidos,ArgumentoEspecialParaMock.stringify);
-                            for(var ill=0; ill<defMock.llamadas.length; ill++){
-                                var defLlamada=defMock.llamadas[ill];
-                                if(json_args_obtenidos==JSON.stringify(defLlamada.argumentos)){
-                                    break;
-                                }
-                            }
-                            if(ill<defMock.llamadas.length){ // encontré
-                                rtaMock.obtenido[defMock.funcion].llamadas[ill].invocaciones++;
-                                defRta=defLlamada;
-                            }else{
-                                rtaMock.obtenido[defMock.funcion].llamadas.push({argumentos:args_obtenidos, invocaciones:1});
-                                defRta={retornar:null};
-                            }
-                        }else{
-                            rtaMock.obtenido[defMock.funcion].argumentos=args_obtenidos;
-                            rtaMock.obtenido[defMock.funcion].invocaciones++;
-                            defRta=defMock;
-                        }
-                        if(defRta.futuro){
-                            var futuro=mock.newFuturo();
-                            for(var aplicar in defRta.futuro){
-                                futuro[aplicar](defRta.futuro[aplicar]);
-                            }
-                            return futuro;
-                        }else{
-                            return defRta.retornar;
-                        }
-                    }
-                }(defMock);
-            }else if('copiar' in defMock){
-                mock[definicion.mocks[paso].copiar]=app[definicion.mocks[paso].copiar];
-            }else{
-                mock[definicion.mocks[paso].miembro]=definicion.mocks[paso].valor;
-            }
-        }
-    }
-    if(!('newFuturo' in mock)){
-        mock.newFuturo=this.newFuturo;
-    }
-    mock.mock=rtaMock;
-    return mock;
-}
-
-Aplicacion.prototype.probarEvento=function(definicion){
-    var funcionEvento=this.eventos[definicion.nombre];
-    if(definicion.sinMock){
-        return funcionEvento.call(this,definicion.evento,document.getElementById(definicion.idDestino),{probando:true});
-    }else{
-        var mock=this.appMock(definicion);
-        if('localStorage' in definicion){
-            for(var clave_ls in definicion.localStorage){
-                localStorage[clave_ls]=JSON.stringify(definicion.localStorage[clave_ls]);
-            }
-        }
-        funcionEvento.call(mock,definicion.evento,document.getElementById(definicion.idDestino));
-        mock.dato={};
-        if(definicion.incluirDocumentoEnSalida){
-            mock.dato.documento=document;
-        }
-        if('localStorage' in definicion){
-            mock.dato.localStorage={};
-            for(var clave_ls in definicion.localStorage){
-                mock.dato.localStorage[clave_ls]=JSON.parse(localStorage[clave_ls]);
-            }
-        }
-        return mock;
-    }
-}
-
-Aplicacion.prototype.probarFuncionModificadoraApp=function(definicion){
-    var mock=this.appMock(definicion);
-    mock[definicion.funcion]=this[definicion.funcion];
-    for(var variable in definicion.miembrosModificables){
-        mock[variable]=JSON.parse(JSON.stringify(definicion.miembrosModificables[variable]));
-    }
-    mock[definicion.funcion].apply(mock,definicion.argumentos);
-    var rta={};
-    for(var variable in definicion.miembrosModificables){
-        rta[variable]=mock[variable]; 
-    }
-    mock.dato=rta;
-    return mock;
-}
-
-Aplicacion.prototype.pruebaGrabSimple=function(definicion){
-    this.grab(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_de_pruebas_simple', nodes:definicion});
-    var rta=TDD_zona_de_pruebas_simple.innerHTML;
-    TDD_zona_de_pruebas.removeChild(TDD_zona_de_pruebas_simple);
-    return rta;
-}
-
-Aplicacion.prototype.pruebaTraduccion=function(definicion){
-    var creador=this.domCreator(definicion.tipox);
-    return creador.translate(definicion);
+if(Aplicacion.prototype.paginas.entrar){
+    Aplicacion.prototype.casosDePrueba.push({
+        modulo:'control de usuarios',
+        funcion:'enviarPaquete',
+        caso:'entrada al sistema exitosa',
+        entrada:[{proceso:'entrada',paquete:{usuario:'abel',password:hex_md5('abel'+'clave1')}}],
+        salidaMinima:{activo:true}
+    });
+    Aplicacion.prototype.casosDePrueba.push({
+        modulo:'control de usuarios',
+        funcion:'enviarPaquete',
+        caso:'entrada al sistema fallida por clave erronea',
+        entrada:[{proceso:'entrada',paquete:{usuario:'abel',password:hex_md5('abel'+'clave2')}}],
+        error:'el usuario o la clave no corresponden a un usuario activo'
+    });
+    Aplicacion.prototype.casosDePrueba.push({
+        modulo:'control de usuarios',
+        funcion:'enviarPaquete',
+        caso:'entrada al sistema fallida por usuario inexistente',
+        entrada:[{proceso:'entrada',paquete:{usuario:'beto',password:hex_md5('beto')}}],
+        error:'el usuario o la clave no corresponden a un usuario activo'
+    });
+    Aplicacion.prototype.casosDePrueba.push({
+        modulo:'control de usuarios',
+        funcion:'enviarPaquete',
+        caso:'entrada al sistema fallida por usuario inactivo',
+        entrada:[{proceso:'entrada',paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
+        error:'el usuario "cain" no esta activo'
+    });
+    Aplicacion.prototype.casosDePrueba.push({
+        modulo:'control de usuarios',
+        funcion:'probarEvento',
+        caso:'entrada al sistema errónea a través del evento entrada',
+        elementos:{
+            usuario:{tipox:'input', type:'text', value:'abel'}, 
+            password:{tipox:'input', type:'password', value:'clave2'},
+            resultado:{tipox:'div'},
+            boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
+        },
+        entrada:[{
+            nombre:'entrar_aplicacion',
+            incluirDocumentoEnSalida:true,
+            mocks:[{ 
+                funcion:'enviarPaquete', 
+                argumentos:[{proceso:'entrada', paquete:{usuario:'abel', password:hex_md5('abel'+'clave2')}}], 
+                futuro:{recibirError:"clave errónea"}
+            }]
+        }],
+        salidaDom:{documento:{
+            resultado:{innerText:'clave errónea', className:'resultado_error'}, 
+            boton_entrar:{disabled:false}
+        }}
+    });
+    Aplicacion.prototype.casosDePrueba.push({
+        modulo:'control de usuarios',
+        funcion:'probarEvento',
+        caso:'entrada al sistema exitosa a través del evento entrada',
+        // relanzarExcepcionSiHay:true,
+        elementos:{
+            usuario:{tipox:'input', type:'text', value:'abel'}, 
+            password:{tipox:'input', type:'password', value:'clave1'},
+            resultado:{tipox:'div'},
+            boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
+        },
+        entrada:[{
+            nombre:'entrar_aplicacion',
+            incluirDocumentoEnSalida:true,
+            mocks:[{ 
+                funcion:'enviarPaquete', 
+                argumentos:[{proceso:'entrada', paquete:{usuario:'abel', password:hex_md5('abel'+'clave1')}}], 
+                futuro:{recibirListo:{activo:true}}
+            },{ 
+                funcion:'cambiarUrl', 
+                argumentos:['{"menu":"donde_entra"}'], 
+                retornar:null
+            },{ 
+                miembro:'urlBienvenida', 
+                valor:'{"menu":"donde_entra"}'
+            }]
+        }],
+        salidaDom:{documento:{
+            resultado:{innerText:'Validado. Entrando...', className:'resultado_ok'}, 
+            boton_entrar:{disabled:true}
+        }}
+    });
 }
 
 Aplicacion.prototype.casosDePrueba.push({
@@ -1203,24 +1216,27 @@ Aplicacion.prototype.casosDePrueba.push({
 });
 
 // Aplicacion.prototype.casosDePrueba=[];
+if(!Aplicacion.prototype.sinBaseDeDatos){
+    Aplicacion.prototype.casosDePrueba.push({
+        modulo:'acceso a datos del servidor',
+        funcion:'accesoDb',
+        caso:'traer los datos de la prueba_tabla_comun',
+        entrada:[{hacer:'select',from:'prueba_tabla_comun',where:true,order_by:true}],
+        mostrarAunqueNoFalleHasta:'2013-03-31',
+        salida:[
+            {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,fecha:new Date('2001-12-31'),"ultima_modificacion":"2001-01-01"},
+            {id:2,nombre:"dos",importe:0.11,activo:false,cantidad:1   ,fecha:null                  ,"ultima_modificacion":"2001-01-01"},
+            {id:3,nombre:"año",importe:2000,activo:null ,cantidad:null,fecha:new Date('1991-05-06'),"ultima_modificacion":"2001-01-01"}
+        ]
+    });
 
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'acceso a datos del servidor',
-    funcion:'accesoDb',
-    caso:'traer los datos de la prueba_tabla_comun',
-    entrada:[{hacer:'select',from:'prueba_tabla_comun',where:true,order_by:true}],
-    mostrarAunqueNoFalleHasta:'2013-03-31',
-    salida:[
-        {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,fecha:new Date('2001-12-31'),"ultima_modificacion":"2001-01-01"},
-        {id:2,nombre:"dos",importe:0.11,activo:false,cantidad:1   ,fecha:null                  ,"ultima_modificacion":"2001-01-01"},
-        {id:3,nombre:"año",importe:2000,activo:null ,cantidad:null,fecha:new Date('1991-05-06'),"ultima_modificacion":"2001-01-01"}
-    ]
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'acceso a datos del servidor',
-    funcion:'accesoDb',
-    caso:'para traer todos los datos (sin where) hay que poner where:true',
-    entrada:[{hacer:'select',from:'prueba_tabla_comun'}],
-    error:"el acceso a datos debe tener una clausula where"
+    Aplicacion.prototype.casosDePrueba.push({
+        modulo:'acceso a datos del servidor',
+        funcion:'accesoDb',
+        caso:'para traer todos los datos (sin where) hay que poner where:true',
+        entrada:[{hacer:'select',from:'prueba_tabla_comun'}],
+        error:"el acceso a datos debe tener una clausula where"
+    });
+}
+//////////////// FIN CASOS DE PRUEBA ////////////////////
 });
