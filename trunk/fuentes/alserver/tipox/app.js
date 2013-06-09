@@ -573,28 +573,30 @@ Aplicacion.prototype.cambiarUrl=function(nuevaUrl){
     window.location=nuevaUrl
 }
 
-Aplicacion.prototype.eventos.entrar_aplicacion=function(evento){
-    esAplicacion(this);
-    boton_entrar.disabled='disabled';
-    resultado.innerText='';
-    resultado.className='resultado_pendiente';
-    var app=this;
-    this.enviarPaquete({
-        proceso:'entrada',
-        paquete:{usuario:usuario.value.toLowerCase(),password:hex_md5(usuario.value.toLowerCase()+password.value)}
-    }).luego("registra en el sistema el éxito de la entrada",
-        function(respuesta){
-            resultado.innerText='Validado. Entrando...';
-            resultado.className='resultado_ok';
-            app.cambiarUrl(app.urlBienvenida);
-        }
-    ).alFallar("muestra el error de entrada",
-        function(mensaje){
-            resultado.innerText=mensaje;
-            resultado.className='resultado_error';
-            boton_entrar.disabled=null;
-        }
-    );
+if(Aplicacion.prototype.paginas.entrar){
+    Aplicacion.prototype.eventos.entrar_aplicacion=function(evento){
+        esAplicacion(this);
+        boton_entrar.disabled='disabled';
+        resultado.innerText='';
+        resultado.className='resultado_pendiente';
+        var app=this;
+        this.enviarPaquete({
+            proceso:'entrada',
+            paquete:{usuario:usuario.value.toLowerCase(),password:hex_md5(usuario.value.toLowerCase()+password.value)}
+        }).luego("registra en el sistema el éxito de la entrada",
+            function(respuesta){
+                resultado.innerText='Validado. Entrando...';
+                resultado.className='resultado_ok';
+                app.cambiarUrl(app.urlBienvenida);
+            }
+        ).alFallar("muestra el error de entrada",
+            function(mensaje){
+                resultado.innerText=mensaje;
+                resultado.className='resultado_error';
+                boton_entrar.disabled=null;
+            }
+        );
+    }
 }
 
 Aplicacion.prototype.cargarJsRequeridos=function(){
