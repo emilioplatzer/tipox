@@ -38,7 +38,7 @@ Aplicacion.prototype.paginas.info={
     labelMenu:[{tipox:'span', className:'i_logo', innerText:'i'}],
     nodes:[
         {tipox:'p', nodes:['Especificaciones técnicas ']},
-        {tipox:'p', nodes:['framework: ',{tipox:'tipox_logo'}]},
+        {tipox:'p', nodes:['framework: ',{tipox:'logo_tipox'}]},
         {tipox:'p', nodes:[
             "para hacer sugerencias o reportar errores sobre este programa entrar a: ", 
             {tipox:'a', href:'https://code.google.com/p/tipox/issues/entry', innerText:'"New Issues"'},
@@ -76,7 +76,7 @@ Aplicacion.prototype.RegistrarExcepcion=function(err,elemento){
     localStorage.removeItem('ferlib_errores');
     localStorage['ferlib_errores']=JSON.stringify(errores);
     if(this.entornoDesarrollo || this.entornoPrueba){
-        this.grab(document.body,{tipox:'aviso_error_evento', innerText:mostrar, posicionarCon:elemento});
+        this.colocar(document.body,{tipox:'aviso_error_evento', innerText:mostrar, posicionarCon:elemento});
     }
 }
 
@@ -159,7 +159,7 @@ Aplicacion.prototype.creadorElementoDOM={
     }
 }
 
-Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicionales,debug){
+Aplicacion.prototype.colocar=function(elemento,definicion,futuro,atributosAdicionales,debug){
     var elementoDestino;
     var grabExterno=!futuro;
     if(grabExterno){
@@ -180,25 +180,25 @@ Aplicacion.prototype.grab=function(elemento,definicion,futuro,atributosAdicional
         nuevoElemento=document.createTextNode(definicion);
     }else if(definicion instanceof Array){
         for(var i=0; i<definicion.length; i++){
-            this.grab(elementoDestino,definicion[i],futuro);
+            this.colocar(elementoDestino,definicion[i],futuro);
         }
     }else if(definicion.indexadoPor){
         for(var indice in definicion) if(definicion.hasOwnProperty(indice)){
             if(indice!='indexadoPor'){
                 var atributosAdicionales={};
                 atributosAdicionales[definicion.indexadoPor]=indice;
-                this.grab(elementoDestino,cambiandole(definicion[indice],atributosAdicionales),futuro);
+                this.colocar(elementoDestino,cambiandole(definicion[indice],atributosAdicionales),futuro);
             }
         }
     }else{
         var creador=this.domCreator(definicion.tipox);
         if('translate' in creador){
-            var definicion_traducida=creador.translate(definicion);
-            elementoAgregado=this.grab(elementoDestino,definicion_traducida,futuro);
+            var contenido_traducido=creador.translate(definicion);
+            elementoAgregado=this.colocar(elementoDestino,contenido_traducido,futuro);
         }else{
             nuevoElemento=creador.nuevo(definicion.tipox,definicion);
             creador.asignarAtributos(nuevoElemento,definicion,futuro);
-            this.grab(nuevoElemento,definicion.nodes,futuro);
+            this.colocar(nuevoElemento,definicion.nodes,futuro);
         }
     }
     if(nuevoElemento){
@@ -229,7 +229,7 @@ Aplicacion.prototype.cantidadExcepcionesAMostrar=0;
 Aplicacion.prototype.lanzarExcepcion=function(mensaje){
     this.cantidadExcepcionesAMostrar--;
     if(this.cantidadExcepcionesAMostrar>0){
-        this.grab(document.body,{tipox:'div', className:'debug_excepcion', innerText:mensaje});
+        this.colocar(document.body,{tipox:'div', className:'debug_excepcion', innerText:mensaje});
     }
     throw new Error(mensaje);
 }
@@ -367,9 +367,9 @@ Aplicacion.prototype.creadores={
     "wbr":{tipo:'HTML5', descripcion:"Defines a possible line-break", creador:Aplicacion.prototype.creadorElementoDOM}
 };
 
-Aplicacion.prototype.creadores.tipox_logo={tipo:'tipox', descripcion:'el logo de tipox', creador:{
+Aplicacion.prototype.creadores.logo_tipox={tipo:'tipox', descripcion:'el logo de tipox', creador:{
     translate:function(definicion){
-        return {tipox:'a', className:'tipox_logo', innerText:'tipox', href:'//tipox.net'};
+        return {tipox:'a', className:'logo_tipox', innerText:'tipox', href:'//tipox.net'};
     }
 }}
 
@@ -467,7 +467,7 @@ Aplicacion.prototype.creadores.app_alternativa={tipo:'tipox', descripcion:'menú
         nuevoElemento.id=definicion.id;
         var alternativa=this.app.cursorActual[definicion.id]||definicion['default'];
         this.app.cursorNuevo[definicion.id]=alternativa;
-        this.app.grab(nuevoElemento,definicion[alternativa],futuro);
+        this.app.colocar(nuevoElemento,definicion[alternativa],futuro);
     },
 }}
 
@@ -564,7 +564,7 @@ Aplicacion.prototype.mostrarPaginaActual=function(){
     }else{
         document.body.innerHTML=''; 
     }
-    this.grab(document.body,this.contenidoPaginaActual());
+    this.colocar(document.body,this.contenidoPaginaActual());
 }
 
 Aplicacion.prototype.jsRequeridos=[];

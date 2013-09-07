@@ -67,7 +67,7 @@ Aplicacion.prototype.probarTodo=function(){
         probador.probarTodo();
     }
     if(probador.cualesProbar){
-        this.grab(document.body,{
+        this.colocar(document.body,{
             tipox:'div', 
             className:'advertencia_importante',
             innerText:'¡Atención! Solo se está probando algún caso. Antes de hacer commit activar la línea delete probador.cualesProbar'
@@ -94,7 +94,7 @@ Probador.prototype.probarTodo=function(){
         var elementoModuloCasos=document.getElementById(idModulo+'_casos');
         if(!elementoModuloCasos){
             this.pendientesPorModulos[idModulo]=0;
-            this.app.grab('probarTodo',
+            this.app.colocar('probarTodo',
                 {tipox:'div', classList:['TDD_modulo'], id:idModulo, nodes:[
                     {tipox:'div', 
                         classList:['TDD_modulo_titulo','TDD_prueba_pendiente'], 
@@ -121,13 +121,13 @@ Probador.prototype.probarTodo=function(){
         if(caso.aclaracionSiFalla){
             nodosInternos.push({tipox:'div', className:'TDD_aclaracion', id:idCaso+'_aclaracion', nodes:caso.aclaracionSiFalla});
         }
-        this.app.grab(elementoModuloCasos,
+        this.app.colocar(elementoModuloCasos,
             {tipox:'div', className:'TDD_caso', id:idCaso, nodes:nodosInternos}
         );
         if(caso.ignorado){  
             if(ticket){
-                this.app.grab(elementoModuloTitulo,[ticket,' ']);
-                // this.app.grab(elementoModuloTitulo,[{tipox:'a', href:this.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado},' ']);
+                this.app.colocar(elementoModuloTitulo,[ticket,' ']);
+                // this.app.colocar(elementoModuloTitulo,[{tipox:'a', href:this.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado},' ']);
             }
             this.cambioEstado(caso,'TDD_prueba_ignorada');
         }else if(!this.cualesProbar || this.cualesProbar[caso.caso]){
@@ -195,12 +195,12 @@ Probador.prototype.probarVariosCasos=function(cuantos){
 Probador.prototype.probarElCaso=function(caso){
     this.cambioEstado(caso,'TDD_prueba_comenzada');
     if(caso.elementos){
-        this.app.grab(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_'+caso.caso, className:'TDD_una_prueba'});
+        this.app.colocar(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_'+caso.caso, className:'TDD_una_prueba'});
         for(var elemento in caso.elementos){
             this.elementosBloqueados[elemento]=true;
             var defElemento=caso.elementos[elemento];
             if(defElemento){
-                this.app.grab('TDD_zona_'+caso.caso, cambiandole(defElemento,{id:elemento}));
+                this.app.colocar('TDD_zona_'+caso.caso, cambiandole(defElemento,{id:elemento}));
             }
         }
     }
@@ -443,7 +443,7 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     var elementoCasoTitulo=document.getElementById(idCaso+'_titulo');
     var elementoCaso=document.getElementById(idCaso);
     if(resultado.tieneError || this.app.hoyString<=caso.mostrarAunqueNoFalleHasta || resultado.tieneAdvertencias){
-        app.grab(idCaso,{tipox:'div', className:'TDD_error', nodes:[
+        app.colocar(idCaso,{tipox:'div', className:'TDD_error', nodes:[
             {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
                 {tipox:'td',className:'TDD_label_esperado_obtenido', nodes:['esperado',{tipox:'br'},'obtenido']},
                 {tipox:'td',className:'TDD_contenido', nodes:resultado.bonito}
@@ -645,7 +645,7 @@ Aplicacion.prototype.probarFuncionModificadoraApp=function(definicion){
 }
 
 Aplicacion.prototype.pruebaGrabSimple=function(definicion){
-    this.grab(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_de_pruebas_simple', nodes:definicion});
+    this.colocar(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_de_pruebas_simple', nodes:definicion});
     var rta=TDD_zona_de_pruebas_simple.innerHTML;
     TDD_zona_de_pruebas.removeChild(TDD_zona_de_pruebas_simple);
     return rta;
@@ -1011,10 +1011,10 @@ Aplicacion.prototype.casosDePrueba.push({
     modulo:'creación de elementos del DOM a través de objetos tipox',
     funcion:'aplicarFuncion',
     caso:'prueba de dataset directo del objeto',
-    elementos:{}, // para que se cree el contenedor para después hacer el grab
+    elementos:{}, // para que se cree el contenedor para después hacer el colocar
     entrada:[function(){
         var definicion={tipox:'div', id:'idds', dataset:{uno:'uno', otroAtributoInterno:'otro'}};
-        return this.grab('TDD_zona_'+'prueba de dataset directo del objeto',definicion);        
+        return this.colocar('TDD_zona_'+'prueba de dataset directo del objeto',definicion);        
     },[]],
     salidaDom:{dataset:{uno:'uno', otroAtributoInterno:'otro'}}
 });

@@ -30,7 +30,7 @@ Aplicacion.prototype.eventos.grilla_preparar_contenedor=function(evento,tabla,op
                         });
                     }
                 }
-                app.grab(zonas[zona].destino,{tipox:'table',className:'grilla_tabla_int', nodes:{tipox:'tr', id:tabla.id+'_tr_'+zona, nodes:celdas}});
+                app.colocar(zonas[zona].destino,{tipox:'table',className:'grilla_tabla_int', nodes:{tipox:'tr', id:tabla.id+'_tr_'+zona, nodes:celdas}});
             }
             if(opciones && opciones.probando){
                 return {documento:document};
@@ -107,7 +107,7 @@ Aplicacion.prototype.eventos.grilla_ver=function(evento,elemento,opciones){
                     }
                     filas.push({tipox:'tr', datum:i_fila, nodes:celdas});
                 }
-                app.grab(zonas[zona].destino,{tipox:'table',className:'grilla_tabla_int', nodes:filas});
+                app.colocar(zonas[zona].destino,{tipox:'table',className:'grilla_tabla_int', nodes:filas});
             }
             if(opciones && opciones.probando){
                 return {documento:document};

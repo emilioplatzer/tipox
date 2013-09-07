@@ -6,10 +6,17 @@ require_once "comunes.php";
 require_once "validador_parametros.php";
 
 class Lanzador{
+    var $comienzos=array(
+        'en blanco'=>'',
+        'cargando'=>"cargando...<br><div style='padding:10px'><img src='../imagenes/reloj.gif' alt='cargando...' style='text-align:center'></div>",
+    );
     var $definicion_params=array(
-        'js'=>array('conjunto'=>true),
-        'css'=>array('conjunto'=>true),
-        'title'=>array('obligatorio'=>true, 'validar'=>'is_string'),
+        'js'       =>array('validar'=>'is_array' ,'predeterminado'=>array()    ),
+        'css'      =>array('validar'=>'is_array' ,'predeterminado'=>array()    ),
+        'links'    =>array('validar'=>'is_array' ,'predeterminado'=>array()    ),
+        'title'    =>array('validar'=>'is_string','obligatorio'=>true          ),
+        'para_ipad'=>array('validar'=>'is_bool'  ,'predeterminado'=>false      ),
+        'empezar'  =>array('predeterminado'=>'en blanco')
     );
     var $params;
     function __construct($params=null){
@@ -26,6 +33,44 @@ class Lanzador{
         }
     }
     function enviar_todo_al_servidor(){
+        $htmlManifiesto='';
+        echo <<<HTML
+<!DOCTYPE html>
+<html id="home" lang="es" {$htmlManifiesto}>
+<head>
+<meta charset=utf-8 />
+<title>{$this->params['title']}</title>
+
+HTML;
+        if($this->params['para_ipad']){
+            echo <<<HTML
+<meta name="format-detection" content="telephone=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name='viewport' content='user-scalable=no, width=768'>
+
+HTML;
+        }
+        foreach($this->params['css'] as $un_css){
+            echo "<link rel=stylesheet href='{$un_css}' />\n";
+        }
+        foreach($this->params['links'] as $un_link){
+            echo "<link rel=\"{$un_link['rel']}\" href=\"{$un_link['href']}\">\n";
+        }
+        echo <<<HTML
+</head>
+<body>
+    {$this->comienzos[$this->params['empezar']]}
+
+HTML;
+        foreach($this->params['js'] as $un_js){
+            echo "<script src='{$un_js}'></script>\n";
+        }
+        echo <<<HTML
+</body>
+</head>
+</html>
+
+HTML;
     }
 }
 
