@@ -6,7 +6,8 @@ for %%F in (..\alserver\tipox\*%1)          do %editor% %%F
 for %%F in (..\alserver\menu\*%1)           do %editor% %%F
 for %%F in (..\alserver\almacen\*%1)        do %editor% %%F
 for %%F in (..\alserver\agenda\*%1)         do %editor% %%F
-for %%F in (..\alserver\2x3llueve\*%1)         do %editor% %%F
+for %%F in (..\alserver\2x3llueve\*%1)      do %editor% %%F
+for %%F in (..\alserver\info\*%1)           do %editor% %%F
 goto fin
 :sin_parametros
 call editar .php

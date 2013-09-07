@@ -3,6 +3,31 @@
 date_default_timezone_set("America/Buenos_Aires"); 
 
 require_once "comunes.php";
+require_once "validador_parametros.php";
+
+class Lanzador{
+    var $definicion_params=array(
+        'js'=>array('conjunto'=>true),
+        'css'=>array('conjunto'=>true),
+        'title'=>array('obligatorio'=>true, 'validar'=>'is_string'),
+    );
+    var $params;
+    function __construct($params=null){
+        $this->params=$params;
+    }
+    function lanzar(){
+        $validador=new ValidadorParametros(array('contexto'=>"el lanzador"));
+        try{
+            $validador->validar($this->definicion_params,$this->params);
+            $this->enviar_todo_al_servidor();
+        }catch(Exception $err){
+            echo "<p style='color:red; font-weight:bold'>Problemas para lanzar la p&aacute;gina</p>";
+            echo "<p>".$err->getMessage();
+        }
+    }
+    function enviar_todo_al_servidor(){
+    }
+}
 
 function lanzar($def){
 $versionManifiestoOffline=@$def['version_offline']?:'';
