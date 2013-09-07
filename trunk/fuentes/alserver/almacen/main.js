@@ -29,7 +29,7 @@ var antes={tipox:"app_alternativa", 'default':'menu', id:'alfa',
         }
     ],
     'about':[
-        {tipox:'h1', nodes:['About ',{tipox:'tipox_logo'}]},
+        {tipox:'h1', nodes:['About ',{tipox:'logo_tipox'}]},
         {tipox:'p', nodes:[
             "code ", {tipox:'a', href:'https://code.google.com/p/tipox', innerText:'code.google.com/p/tipox'}
         ]}
@@ -64,7 +64,7 @@ Aplicacion.prototype.paginasSinUsuario={tipox:'aplicacion', id:'menu', paginas:{
         labelMenu:[{tipox:'span', className:'i_logo', innerText:'i'}],
         nodes:[
             {tipox:'p', nodes:['Especificaciones técnicas ']},
-            {tipox:'p', nodes:['framework: ',{tipox:'tipox_logo'}]},
+            {tipox:'p', nodes:['framework: ',{tipox:'logo_tipox'}]},
             {tipox:'p', nodes:[
                 "para hacer sugerencias o reportar errores sobre este programa entrar a: ", 
                 {tipox:'a', href:'https://code.google.com/p/tipox/issues/entry', innerText:'"New Issues"'},

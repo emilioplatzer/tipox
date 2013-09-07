@@ -13,11 +13,11 @@ Aplicacion.prototype.creadores.static_ajax={tipo:'tipox', descripcion:'para prob
         destino.ongrab=function(evento,elementoDestino){
             this.enviarPaquete(definicion.params).luego("inserta en el documento lo recibido del servidor",
                 function(respuesta,app){
-                    app.grab(elementoDestino,respuesta,futuro);
+                    app.colocar(elementoDestino,respuesta,futuro);
                 }
             ).alFallar("mostrar el error recibido del servidor en 'mensaje_error'",
                 function(mensaje,app){
-                    app.grab(elementoDestino,{tipox:'span', className:'mensaje_error', nodes:mensaje},futuro);
+                    app.colocar(elementoDestino,{tipox:'span', className:'mensaje_error', nodes:mensaje},futuro);
                 }
             );
         }

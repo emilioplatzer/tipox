@@ -84,8 +84,8 @@ Aplicacion.prototype.casosDePrueba.push({
         idd:{tipox:'div', innerText:'ver si esto se cambia con el preparar'}
     },
     preparar:function(){
-        this.grab(id3_cont_td_l,{tipox:'div', innerText:'esto debe borrarse'});
-        this.grab(id3_cont_td_d,{tipox:'div', innerText:'esto también'});
+        this.colocar(id3_cont_td_l,{tipox:'div', innerText:'esto debe borrarse'});
+        this.colocar(id3_cont_td_d,{tipox:'div', innerText:'esto también'});
         idd.innerText='ok el preparar';
     },
     entrada:[{

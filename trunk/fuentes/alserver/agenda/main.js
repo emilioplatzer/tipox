@@ -31,10 +31,10 @@ Aplicacion.prototype.paginas.agenda={
 Aplicacion.prototype.traerAgenda=function(){
     return this.accesoDb({hacer:'select',from:this.drTabla.agenda,where:true,order_by:true}).luego("traer los datos de la agenda",
         function(respuesta,app){
-            app.grab(zona_agenda,{tipox:'tabla', filas:respuesta});
+            app.colocar(zona_agenda,{tipox:'tabla', filas:respuesta});
         }
     ).alFallar(function(mensaje,app){
-        app.grab(zona_agenda,"no se pueden leer los datos de la agenda: "+mensaje);
+        app.colocar(zona_agenda,"no se pueden leer los datos de la agenda: "+mensaje);
     });
 }
 

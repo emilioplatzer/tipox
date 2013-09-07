@@ -2,6 +2,7 @@
 class ValidadorParametros{
     var $params;
     var $errores=array();
+    var $controlando_parametros=true;
     function __construct($params){
         $this->params=$params;
     }
@@ -11,7 +12,7 @@ class ValidadorParametros{
     function lanzar_excepcion($mensaje){
         throw new Exception($mensaje."[en ".($this->params['contexto'])."]");
     }
-    function validar($definicion_params,$params){
+    function validar($definicion_params,&$params){
         if(!$params){
             $this->informar_error("falta la defininci&oacute;n de los par&aacute;metros ");
         }
@@ -21,13 +22,19 @@ class ValidadorParametros{
             }
         }
         foreach($definicion_params as $parametro=>$definicion){
-            if((@$definicion['obligatorio']) && !isset($params[$parametro])){
-                $this->informar_error("falta el par&aacute;metro obligatorio en la definici&oacute;n (".htmlentities($parametro).") ");
+            if(!isset($params[$parametro]) && isset($definicion['predeterminado'])){
+                $params[$parametro]=$definicion['predeterminado'];
             }
-            if(isset($params[$parametro])){
-                $valor=$params[$parametro];
-                if(isset($definicion['validar']) && !$definicion['validar']($valor)){
-                    $this->informar_error("par&aacute;metro inv&aacute;lido en la definici&oacute;n (".htmlentities($parametro)." no cumple {$definicion['validar']}) ");
+            if($this->controlando_parametros){
+                if(isset($params[$parametro])){
+                    $valor=$params[$parametro];
+                    if(isset($definicion['validar']) && !$definicion['validar']($valor)){
+                        $this->informar_error("par&aacute;metro inv&aacute;lido en la definici&oacute;n (".htmlentities($parametro)." no cumple {$definicion['validar']}) ");
+                    }
+                }else{
+                    if(@$definicion['obligatorio']){
+                        $this->informar_error("falta el par&aacute;metro obligatorio en la definici&oacute;n (".htmlentities($parametro).") ");
+                    }
                 }
             }
         }
