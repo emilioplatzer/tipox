@@ -1,3 +1,10 @@
+"use strict";
+
+Aplicacion.prototype.creadores.juego_estructura={tipo:'tipox', descripcion:'juego basado en estructura', creador:{
+    translate:function(definicion){
+        return {tipox:'div', id:'el_juego', eventos
+    }
+}};
 
 function crear_estructura(estructura){
 	"use strict";
