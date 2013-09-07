@@ -287,7 +287,10 @@ Colocador.prototype.creadores={
 
 Colocador.prototype.creadores.logo_tipox={tipo:'tipox', descripcion:'el logo de tipox', creador:{
     translate:function(contenido){
-        return {tipox:'a', className:'logo_tipox', innerText:'tipox', href:'//tipox.net'};
+        return {
+            tipox:'a', className:'logo_tipox', nodes:'tipox', href:'//tipox.net', 
+            style:{fontFamily:'comic', fontStyle:'italic', fontWeight:'bold', textDecoration:'none', fontSize:'110%', color:'brown'}
+        };
     }
 }}
 
