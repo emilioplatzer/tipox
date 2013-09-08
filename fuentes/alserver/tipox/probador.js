@@ -221,8 +221,8 @@ Probador.prototype.probarElCaso=function(caso){
         }
     }
     var esto;
-    if(caso.constructor){
-        esto=new caso.constructor();
+    if(caso.constructorThis){
+        esto=new caso.constructorThis();
     }else if(caso.entrada.This){
         esto=caso.entrada.This;
     }else{
@@ -251,7 +251,7 @@ Probador.prototype.probarElCaso=function(caso){
     }
     var parametros=[];
     if(caso.entrada.parametros){
-        for(var i_parametro=0; i_parametro<caso.entrada.parametros; i_parametro++){
+        for(var i_parametro=0; i_parametro<caso.entrada.parametros.length; i_parametro++){
             var valorParametro=caso.entrada.parametros[i_parametro]
             if(valorParametro instanceof ArgumentoEspecialAsincronico){
                 caso.asincronico=true;
@@ -494,13 +494,13 @@ Probador.prototype.agregarCasosEjemplo=function(){
         modulo:'asi_se_ven_los_errores',
         funcion:'estoMismo',
         caso:'así se ven lo errores en los casos de prueba fallidos',
-        entrada:[{
+        entrada:{parametros:[{
             iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
             si_no_coinciden:'y abajo en rojo el obtenido',
             'si falta algun campo':{'en el esperado':'y muestra el obtenido'},
             'como se ve si el tipo no coincide':1,
             'y si la estructura no coincide':"{uno:1, dos:2}"
-        }],
+        }]},
         esperado:{respuesta:{
             iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
             si_no_coinciden:'el valor esperado se ve arriba',
