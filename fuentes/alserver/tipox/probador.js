@@ -223,8 +223,8 @@ Probador.prototype.probarElCaso=function(caso){
     var esto;
     if(caso.constructorThis){
         esto=new caso.constructorThis();
-    }else if(caso.entrada.This){
-        esto=caso.entrada.This;
+    }else if(caso.objetoThis){
+        esto=caso.objetoThis;
     }else{
         esto=window;
     }
@@ -250,9 +250,9 @@ Probador.prototype.probarElCaso=function(caso){
         caso.esperado.This=this.textoDeCampos(esto);
     }
     var parametros=[];
-    if(caso.entrada.parametros){
-        for(var i_parametro=0; i_parametro<caso.entrada.parametros.length; i_parametro++){
-            var valorParametro=caso.entrada.parametros[i_parametro]
+    if(caso.entrada){
+        for(var i_parametro=0; i_parametro<caso.entrada.length; i_parametro++){
+            var valorParametro=caso.entrada[i_parametro]
             if(valorParametro instanceof ArgumentoEspecialAsincronico){
                 caso.asincronico=true;
                 parametros.push(function(recibidoAsincronicamente){
@@ -380,9 +380,9 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
         }else if(typeof(esperado)=='object' && esperado instanceof ArgumentoEspecialParaMock){
             rta.iguales=probador.cadenaParaMostrar(esperado);
         }else if(typeof(esperado)!='object' || esperado==null && obtenido==null || esperado instanceof Date || esperado instanceof RegExp){
-            rta.bonito=probador.cadenaParaMostrar(obtenido);
+            rta.iguales=probador.cadenaParaMostrar(obtenido);
         }else{
-            rta.nodes=[];
+            rta.nodes={};
             var nodoArray;
             var claseContenido;
             var definirClaseContenedor=function(elemento){
@@ -404,7 +404,7 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
                     valorObtenido=obtenido[campo];
                 }
                 var rtaInterna=compararProfundo(valorEsperado,valorObtenido,bidireccional);
-                rta.nodes.push(rtaInterna);
+                rta.nodes[campo]=rtaInterna;
                 if(rtaInterna.tieneError){
                     rta.tieneError=true;
                 }else if(rtaInterna.tieneAdvertencias){
@@ -417,14 +417,14 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
                     if(!(campo in esperado) && (!visualizacionBidireccionalIgnorandoVacios || !!obtenido[campo])){
                         var claseObtenido;
                         rta.tieneError=true;
-                        rta.nodes.push(compararProfundo(new probador.MostrarNoEsperabaNada(),obtenido[campo],bidireccional));
+                        rta.nodes[campo]=compararProfundo(new probador.MostrarNoEsperabaNada(),obtenido[campo],bidireccional);
                     }
                 }
             }
             if(esperado instanceof Array){
                 rta.conjunto='Array';
                 if(esperado.length!=obtenido.length){
-                    rta.nodes[length]=compararProfundo(esperado.length, obtenido.length, bidireccional);
+                    rta.nodes.length=compararProfundo(esperado.length, obtenido.length, bidireccional);
                 }
             }
             if(rta.tieneError && rta.tieneAdvertencias){
@@ -494,13 +494,13 @@ Probador.prototype.agregarCasosEjemplo=function(){
         modulo:'asi_se_ven_los_errores',
         funcion:'estoMismo',
         caso:'así se ven lo errores en los casos de prueba fallidos',
-        entrada:{parametros:[{
+        entrada:[{
             iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
             si_no_coinciden:'y abajo en rojo el obtenido',
             'si falta algun campo':{'en el esperado':'y muestra el obtenido'},
             'como se ve si el tipo no coincide':1,
             'y si la estructura no coincide':"{uno:1, dos:2}"
-        }]},
+        }],
         esperado:{respuesta:{
             iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
             si_no_coinciden:'el valor esperado se ve arriba',
