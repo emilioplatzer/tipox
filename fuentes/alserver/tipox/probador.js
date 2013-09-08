@@ -73,7 +73,7 @@ function FlujoDirectoProbador(){
                     destino.innerText='null';
                     destino.className='JSON_null';
                 }else{
-                    destino.innerText=mensaje.toString();
+                    destino.innerText=mensajeString;
                     destino.className='JSON_'+typeof mensaje;
                 }
             }catch(err){
@@ -205,8 +205,26 @@ Probador.prototype.probarVariosCasos=function(cuantos){
 function ArgumentoEspecial(){
 }
 
+function ArgumentoEspecialMonovalente(){
+}
+
+function ArgumentoEspecialColeccion(){
+}
+
 function ArgumentoEspecialAsincronico(canal){
 }
+
+function ArgumentoEspecialAsimetrico(camposMinimos){
+    this.camposMinimos=camposMinimos;
+    this.mostrarSobrantes=false;
+}
+ArgumentoEspecialAsimetrico.prototype=Object.create(ArgumentoEspecialColeccion.prototype);
+
+function ArgumentoEspecialIgnorarSobrantes(camposMinimos){
+    this.camposMinimos=camposMinimos;
+    this.mostrarSobrantes=true;
+}
+ArgumentoEspecialIgnorarSobrantes.prototype=Object.create(ArgumentoEspecialColeccion.prototype);
 
 Probador.prototype.probarElCaso=function(caso){
     this.mensajes.enviar({modulo:caso.modulo, caso:caso.caso, estado:'comenzada'});
@@ -354,7 +372,9 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
         '[object NodeList]':true,
         '[object DOMTokenList]':true
     };
-    var compararProfundo=function(esperado,obtenido,bidireccional){
+    var compararProfundo=function(esperado,obtenido){
+        var recorridoBidireccional=true;
+        var controlBidireccional=true;
         var rta={}; // solo se ponen si se necesita: tieneError:false, tieneAdvertencias:false
         if( typeof esperado =='object'?(
                 esperado instanceof RegExp?(
@@ -365,7 +385,7 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
                         (esperado===undefined)!==(obtenido===undefined) ||
                         (esperado instanceof Array)!==(obtenido instanceof Array || controlandoDom && !!considerarArray[({}).toString.call(obtenido)]) ||
                         (esperado instanceof Date)!==(esperado instanceof Date) ||
-                        (esperado instanceof ArgumentoEspecialParaMock) && !esperado.compatible(obtenido) || 
+                        (esperado instanceof ArgumentoEspecialMonovalente) && !esperado.compatible(obtenido) || 
                         (esperado instanceof Date) && esperado.toString()!=obtenido.toString()
                 )
             ):(
@@ -400,16 +420,15 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
                     claseContenido='TDD_contenido';
                 }
             }
+            if(esperado instanceof ArgumentoEspecialColeccion){
+                recorridoBidireccional=esperado.mostrarSobrantes;
+                controlBidireccional=false;
+                esperado=esperado.camposMinimos;
+            }
             for(var campo in esperado) if(esperado.hasOwnProperty(campo)){
-                var valorObtenido=null;
+                var valorObtenido=valorObtenido=obtenido[campo];
                 var valorEsperado=esperado[campo];
-                if(valorEsperado instanceof ArgumentoEspecial){
-                    valorObtenido=valorEsperado.obtener(obtenido,campo);
-                    bidireccional=valorEsperado.bidireccional;
-                }else{
-                    valorObtenido=obtenido[campo];
-                }
-                var rtaInterna=compararProfundo(valorEsperado,valorObtenido,bidireccional);
+                var rtaInterna=compararProfundo(valorEsperado,valorObtenido);
                 rta.nodes[campo]=rtaInterna;
                 if(rtaInterna.tieneError){
                     rta.tieneError=true;
@@ -418,19 +437,20 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
                 }
             }
             var visualizacionBidireccionalIgnorandoVacios=false;
-            if(bidireccional){
+            if(recorridoBidireccional){
                 for(var campo in obtenido) if(obtenido.hasOwnProperty(campo)){
                     if(!(campo in esperado) && (!visualizacionBidireccionalIgnorandoVacios || !!obtenido[campo])){
-                        var claseObtenido;
-                        rta.tieneError=true;
-                        rta.nodes[campo]=compararProfundo(new probador.MostrarNoEsperabaNada(),obtenido[campo],bidireccional);
+                        if(controlBidireccional){
+                            rta.tieneError=true;
+                        }
+                        rta.nodes[campo]={sobrante:obtenido[campo]};
                     }
                 }
             }
             if(esperado instanceof Array){
                 rta.conjunto='Array';
                 if(esperado.length!=obtenido.length){
-                    rta.nodes.length=compararProfundo(esperado.length, obtenido.length, bidireccional);
+                    rta.nodes.length=compararProfundo(esperado.length, obtenido.length);
                 }
             }
             if(rta.tieneError && rta.tieneAdvertencias){
@@ -531,7 +551,6 @@ Probador.prototype.agregarCasosEjemplo=function(){
         entrada:["texto de la excepcion no esperada"],
         esperado:{respuesta:{campo_esperado:'valor esperado', otro_campo:'otro valor esperado'}}
     });
-    return; 
     this.agregarCaso({
         modulo:'asi_se_ven_los_errores',
         funcion:'estoMismo',
@@ -543,10 +562,11 @@ Probador.prototype.agregarCasosEjemplo=function(){
     });
     this.agregarCaso({
         modulo:'asi_se_ven_los_errores',
+        objetoThis:app_global,
         funcion:'lanzarExcepcion',
         caso:'así se ven cuando no coincide el texto de la excepción',
         entrada:["texto de la excepcion obtenida"],
-        error:"texto de la excepcion esperada"
+        esperado:{error:"texto de la excepcion esperada"}
     });
     this.agregarCaso({
         modulo:'asi_se_ven_los_errores',
@@ -582,10 +602,18 @@ Probador.prototype.agregarCasosEjemplo=function(){
     this.agregarCaso({
         modulo:'asi_se_ven_los_ok',
         funcion:'estoMismo',
-        caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran (para eso se usa "salidaMinima")',
+        caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran. Se usa "ArgumentoEspecialAsimetrico" cuando no se quieren ver los sobrantes',
         entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
-        salidaMinima:{iguales:'sí'}
+        esperado:{respuesta:new ArgumentoEspecialAsimetrico({iguales:'sí'})}
     });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_ok',
+        funcion:'estoMismo',
+        caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran. Se usa "ArgumentoEspecialIgnorarSobrantes" cuando se quieren ver los sobrantes pero no marcarlos como error',
+        entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
+        esperado:{respuesta:new ArgumentoEspecialIgnorarSobrantes({iguales:'sí'})}
+    });
+    return; 
     this.agregarCaso({
         modulo:'asi_se_ven_los_ok',
         funcion:'estoMismo',
