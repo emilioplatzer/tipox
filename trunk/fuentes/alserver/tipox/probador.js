@@ -247,7 +247,7 @@ Probador.prototype.probarElCaso=function(caso){
                 }
             }
         }
-        caso.esperado.This=this.textoDeCampos(esto);
+        esperado.This=this.textoDeCampos(esto);
     }
     var parametros=[];
     if(caso.entrada){
@@ -281,6 +281,7 @@ Probador.prototype.probarElCaso=function(caso){
             this.app.lanzarExcepcion("no se puede probar sin 'entradaThis' en caso:"+caso.caso);
         }
         obtenido.respuesta=esto[caso.funcion].apply(esto,parametros);
+        obtenido.This=esto;
         if(esperado.documento){
             obtenido.documento=document;
         }
@@ -338,6 +339,11 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
     }
     this.cantidadPruebasPorModulos[caso.modulo]++;
     obtenido.entrada=this.textoDeCampos(caso.entrada);
+    if(obtenido.This===window){
+        delete obtenido.This;
+    }else{
+        obtenido.This=this.textoDeCampos(obtenido.This);
+    }
     var controlBidireccional=true;
     // if('mocks' in caso && !(obtenidoOk||{}).mock){
         // obtenidoOk={mock:appMock.mock,dato:obtenidoOk};
@@ -509,14 +515,15 @@ Probador.prototype.agregarCasosEjemplo=function(){
             'y si la estructura no coincide':{uno:1, dos:2}
         }}
     });
-    return; 
     this.agregarCaso({
         modulo:'asi_se_ven_los_errores',
         funcion:'splice',
         caso:'así se ve cuando una función modifica un dato interno',
-        entrada:[["uno", "dos", "tres", "cuatro"],2,1,"3"],
+        objetoThis:["uno", "dos", "tres", "cuatro"],
+        entrada:[2,1,"3"],
         esperado:{respuesta:["tres"]}
     });
+    return; 
     this.agregarCaso({
         modulo:'asi_se_ven_los_errores',
         funcion:'lanzarExcepcion',
