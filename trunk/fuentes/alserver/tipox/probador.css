@@ -1,0 +1,36 @@
+.JSON_Array_Margin{
+    border-left:1px solid black;
+    border-top:1px solid black;
+    border-bottom:1px solid black;
+}
+
+.JSON_Object{
+    border-left:1px solid black;
+    border-radius:5px;
+}
+
+.JSON_index{
+    vertical-align:top;
+    font-size:90%;
+    color:#333333;
+}
+
+.JSON_undefined{
+    color:red;
+    font-size:80%;
+}
+
+.JSON_null{
+    color:red;
+    font-weight:bold;
+}
+
+.JSON_boolean{
+    color:blue;
+    font-weight:bold;
+}
+
+.JSON_number{
+    color:blue;
+    font-family:courier new;
+}

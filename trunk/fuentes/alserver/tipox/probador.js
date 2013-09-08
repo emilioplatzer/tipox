@@ -34,16 +34,56 @@ function FlujoDirectoProbador(){
                 document.body.appendChild(destino);
             }
         }
-        agregarMensaje=function(mensaje){
-            var nuevo_p=document.createElement('p');
+        var ponerValorEn=function(destino,mensaje){
             var mensajeString;
             try{
                 mensajeString=JSON.stringify(mensaje);
+                if(mensaje instanceof Object && !(mensaje instanceof Date)){
+                    var tabla=document.createElement('table');
+                    var fila;
+                    var celda;
+                    var celdaMargen;
+                    if(mensaje instanceof Array){
+                        fila=tabla.insertRow(-1);
+                        celdaMargen=fila.insertCell(-1);
+                        celdaMargen.className='JSON_Array_Margin';
+                        celdaMargen.innerText=' ';
+                        tabla.className='JSON_Array_Table';
+                    }else{
+                        tabla.className='JSON_Object';
+                    }
+                    var cantidad=0;
+                    for(var i in mensaje) if(mensaje.hasOwnProperty(i)){
+                        fila=tabla.insertRow(-1);
+                        celda=fila.insertCell(-1);
+                        celda.innerText=i;
+                        celda.className='JSON_index';
+                        celda=fila.insertCell(-1);
+                        ponerValorEn(celda,mensaje[i]);
+                        cantidad++;
+                    }
+                    if(celdaMargen){
+                        celdaMargen.rowSpan=cantidad+1;
+                    }
+                    destino.appendChild(tabla);
+                }else if(mensaje===undefined){
+                    destino.innerText='undefined';
+                    destino.className='JSON_undefined';
+                }else if(mensaje===null){
+                    destino.innerText='null';
+                    destino.className='JSON_null';
+                }else{
+                    destino.innerText=mensaje.toString();
+                    destino.className='JSON_'+typeof mensaje;
+                }
             }catch(err){
-                mensajeString=mensaje.toString();
+                destino.innerText=mensajeString;
             }
-            nuevo_p.innerText=mensajeString;
-            destino.appendChild(nuevo_p);
+        }
+        agregarMensaje=function(mensaje){
+            var nuevo_div=document.createElement('div');
+            ponerValorEn(nuevo_div,mensaje);
+            destino.appendChild(nuevo_div);
         }
     }
     this.enviar=function(mensaje){
@@ -59,7 +99,7 @@ function FlujoDirectoProbador(){
 }
 
 function Probador(){
-    this.casosDePrueba={};
+    this.casosDePrueba=[];
     this.cantidadPruebas=0;
     this.cantidadPruebasPorModulos={};
     this.pendientesPorModulos={};
@@ -70,13 +110,15 @@ function Probador(){
 
 Probador.prototype.probarTodo=function(params){
     if(params.sinTryCatch){
-        probador.correrPruebas();
+        this.correrPruebas(params);
     }else{
         try{
-            probador.correrPruebas();
+            this.correrPruebas(params);
         }catch(err){
-            debugDirecto(descripcionError(err));
-            debugDirecto(err.stack);
+            this.mensajes.enviar({
+                error:descripcionError(err),
+                stack:err.stack
+            });
         }
     }
     if(params.soloProbar){
@@ -85,10 +127,9 @@ Probador.prototype.probarTodo=function(params){
             texto:'¡Atención! Solo se están probando algunos casos.'
         });
     }
-    this.correrPruebas(params);
 }
 
-Probador.prototype.probarTodo=function(params){
+Probador.prototype.correrPruebas=function(params){
     this.casosPendientes=[]; // para hacer la cola de los que faltan ejecutar
     this.casosExistentes={}; // para controlar duplicados
     this.elementosBloqueados={}; // para controlar que no se ejecuten dos pruebas que necesitan los mismos elementos (con su id)
@@ -97,10 +138,10 @@ Probador.prototype.probarTodo=function(params){
         this.registrarCaso(caso,params);
     }
     this.probarVariosCasos(100);
-    document.getElementById('TDD_caso:así se ven lo errores en los casos de prueba fallidos').parentNode.style.display='none';
+    // document.getElementById('TDD_caso:así se ven lo errores en los casos de prueba fallidos').parentNode.style.display='none';
 }
 
-Probador.registrarCaso=function(caso,params){
+Probador.prototype.registrarCaso=function(caso,params){
     this.app.controlador.controlar({
         funcion:{obligatorio:true},
         modulo: {obligatorio:true},
@@ -112,7 +153,7 @@ Probador.registrarCaso=function(caso,params){
     var mensaje={
         modulo:caso.modulo, 
         caso:caso.caso, 
-        estado:caso.ignorado?('ignorado':pendiente?'pendiente':'salteado'),
+        estado:caso.ignorado?'ignorada':(pendiente?'pendiente':'salteada'),
     }
     var tituloCaso=[caso.caso];
     if(caso.ignorado && caso.ignorado.substr && caso.ignorado.substr(0,1)=='#' && this.app.tracUrl){  
@@ -124,11 +165,8 @@ Probador.registrarCaso=function(caso,params){
     // if(caso.aclaracionSiFalla){
         // nodosInternos.push({tipox:'div', className:'TDD_aclaracion', id:idCaso+'_aclaracion', nodes:caso.aclaracionSiFalla});
     // }
-    this.app.colocar(elementoModuloCasos,
-        {tipox:'div', className:'TDD_caso', id:idCaso, nodes:nodosInternos}
-    );
     if(mensaje.estado=='pendiente'){
-        this.pendientesPorModulos[idModulo]++;
+        this.pendientesPorModulos[caso.modulo]++;
         this.casosPendientes.push(caso);
     }
     if(caso.caso in this.casosExistentes){
@@ -152,7 +190,7 @@ Probador.prototype.probarVariosCasos=function(cuantos){
             }
         }
         if(hayBloqueados){
-            this.cambioEstado(caso,'en_espera');
+            this.mensajes.enviar({modulo:caso.modulo, caso:caso.caso, estado:'en_espera'});
             this.casosPendientes.push(caso);
         }else{
             this.probarElCaso(caso);
@@ -164,11 +202,14 @@ Probador.prototype.probarVariosCasos=function(cuantos){
     }
 }
 
+function ArgumentoEspecial(){
+}
+
 function ArgumentoEspecialAsincronico(canal){
 }
 
 Probador.prototype.probarElCaso=function(caso){
-    this.cambioEstado(caso,'comenzado');
+    this.mensajes.enviar({modulo:caso.modulo, caso:caso.caso, estado:'comenzada'});
     if(caso.elementos){
         this.app.colocar(document.getElementById('TDD_zona_de_pruebas'),{tipox:'div', id:'TDD_zona_'+caso.caso, className:'TDD_una_prueba'});
         for(var elemento in caso.elementos){
@@ -187,6 +228,7 @@ Probador.prototype.probarElCaso=function(caso){
     }else{
         esto=window;
     }
+    var esperado=cambiandole(caso.esperado,{});
     if(esto===window){
         if(caso.miembros){
             app.lanzarExcepcion("no se puede poner miembros en un caso con esto=window en caso:"+caso.caso);
@@ -205,7 +247,7 @@ Probador.prototype.probarElCaso=function(caso){
                 }
             }
         }
-        esperado.This=esperado.This||this.textoDeCampos(esto);
+        caso.esperado.This=this.textoDeCampos(esto);
     }
     var parametros=[];
     if(caso.entrada.parametros){
@@ -221,6 +263,7 @@ Probador.prototype.probarElCaso=function(caso){
                 parametros.push(valorParametro);
             }
         }
+    }
     if(caso.preparar){
         caso.preparar.call(esto);
     }
@@ -232,7 +275,6 @@ Probador.prototype.probarElCaso=function(caso){
         esto.creadores=this.app.creadores;
     }
     var obtenido={};
-    var esperado=caso.esperado;
     esperado.entrada=esperado.entrada||this.textoDeCampos(caso.entrada);
     var correrCaso=function(){
         if(!esto){
@@ -301,19 +343,13 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
         // obtenidoOk={mock:appMock.mock,dato:obtenidoOk};
     // }
     var probador=this;
-    var nodoBonito=function(esperado,obtenido,claseEsperado,claseObtenido){
-        return {tipox:'table', nodes:[
-                {tipox:'tr', nodes:[{tipox:'td', className:claseEsperado, nodes:[{tipox:'pre', innerText:probador.textoDeCampos(esperado)}]}]},
-                {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, nodes:[{tipox:'pre', innerText:probador.textoDeCampos(obtenido)}]}]},
-        ]};
-    }
     var controlandoDom=true;
     var considerarArray={
         '[object NodeList]':true,
         '[object DOMTokenList]':true
     };
-    var compararBonito=function(esperado,obtenido,bidireccional){
-        var rta={tieneError:false, tieneAdvertencias:false};
+    var compararProfundo=function(esperado,obtenido,bidireccional){
+        var rta={}; // solo se ponen si se necesita: tieneError:false, tieneAdvertencias:false
         if( typeof esperado =='object'?(
                 esperado instanceof RegExp?(
                     !esperado.test(obtenido)
@@ -334,22 +370,19 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
                 )
             )
         ){
-            if(({}).toString.call(obtenido)=='[object NodeList]'){
-                var stop1=obtenido.length;
-                var stop2=controlandoDom;
-                var stop3=esperado instanceof Array;
-                var stop4=obtenido.length===1;
-                var stop5=(obtenido instanceof Array || controlandoDom && obtenido!==null && (obtenido.length || obtenido.length===0));
+            if(!caso.ignorarDiferenciaDeTiposNumericos || isNaN(esperado) || isNaN(obtenido) || esperado!=obtenido){
+                rta.tieneError=true;
+            }else{
+                rta.tieneAdvertencias=true;
             }
-            rta.tieneError=!caso.ignorarDiferenciaDeTiposNumericos || isNaN(esperado) || isNaN(obtenido) || esperado!=obtenido;
-            rta.tieneAdvertencias=true;
-            rta.bonito=nodoBonito(esperado, obtenido,'TDD_esperado',rta.tieneError?'TDD_obtenido':'TDD_obtenido_sobrante');
+            rta.esperado=esperado;
+            rta.obtenido=obtenido;
         }else if(typeof(esperado)=='object' && esperado instanceof ArgumentoEspecialParaMock){
-            rta.bonito={tipox:'div', className:'TDD_iguales', innerText:probador.cadenaParaMostrar(esperado)};
+            rta.iguales=probador.cadenaParaMostrar(esperado);
         }else if(typeof(esperado)!='object' || esperado==null && obtenido==null || esperado instanceof Date || esperado instanceof RegExp){
-            rta.bonito={tipox:'div', className:'TDD_iguales', innerText:probador.cadenaParaMostrar(obtenido)};
+            rta.bonito=probador.cadenaParaMostrar(obtenido);
         }else{
-            var nodes=[];
+            rta.nodes=[];
             var nodoArray;
             var claseContenido;
             var definirClaseContenedor=function(elemento){
@@ -363,64 +396,47 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
             }
             for(var campo in esperado) if(esperado.hasOwnProperty(campo)){
                 var valorObtenido=null;
-                if(obtenido===document){
-                    valorObtenido=document.getElementById(campo);
+                var valorEsperado=esperado[campo];
+                if(valorEsperado instanceof ArgumentoEspecial){
+                    valorObtenido=valorEsperado.obtener(obtenido,campo);
+                    bidireccional=valorEsperado.bidireccional;
                 }else{
                     valorObtenido=obtenido[campo];
                 }
-                var rtaInterna=compararBonito(esperado[campo],valorObtenido,bidireccional && campo!='documento');
-                definirClaseContenedor(esperado[campo]);
-                nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
-                    {tipox:'td', className:'TDD_label', innerText:campo},
-                    nodoArray,
-                    {tipox:'td', className:claseContenido, nodes:rtaInterna.bonito}
-                ]}]});
-                rta.tieneError=rta.tieneError||rtaInterna.tieneError;
-                rta.tieneAdvertencias=rta.tieneAdvertencias||rtaInterna.tieneAdvertencias;
+                var rtaInterna=compararProfundo(valorEsperado,valorObtenido,bidireccional);
+                rta.nodes.push(rtaInterna);
+                if(rtaInterna.tieneError){
+                    rta.tieneError=true;
+                }else if(rtaInterna.tieneAdvertencias){
+                    rta.tieneAdvertencias=true;
+                }
             }
+            var visualizacionBidireccionalIgnorandoVacios=false;
             if(bidireccional){
                 for(var campo in obtenido) if(obtenido.hasOwnProperty(campo)){
                     if(!(campo in esperado) && (!visualizacionBidireccionalIgnorandoVacios || !!obtenido[campo])){
                         var claseObtenido;
-                        if(controlBidireccional){
-                            rta.tieneError=true;
-                            claseObtenido='TDD_obtenido';
-                        }else{
-                            claseObtenido='TDD_obtenido_sobrante';
-                        }
-                        definirClaseContenedor(obtenido[campo]);
-                        nodes.push({tipox:'table', className:'TDD_elemento', nodes:[{tipox:'tr',nodes:[
-                            {tipox:'td', className:'TDD_label', innerText:campo},
-                            nodoArray,
-                            {tipox:'td', className:claseContenido, nodes:nodoBonito(new probador.MostrarNoEsperabaNada(),obtenido[campo],'TDD_esperado_no_especificado',claseObtenido)}
-                        ]}]});
+                        rta.tieneError=true;
+                        rta.nodes.push(compararProfundo(new probador.MostrarNoEsperabaNada(),obtenido[campo],bidireccional));
                     }
                 }
             }
-            rta.bonito={tipox:'div', nodes:nodes};
+            if(esperado instanceof Array){
+                rta.conjunto='Array';
+                if(esperado.length!=obtenido.length){
+                    rta.nodes[length]=compararProfundo(esperado.length, obtenido.length, bidireccional);
+                }
+            }
+            if(rta.tieneError && rta.tieneAdvertencias){
+                delete rta.tieneAdvertencias;
+            }
         }
         return rta;
     };
-    var resultado=compararBonito(esperado,obtenido,true);
-    var idModulo='TDD_modulo:'+caso.modulo;
-    var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
-    var elementoCasoTitulo=document.getElementById(idCaso+'_titulo');
-    var elementoCaso=document.getElementById(idCaso);
-    if(resultado.tieneError || this.app.hoyString<=caso.mostrarAunqueNoFalleHasta || resultado.tieneAdvertencias){
-        app.colocar(idCaso,{tipox:'div', className:'TDD_error', nodes:[
-            {tipox:'table',className:'TDD_resultado', nodes:[{tipox:'tr',nodes:[
-                {tipox:'td',className:'TDD_label_esperado_obtenido', nodes:['esperado',{tipox:'br'},'obtenido']},
-                {tipox:'td',className:'TDD_contenido', nodes:resultado.bonito}
-            ]}]},
-        ]});
-    }
-    this.pendientesPorModulos[idModulo]--;
+    var resultado=compararProfundo(esperado,obtenido,true);
+    this.pendientesPorModulos[caso.modulo]--;
     if(resultado.tieneError){
-        this.cambioEstado(caso,'TDD_prueba_fallida');
-        document.getElementById(idModulo+'_casos').style.display=null;
         this.errores++;
-    }else{
-        this.cambioEstado(caso,'TDD_prueba_ok');
     }
     if(caso.elementos){
         for(var elemento in caso.elementos){
@@ -431,52 +447,11 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
             zonaDePrueba.parentNode.removeChild(zonaDePrueba);
         }
     }
-};
+    this.mensajes.enviar({modulo:caso.modulo, caso:caso.caso, estado:resultado.tieneError?'fallida':resultado.tieneAdvertencias?'advertida':'ok', resultado:resultado});
+}
 
 Probador.prototype.MostrarNoEsperabaNada=function(){ 
     this.vacio='vacio';
-}
-
-Probador.prototype.prioridadEstados={   
-    TDD_prueba_ok:1,
-    TDD_prueba_ignorada:2,
-    TDD_prueba_comenzada:3,
-    TDD_prueba_pendiente:6,
-    TDD_prueba_en_espera:8,
-    TDD_prueba_fallida:9
-}
-
-Probador.prototype.cambioEstado=function(caso,nombreClase){
-    var elementoTitulo=document.getElementById('TDD_modulo:'+caso.modulo+'_titulo');
-    var elementoCaso  =document.getElementById('TDD_caso:'  +caso.caso  +'_titulo');
-    this.cambioEstadoDeUno(elementoCaso,nombreClase);
-    if(!('hijos' in elementoTitulo)){
-        elementoTitulo.hijos={};
-    }
-    elementoTitulo.hijos[elementoCaso.id]=nombreClase;
-    var maxPrioridad='TDD_prueba_ok';
-    for(var hijo in elementoTitulo.hijos){
-        var claseHijo=elementoTitulo.hijos[hijo];
-        if(this.prioridadEstados[maxPrioridad]<this.prioridadEstados[claseHijo]){
-            maxPrioridad=claseHijo;
-        }
-    }
-    this.cambioEstadoDeUno(elementoTitulo,maxPrioridad);
-}
-
-Probador.prototype.cambioEstadoDeUno=function(elemento,nombreClase){
-    if(!!elemento.dataset.clasePrueba){
-        elemento.classList.remove(elemento.dataset.clasePrueba);
-    }
-    elemento.classList.add(nombreClase);
-    elemento.dataset.clasePrueba=nombreClase;
-}
-
-Aplicacion.prototype.cargarCasosDePrueba=function(){
-    Aplicacion.prototype.casosDePrueba=[];
-    for(var i=0; i<Aplicacion.prototype.paraCargarCasosDePrueba.length; i++){
-        Aplicacion.prototype.paraCargarCasosDePrueba[i]();
-    }
 }
 
 var ArgumentoEspecialParaMock=function(definicion){
@@ -496,303 +471,191 @@ ArgumentoEspecialParaMock.prototype.compatible=function(valor){
     return rta;
 }
 
-Aplicacion.prototype.appMock=function(definicion){
-    var mock=definicion.mockBasadoEnAplicacion?new Aplicacion():{esAplicacion:true};
-    var rtaMock={obtenido:{}, esperado:{}};
-    var app=this;
-    if('mocks' in definicion){
-        for(var paso=0; paso<definicion.mocks.length; paso++){
-            var defMock=definicion.mocks[paso];
-            if('funcion' in defMock){
-                if(defMock.llamadas){
-                    rtaMock.esperado[defMock.funcion]={llamadas:[]};
-                    rtaMock.obtenido[defMock.funcion]={llamadas:[]};
-                    for(var iLlamada=0; iLlamada<defMock.llamadas.length; iLlamada++){
-                        rtaMock.esperado[defMock.funcion].llamadas.push({argumentos:defMock.llamadas[iLlamada].argumentos, invocaciones:defMock.llamadas[iLlamada].invocaciones||1});
-                        rtaMock.obtenido[defMock.funcion].llamadas.push({argumentos:defMock.llamadas[iLlamada].argumentos, invocaciones:0});
-                    }
-                }else{
-                    rtaMock.esperado[defMock.funcion]={argumentos:defMock.argumentos, invocaciones:defMock.invocaciones||1};
-                    rtaMock.obtenido[defMock.funcion]={invocaciones:0};
-                }
-                mock[defMock.funcion]=function(defMock){
-                    return function(){
-                        var defRta;
-                        var args_obtenidos=[];
-                        for(var ia=0; ia<arguments.length; ia++){
-                            args_obtenidos.push(arguments[ia]);
-                        }
-                        if(defMock.llamadas){
-                            var json_args_obtenidos=JSON.stringify(args_obtenidos,ArgumentoEspecialParaMock.stringify);
-                            for(var ill=0; ill<defMock.llamadas.length; ill++){
-                                var defLlamada=defMock.llamadas[ill];
-                                if(json_args_obtenidos==JSON.stringify(defLlamada.argumentos)){
-                                    break;
-                                }
-                            }
-                            if(ill<defMock.llamadas.length){ // encontré
-                                rtaMock.obtenido[defMock.funcion].llamadas[ill].invocaciones++;
-                                defRta=defLlamada;
-                            }else{
-                                rtaMock.obtenido[defMock.funcion].llamadas.push({argumentos:args_obtenidos, invocaciones:1});
-                                defRta={retornar:null};
-                            }
-                        }else{
-                            rtaMock.obtenido[defMock.funcion].argumentos=args_obtenidos;
-                            rtaMock.obtenido[defMock.funcion].invocaciones++;
-                            defRta=defMock;
-                        }
-                        if(defRta.futuro){
-                            var futuro=mock.newFuturo();
-                            for(var aplicar in defRta.futuro){
-                                futuro[aplicar](defRta.futuro[aplicar]);
-                            }
-                            return futuro;
-                        }else{
-                            return defRta.retornar;
-                        }
-                    }
-                }(defMock);
-            }else if('copiar' in defMock){
-                mock[definicion.mocks[paso].copiar]=app[definicion.mocks[paso].copiar];
-            }else{
-                mock[definicion.mocks[paso].miembro]=definicion.mocks[paso].valor;
-            }
-        }
-    }
-    if(!('newFuturo' in mock)){
-        mock.newFuturo=this.newFuturo;
-    }
-    mock.mock=rtaMock;
-    return mock;
+// Aplicacion.prototype.pruebaGrabSimple=function(definicion){
+    // this.colocar(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_de_pruebas_simple', nodes:definicion});
+    // var rta=TDD_zona_de_pruebas_simple.innerHTML;
+    // TDD_zona_de_pruebas.removeChild(TDD_zona_de_pruebas_simple);
+    // return rta;
+// }
+
+// Aplicacion.prototype.pruebaTraduccion=function(definicion){
+    // var creador=this.domCreator(definicion.tipox);
+    // return creador.translate(definicion);
+// }
+
+// Aplicacion.prototype.paraCargarCasosDePrueba=[];
+
+Probador.prototype.agregarCaso=function(caso){
+    this.casosDePrueba.push(caso);
 }
 
-Aplicacion.prototype.probarEvento=function(definicion){
-    var funcionEvento=this.eventos[definicion.nombre];
-    if(definicion.sinMock){
-        return funcionEvento.call(this,definicion.evento,document.getElementById(definicion.idDestino),{probando:true});
-    }else{
-        var mock=this.appMock(definicion);
-        if('localStorage' in definicion){
-            for(var clave_ls in definicion.localStorage){
-                localStorage[clave_ls]=JSON.stringify(definicion.localStorage[clave_ls]);
-            }
-        }
-        funcionEvento.call(mock,definicion.evento,document.getElementById(definicion.idDestino));
-        mock.dato={};
-        if(definicion.incluirDocumentoEnSalida){
-            mock.dato.documento=document;
-        }
-        if('localStorage' in definicion){
-            mock.dato.localStorage={};
-            for(var clave_ls in definicion.localStorage){
-                mock.dato.localStorage[clave_ls]=JSON.parse(localStorage[clave_ls]);
-            }
-        }
-        return mock;
-    }
+Probador.prototype.agregarCasosEjemplo=function(){
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_errores',
+        funcion:'estoMismo',
+        caso:'así se ven lo errores en los casos de prueba fallidos',
+        entrada:[{
+            iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
+            si_no_coinciden:'y abajo en rojo el obtenido',
+            'si falta algun campo':{'en el esperado':'y muestra el obtenido'},
+            'como se ve si el tipo no coincide':1,
+            'y si la estructura no coincide':"{uno:1, dos:2}"
+        }],
+        esperado:{respuesta:{
+            iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
+            si_no_coinciden:'el valor esperado se ve arriba',
+            'si falta algun campo':{'en el obtenido':'muestra el esperado y'},
+            'como se ve si el tipo no coincide':"1",
+            'y si la estructura no coincide':{uno:1, dos:2}
+        }}
+    });
+    return; 
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_errores',
+        funcion:'splice',
+        caso:'así se ve cuando una función modifica un dato interno',
+        entrada:[["uno", "dos", "tres", "cuatro"],2,1,"3"],
+        esperado:{respuesta:["tres"]}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_errores',
+        funcion:'lanzarExcepcion',
+        caso:'así se ven los casos que lanzan excepciones cuando se esperaba un resultado',
+        entrada:["texto de la excepcion no esperada"],
+        esperado:{respuesta:{campo_esperado:'valor esperado', otro_campo:'otro valor esperado'}}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_errores',
+        funcion:'estoMismo',
+        caso:'así se ven los casos donde se espera que lance una excepción pero no se lanza',
+        entrada:["valor obtenido"],
+        error:"texto de la excepcion esperada"
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_errores',
+        funcion:'lanzarExcepcion',
+        caso:'así se ven cuando no coincide el texto de la excepción',
+        entrada:["texto de la excepcion obtenida"],
+        error:"texto de la excepcion esperada"
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_errores',
+        funcion:'estoMismo',
+        mostrarAunqueNoFalleHasta:'2013-03-31',
+        caso:'Hay un problema con las fechas porque el constructor de Date considera GMT0 pero al extraer usa el Locale',
+        entrada:[{
+            dia:new Date('1991-06-05').getDate(),
+            mostrar:new Date('1991-06-05').toString(),
+            mostrarUTC:new Date('1991-06-05').toUTCString()
+        }],
+        esperado:{respuesta:{
+            dia:5,
+            mostrar:'1991-06-05 sin hora ni GMT',
+            mostrarUTC:'1991-06-05 sin hora ni GMT'
+        }}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_ignorados',
+        funcion:'estoMismo',
+        caso:'Los casos de prueba ignorados se ven así',
+        ignorado:true,
+        entrada:[{iguales:'este es',abajo:'solo en obtenido',distinto:'obtenido'}],
+        esperado:{respuesta:{iguales:'este es',arriba:'solo en esperado',distinto:'esperado'}}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_ok',
+        funcion:'estoMismo',
+        caso:'Se puede comparar en forma exacta usando el campo "salida"',
+        entrada:[{iguales:'este es',este_tambien:7}],
+        esperado:{respuesta:{iguales:'este es',este_tambien:7}}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_ok',
+        funcion:'estoMismo',
+        caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran (para eso se usa "salidaMinima")',
+        entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
+        salidaMinima:{iguales:'sí'}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_ok',
+        funcion:'estoMismo',
+        mostrarAunqueNoFalleHasta:'2099-12-31',
+        caso:'Se puede pedir que muestre el resultado aunque sea correcto especificando en el caso la propiedad mostrarAunqueNoFalleHasta',
+        entrada:[{un_dato:'uno', lista:['elemento1', 'elemento2'], dato_agregado:'agregado'}],
+        salidaMinima:{un_dato:'uno', lista:['elemento1', 'elemento2']}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_ok',
+        funcion:'lanzarExcepcion',
+        caso:'así se ve cuando coincide el texto de la excepción',
+        entrada:["texto de la excepcion"],
+        error:"texto de la excepcion"
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_errores',
+        funcion:'estoMismo',
+        mostrarAunqueNoFalleHasta:'2013-03-31',
+        caso:'prueba de RegExp que falla',
+        entrada:[{
+            simple:'palabra más larga de lo esperada',
+            conBarra:'palabra con prefijo',
+        }],
+        esperado:{respuesta:{
+            simple:/^Palabra$/gi,
+            conBarra:/^prefijo$/g,
+        }}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_ok',
+        funcion:'estoMismo',
+        mostrarAunqueNoFalleHasta:'2013-03-31',
+        caso:'prueba de RegExp',
+        entrada:[{
+            simple:'palabra',
+            conBarra:'uno/otro',
+            conEspacioOpcional:'todojunto separado',
+        }],
+        esperado:{respuesta:{
+            simple:/^Palabra$/i,
+            conBarra:/^uno\/otro$/,
+            conEspacioOpcional:/^todo ?junto ?separado$/
+        }}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_ok',
+        funcion:'estoMismo',
+        mostrarAunqueNoFalleHasta:'2013-03-31',
+        caso:'prueba de Fechas, hay que usar UTC',
+        entrada:[{
+            dia:new Date('1991-06-05').getUTCDate(),
+        }],
+        esperado:{respuesta:{
+            dia:5,
+        }}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_ok',
+        funcion:'estoMismo',
+        caso:'veo que el sort ordene bien',
+        entrada:[[91,1,9,11,111].sort(function(a,b){return a-b})],
+        esperado:{respuesta:[1,9,11,91,111]}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_ok',
+        funcion:'estoMismo',
+        caso:'veo que el reverse dé vuelta',
+        entrada:[[91,1,9,11,111].reverse()],
+        esperado:{respuesta:[111,11,9,1,91]}
+    });
+    this.agregarCaso({
+        modulo:'asi_se_ven_los_ok',
+        funcion:'estoMismo',
+        caso:'veo que el sort ordene al revés',
+        entrada:[[91,1,9,11,111].sort(function(a,b){return b-a})],
+        esperado:{respuesta:[111,91,11,9,1]}
+    });
 }
-
-Aplicacion.prototype.probarFuncionModificadoraApp=function(definicion){
-    var mock=this.appMock(definicion);
-    mock[definicion.funcion]=this[definicion.funcion];
-    for(var variable in definicion.miembrosModificables){
-        mock[variable]=JSON.parse(JSON.stringify(definicion.miembrosModificables[variable]));
-    }
-    mock[definicion.funcion].apply(mock,definicion.argumentos);
-    var rta={};
-    for(var variable in definicion.miembrosModificables){
-        rta[variable]=mock[variable]; 
-    }
-    mock.dato=rta;
-    return mock;
-}
-
-Aplicacion.prototype.pruebaGrabSimple=function(definicion){
-    this.colocar(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_de_pruebas_simple', nodes:definicion});
-    var rta=TDD_zona_de_pruebas_simple.innerHTML;
-    TDD_zona_de_pruebas.removeChild(TDD_zona_de_pruebas_simple);
-    return rta;
-}
-
-Aplicacion.prototype.pruebaTraduccion=function(definicion){
-    var creador=this.domCreator(definicion.tipox);
-    return creador.translate(definicion);
-}
-
-Aplicacion.prototype.paraCargarCasosDePrueba=[];
-
-Aplicacion.prototype.paraCargarCasosDePrueba.push(function(){
-//////////////// CASOS DE PRUEBA ////////////////////
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'estoMismo',
-    caso:'así se ven lo errores en los casos de prueba fallidos',
-    entrada:[{
-        iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
-        si_no_coinciden:'y abajo en rojo el obtenido',
-        'si falta algun campo':{'en el esperado':'y muestra el obtenido'},
-        'como se ve si el tipo no coincide':1,
-        'y si la estructura no coincide':"{uno:1, dos:2}"}],
-    salida:{
-        iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
-        si_no_coinciden:'el valor esperado se ve arriba',
-        'si falta algun campo':{'en el obtenido':'muestra el esperado y'},
-        'como se ve si el tipo no coincide':"1",
-        'y si la estructura no coincide':{uno:1, dos:2}}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'splice',
-    caso:'así se ve cuando una función modifica un dato interno',
-    entrada:[["uno", "dos", "tres", "cuatro"],2,1,"3"],
-    salida:["tres"]
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'lanzarExcepcion',
-    caso:'así se ven los casos que lanzan excepciones cuando se esperaba un resultado',
-    entrada:["texto de la excepcion no esperada"],
-    salida:{campo_esperado:'valor esperado', otro_campo:'otro valor esperado'}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'estoMismo',
-    caso:'así se ven los casos donde se espera que lance una excepción pero no se lanza',
-    entrada:["valor obtenido"],
-    error:"texto de la excepcion esperada"
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'lanzarExcepcion',
-    caso:'así se ven cuando no coincide el texto de la excepción',
-    entrada:["texto de la excepcion obtenida"],
-    error:"texto de la excepcion esperada"
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'estoMismo',
-    mostrarAunqueNoFalleHasta:'2013-03-31',
-    caso:'Hay un problema con las fechas porque el constructor de Date considera GMT0 pero al extraer usa el Locale',
-    entrada:[{
-        dia:new Date('1991-06-05').getDate(),
-        mostrar:new Date('1991-06-05').toString(),
-        mostrarUTC:new Date('1991-06-05').toUTCString()
-    }],
-    salida:{
-        dia:5,
-        mostrar:'1991-06-05 sin hora ni GMT',
-        mostrarUTC:'1991-06-05 sin hora ni GMT'
-    }
-});
-
-Aplicacion.prototype.asi_se_ven_los_ignorados=function(){
-    this.lanzarExcepcion('Esto nunca debe ejecutarse porque es un ejemplo');
-}
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ignorados',
-    funcion:'estoMismo',
-    caso:'Los casos de prueba ignorados se ven así',
-    ignorado:true,
-    entrada:[{iguales:'este es',abajo:'solo en obtenido',distinto:'obtenido'}],
-    salida:{iguales:'este es',arriba:'solo en esperado',distinto:'esperado'}
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    caso:'Se puede comparar en forma exacta usando el campo "salida"',
-    entrada:[{iguales:'este es',este_tambien:7}],
-    salida:{iguales:'este es',este_tambien:7}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran (para eso se usa "salidaMinima")',
-    entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
-    salidaMinima:{iguales:'sí'}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    mostrarAunqueNoFalleHasta:'2099-12-31',
-    caso:'Se puede pedir que muestre el resultado aunque sea correcto especificando en el caso la propiedad mostrarAunqueNoFalleHasta',
-    entrada:[{un_dato:'uno', lista:['elemento1', 'elemento2'], dato_agregado:'agregado'}],
-    salidaMinima:{un_dato:'uno', lista:['elemento1', 'elemento2']}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'lanzarExcepcion',
-    caso:'así se ve cuando coincide el texto de la excepción',
-    entrada:["texto de la excepcion"],
-    error:"texto de la excepcion"
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'estoMismo',
-    mostrarAunqueNoFalleHasta:'2013-03-31',
-    caso:'prueba de RegExp que falla',
-    entrada:[{
-        simple:'palabra más larga de lo esperada',
-        conBarra:'palabra con prefijo',
-    }],
-    salida:{
-        simple:/^Palabra$/gi,
-        conBarra:/^prefijo$/g,
-    }
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    mostrarAunqueNoFalleHasta:'2013-03-31',
-    caso:'prueba de RegExp',
-    entrada:[{
-        simple:'palabra',
-        conBarra:'uno/otro',
-        conEspacioOpcional:'todojunto separado',
-    }],
-    salida:{
-        simple:/^Palabra$/i,
-        conBarra:/^uno\/otro$/,
-        conEspacioOpcional:/^todo ?junto ?separado$/
-    }
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    mostrarAunqueNoFalleHasta:'2013-03-31',
-    caso:'prueba de Fechas, hay que usar UTC',
-    entrada:[{
-        dia:new Date('1991-06-05').getUTCDate(),
-    }],
-    salida:{
-        dia:5,
-    }
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    caso:'veo que el sort ordene bien',
-    entrada:[[91,1,9,11,111].sort(function(a,b){return a-b})],
-    salida:[1,9,11,91,111]
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    caso:'veo que el reverse dé vuelta',
-    entrada:[[91,1,9,11,111].reverse()],
-    salida:[111,11,9,1,91]
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    caso:'veo que el sort ordene al revés',
-    entrada:[[91,1,9,11,111].sort(function(a,b){return b-a})],
-    salida:[111,91,11,9,1]
-});
-
+/*
 Aplicacion.prototype.casosDePrueba.push({
     modulo:'control interno del sistema',
     funcion:'enviarPaquete',
@@ -1204,3 +1067,4 @@ if(!Aplicacion.prototype.sinBaseDeDatos){
 }
 //////////////// FIN CASOS DE PRUEBA ////////////////////
 });
+*/

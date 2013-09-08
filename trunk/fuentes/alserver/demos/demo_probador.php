@@ -4,11 +4,15 @@ include "../tipox/launch.php";
 $lanzador=new Lanzador(array(
     'title'=>'info sobre tipox',
     'js'=>array(
+        '../tipox/comunes.js',
         '../tipox/compatibilidad.js',
         '../tipox/aplicacion.js',
         '../tipox/colocador.js',
-        '../tipox/tdd.js',
-        'demo_tdd.js'
+        '../tipox/probador.js',
+        'demo_probador.js'
+    ),
+    'css'=>array(
+        '../tipox/probador.css',
     ),
     'empezar'=>'cargando'
 ));
