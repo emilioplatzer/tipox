@@ -45,7 +45,7 @@ function FlujoColocadorProbador(){
             tituloCaso.push(ticket);
             this.app.colocador.colocar({destino:elementoModuloTitulo, contenido:[' ',ticket]});
         }
-        this.app.colocador.colocar({
+        var elementoCaso=this.app.colocador.colocar({
             destino:elementoModuloCasos
             contenido:{
                 tipox:'div', classList:['TDD_caso', 'TDD_estado_'+mensaje.estado], id:idCaso, nodes:[{
@@ -57,260 +57,25 @@ function FlujoColocadorProbador(){
                 }]
             }
         });
-        
-    }
-}
-
-function Probador(){
-    this.casosDePrueba={};
-    this.cantidadPruebas=0;
-    this.cantidadPruebasPorModulos={};
-    this.pendientesPorModulos={};
-    this.errores=0;
-    this.mensajes=new FlujoDirectoProbador();
-    this.app=app_global;
-}
-
-Probador.prototype.probarTodo=function(params){
-    if(params.sinTryCatch){
-        probador.correrPruebas();
-    }else{
-        try{
-            probador.correrPruebas();
-        }catch(err){
-            debugDirecto(descripcionError(err));
-            debugDirecto(err.stack);
-        }
-    }
-    if(params.soloProbar){
-        this.mensajes.enviar({
-            clase:'advertencia_importante',
-            texto:'¡Atención! Solo se están probando algunos casos.'
-        });
-    }
-    this.correrPruebas(params);
-}
-
-Probador.prototype.probarTodo=function(params){
-    this.casosPendientes=[]; // para hacer la cola de los que faltan ejecutar
-    this.casosExistentes={}; // para controlar duplicados
-    this.elementosBloqueados={}; // para controlar que no se ejecuten dos pruebas que necesitan los mismos elementos (con su id)
-    for(var i in this.casosDePrueba) if(this.casosDePrueba.hasOwnProperty(i)){
-        var caso=this.casosDePrueba[i];
-        this.probarCaso(caso,params);
-    }
-    this.probarVariosCasos(100);
-    document.getElementById('TDD_caso:así se ven lo errores en los casos de prueba fallidos').parentNode.style.display='none';
-}
-
-Probador.probarCaso=function(caso,params){
-    this.app.controlador({
-        funcion:{obligatorio:true},
-        modulo: {obligatorio:true},
-    });
-    var idModulo='TDD_modulo:'+caso.modulo;
-        var elementoModuloCasos=document.getElementById(idModulo+'_casos');
-        if(!elementoModuloCasos){
-            this.pendientesPorModulos[idModulo]=0;
-            this.app.colocar('probarTodo',
-                {tipox:'div', classList:['TDD_modulo'], id:idModulo, nodes:[
-                    {tipox:'div', 
-                        classList:['TDD_modulo_titulo','TDD_prueba_pendiente'], 
-                        dataset:{clasePrueba:'TDD_prueba_pendiente'},
-                        id:idModulo+'_titulo', 
-                        innerText:caso.modulo, 
-                        eventos:{click:'toggleDisplayAbajo'}
-                    },
-                    {tipox:'div', id:idModulo+'_casos', style:{display:'none'}}
-                ]}
-            );
-            elementoModuloCasos=document.getElementById(idModulo+'_casos');
-        }
-        var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
-        var idCaso='TDD_caso:'+caso.caso;
-        var clase=caso.ignorado?'TDD_prueba_ignorada':'TDD_prueba_pendiente';
-        var tituloCaso=[caso.caso];
-        var ticket;
-        if(caso.ignorado && caso.ignorado.substr && caso.ignorado.substr(0,1)=='#' && this.app.tracUrl){  
-            ticket={tipox:'a', href:this.app.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado};
-            tituloCaso.push(ticket);
-        }
-        var nodosInternos=[{tipox:'div', classList:['TDD_caso_titulo',clase], id:idCaso+'_titulo', nodes:tituloCaso, dataset:{clasePrueba:clase}}];
-        if(caso.aclaracionSiFalla){
-            nodosInternos.push({tipox:'div', className:'TDD_aclaracion', id:idCaso+'_aclaracion', nodes:caso.aclaracionSiFalla});
-        }
-        this.app.colocar(elementoModuloCasos,
-            {tipox:'div', className:'TDD_caso', id:idCaso, nodes:nodosInternos}
-        );
-        if(caso.ignorado){  
-            if(ticket){
-                this.app.colocar(elementoModuloTitulo,[ticket,' ']);
-                // this.app.colocar(elementoModuloTitulo,[{tipox:'a', href:this.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado},' ']);
+        if(mensaje.errores){
+            var nodoBonito=function(esperado,obtenido,claseEsperado,claseObtenido){
+                return {tipox:'table', nodes:[
+                        {tipox:'tr', nodes:[{tipox:'td', className:claseEsperado, nodes:[{tipox:'pre', innerText:esperado}]}]},
+                        {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, nodes:[{tipox:'pre', innerText:obtenido}]}]},
+                ]};
             }
-            this.cambioEstado(caso,'TDD_prueba_ignorada');
-        }else if(!this.cualesProbar || this.cualesProbar[caso.caso]){
-            this.pendientesPorModulos[idModulo]++;
-            this.casosPendientes.push(caso);
-        }
-        if(caso.caso in this.casosExistentes){
-            this.app.lanzarExcepcion('Nombre de caso de prueba duplicado '+caso.caso);
-        }
-        this.casosExistentes[caso.caso]={};
-        var elementoCaso=document.getElementById(idModulo);
-}
-/*
-Aplicacion.prototype.paginas.info.nodes.push({tipox:'button', innerText:'Controlar Futuros', eventos:{click:'controlar_futuros'}});
-Aplicacion.prototype.paginas.info.nodes.push({tipox:'div', id:'destinoControlFuturos', style:{display:'none'}});
-*/
-
-Aplicacion.prototype.eventos.controlar_futuros=function(evento,elemento){
-    var h2=document.createElement('h2');
-    h2.innerText='control de futuros';
-    destinoControlFuturos.appendChild(h2);
-    destinoControlFuturos.style.display=null;
-    for(var i=0; i<this.controlDeFuturos.length; i++){
-        var futuro=this.controlDeFuturos[i];
-        if(!futuro.recibirError && !futuro.recibirListo){
-            var pre=document.createElement('pre');
-            pre.innerText=futuro.stack;
-            pre.style.borderBottom='1px dotted #6A6';
-            destinoControlFuturos.appendChild(pre);
-        }
-    }
-}
-
-Probador.prototype.probarVariosCasos=function(cuantos){
-    var procesarHasta=(new Date()).getTime()+500;
-    var seguirProcesando=cuantos;
-    while(this.casosPendientes.length && seguirProcesando && (new Date()).getTime()<procesarHasta){
-        var caso=this.casosPendientes.shift();
-        var hayBloqueados=false;
-        if(caso.elementos){
-            for(var elemento in caso.elementos){
-                if(document.getElementById(elemento) || this.elementosBloqueados[elemento]){
-                    hayBloqueados=true;
-                    break;
+            // elementoCaso=document.getElementById(idCaso);
+            this.app.colocador.colocar({
+                destino:elementoCaso
+                contenido:{
+                    tipox:'div', className:'TDD_error', nodes:[]
                 }
-            }
+            });
         }
-        if(hayBloqueados){
-            this.cambioEstado(caso,'TDD_prueba_en_espera');
-            this.casosPendientes.push(caso);
-        }else{
-            this.probarElCaso(caso);
-        }
-    }
-    var este=this;
-    if(this.casosPendientes.length){
-        setTimeout(function(){ este.probarVariosCasos(cuantos); },100);
     }
 }
 
-Probador.prototype.probarElCaso=function(caso){
-    this.cambioEstado(caso,'TDD_prueba_comenzada');
-    if(caso.elementos){
-        this.app.colocar(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_'+caso.caso, className:'TDD_una_prueba'});
-        for(var elemento in caso.elementos){
-            this.elementosBloqueados[elemento]=true;
-            var defElemento=caso.elementos[elemento];
-            if(defElemento){
-                this.app.colocar('TDD_zona_'+caso.caso, cambiandole(defElemento,{id:elemento}));
-            }
-        }
-    }
-    if(caso.preparar){
-        caso.preparar.call(this.app);
-    }
-    var idModulo='TDD_modulo:'+caso.modulo;
-    var idCaso='TDD_caso:'+caso.caso;
-    var esto=null;
-    if('mocks' in caso){
-        esto=this.app.appMock(caso);
-        esto[caso.funcion]=this.app[caso.funcion];
-        esto.domCreator=this.app.domCreator;
-        esto.creadores=this.app.creadores;
-    }else{
-        var estos=[this.app,window,caso.entrada[0]];
-        for(var i_esto=0;i_esto<estos.length;i_esto++){
-            if(caso.funcion in estos[i_esto]){
-                esto=estos[i_esto];
-                break;
-            }
-        }
-    }
-    var obtenido=null;
-    var errorObtenido=null;
-    var salvarEntrada=this.mostrarCampos(caso.entrada);
-    var correrCaso=function(){
-        if(!esto){
-            this.app.lanzarExcepcion("no existe la función "+caso.funcion+" o no se encuentra en los lugares probables");
-        }
-        if(esto==caso.entrada[0]){
-            obtenido=esto[caso.funcion].apply(esto,caso.entrada.slice(1));
-        }else{
-            obtenido=esto[caso.funcion].apply(esto,caso.entrada);
-        }
-        if(caso.incluirDocumentoEnSalida){
-            obtenido={documento:document, dato:obtenido};
-        }
-    }
-    if(caso.relanzarExcepcionSiHay){
-        correrCaso();
-        var paraPonerBreakPointAca=caso.caso;
-    }else{
-        try{
-            correrCaso();
-        }catch(err){
-            errorObtenido=err.message||'Recibida excepción sin message';
-        }
-    }
-    var app=this.app;
-    var este=this;
-    if(obtenido instanceof Futuro){
-        obtenido.luego("comparo lo obtenido (Listo) en el futuro en "+caso.caso,
-            function(respuesta,app,futuro){
-                este.compararObtenido(respuesta,null,caso,idCaso,salvarEntrada,esto);
-            }
-        ).alFallar("comparo lo obtenido (Falla) en el futuro en "+caso.caso,
-            function(mensaje,app,futuro){
-                este.compararObtenido(null,mensaje,caso,idCaso,salvarEntrada,esto);
-            }
-        );
-    }else{
-        este.compararObtenido(obtenido,errorObtenido,caso,idCaso,salvarEntrada,esto);
-    }
-}
 
-Probador.prototype.cadenaParaMostrar=function(valor){
-    if(valor instanceof Date){
-        return valor.toString();
-    }else if(valor instanceof Probador.prototype.MostrarNoEsperabaNada){
-        return 'valor esperado no especificado';
-    }else if(valor instanceof RegExp){
-        return "/"+valor.source+"/"+(valor.global?'g':'')+(valor.ignoreCase?'i':'')+(valor.multiline?'m':'');
-    }else if(typeof valor == 'function'){
-        return valor.toString();
-    }else{
-        return JSON.stringify(valor);
-    }
-}
-
-Probador.prototype.mostrarCampos=function(objeto){
-    var rta;
-    try{
-        rta=this.cadenaParaMostrar(objeto);
-    }catch(err){
-        var rta={};
-        for(var atributo in objeto){
-            try{
-                rta[atributo]=objeto[atributo].toString();
-            }catch(err2){
-            }
-        }
-        rta='/* '+objeto.toString()+' */'+JSON.stringify(rta);
-    }
-    return rta;
-}
 
 Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCaso,salvarEntrada,appMock){
     this.cantidadPruebas++;

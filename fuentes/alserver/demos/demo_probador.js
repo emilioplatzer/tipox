@@ -12,4 +12,7 @@ window.addEventListener('load',function(){
         },
         reemplazar:true
     });
+    var probador=new Probador();
+    probador.agregarCasosEjemplo();
+    probador.probarTodo({sinTryCatch:true});
 });
