@@ -658,7 +658,6 @@ Probador.prototype.agregarCasosEjemplo=function(){
             anda:new ArgumentoEspecialRegExp(/prefijo$/),
         }}
     });
-    return; 
     this.agregarCaso({
         modulo:'asi_se_ven_los_ok',
         funcion:'estoMismo',
@@ -670,9 +669,9 @@ Probador.prototype.agregarCasosEjemplo=function(){
             conEspacioOpcional:'todojunto separado',
         }],
         esperado:{respuesta:{
-            simple:/^Palabra$/i,
-            conBarra:/^uno\/otro$/,
-            conEspacioOpcional:/^todo ?junto ?separado$/
+            simple:new ArgumentoEspecialRegExp(/^Palabra$/i),
+            conBarra:new ArgumentoEspecialRegExp(/^uno\/otro$/),
+            conEspacioOpcional:new ArgumentoEspecialRegExp(/^todo ?junto ?separado$/)
         }}
     });
     this.agregarCaso({
