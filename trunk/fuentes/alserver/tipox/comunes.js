@@ -25,7 +25,7 @@ function cambiandole(destino,cambios,borrando,borrar_si_es_este_valor){
 "use strict";
     if(destino instanceof Object && !(destino instanceof Date)){
         var respuesta={};
-        for(var campo in destino){
+        for(var campo in destino) if(destino.hasOwnProperty(campo)){
             var cambio=cambios[campo];
             if(!(campo in cambios)){
                 respuesta[campo]=destino[campo];
@@ -34,7 +34,7 @@ function cambiandole(destino,cambios,borrando,borrar_si_es_este_valor){
                 respuesta[campo]=cambiandole(destino[campo],cambio,borrando,borrar_si_es_este_valor);
             }
         }
-        for(var campo in cambios){
+        for(var campo in cambios) if(cambios.hasOwnProperty(campo)){
             var cambio=cambios[campo];
             if(!(campo in destino) && (!borrando || !(cambio===borrar_si_es_este_valor))){
                 respuesta[campo]=cambio;
