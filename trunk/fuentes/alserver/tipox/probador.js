@@ -473,7 +473,11 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
             zonaDePrueba.parentNode.removeChild(zonaDePrueba);
         }
     }
-    this.mensajes.enviar({modulo:caso.modulo, caso:caso.caso, estado:resultado.tieneError?'fallida':resultado.tieneAdvertencias?'advertida':'ok', resultado:resultado});
+    var mensaje={modulo:caso.modulo, caso:caso.caso, estado:resultado.tieneError?'fallida':resultado.tieneAdvertencias?'advertida':'ok', resultado:resultado}
+    if(this.app.hoyString<=caso.mostrarAunqueNoFalleHasta){
+        mensaje.mostrar=true;
+    }
+    this.mensajes.enviar(mensaje);
 }
 
 Probador.prototype.MostrarNoEsperabaNada=function(){ 
@@ -613,15 +617,15 @@ Probador.prototype.agregarCasosEjemplo=function(){
         entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
         esperado:{respuesta:new ArgumentoEspecialIgnorarSobrantes({iguales:'sí'})}
     });
-    return; 
     this.agregarCaso({
         modulo:'asi_se_ven_los_ok',
         funcion:'estoMismo',
         mostrarAunqueNoFalleHasta:'2099-12-31',
         caso:'Se puede pedir que muestre el resultado aunque sea correcto especificando en el caso la propiedad mostrarAunqueNoFalleHasta',
         entrada:[{un_dato:'uno', lista:['elemento1', 'elemento2'], dato_agregado:'agregado'}],
-        salidaMinima:{un_dato:'uno', lista:['elemento1', 'elemento2']}
+        esperado:{respuesta:new ArgumentoEspecialIgnorarSobrantes({un_dato:'uno', lista:['elemento1', 'elemento2']})}
     });
+    return; 
     this.agregarCaso({
         modulo:'asi_se_ven_los_ok',
         funcion:'lanzarExcepcion',

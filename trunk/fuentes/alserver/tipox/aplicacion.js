@@ -6,6 +6,7 @@ function Aplicacion(){
     this.controlador={
         controlar:function(){}
     }
+    this.hoyString=new Date().toISOString().substr(0,'2099-12-31'.length);
 }
 
 Aplicacion.prototype.currentTimeStamp=function(){
