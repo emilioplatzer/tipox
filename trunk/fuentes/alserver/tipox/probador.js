@@ -280,11 +280,11 @@ Probador.prototype.probarElCaso=function(caso){
         if(!esto){
             this.app.lanzarExcepcion("no se puede probar sin 'entradaThis' en caso:"+caso.caso);
         }
-        obtenido.respuesta=esto[caso.funcion].apply(esto,parametros);
         obtenido.This=esto;
         if(esperado.documento){
             obtenido.documento=document;
         }
+        obtenido.respuesta=esto[caso.funcion].apply(esto,parametros);
     }
     if(caso.relanzarExcepcionSiHay){
         correrCaso();
@@ -293,7 +293,7 @@ Probador.prototype.probarElCaso=function(caso){
         try{
             correrCaso();
         }catch(err){
-            obtenido.error=err;
+            obtenido.error=err.message;
         }
     }
     if(!caso.asincronico){
@@ -523,20 +523,23 @@ Probador.prototype.agregarCasosEjemplo=function(){
         entrada:[2,1,"3"],
         esperado:{respuesta:["tres"]}
     });
-    return; 
     this.agregarCaso({
         modulo:'asi_se_ven_los_errores',
+        objetoThis:app_global,
         funcion:'lanzarExcepcion',
         caso:'así se ven los casos que lanzan excepciones cuando se esperaba un resultado',
         entrada:["texto de la excepcion no esperada"],
         esperado:{respuesta:{campo_esperado:'valor esperado', otro_campo:'otro valor esperado'}}
     });
+    return; 
     this.agregarCaso({
         modulo:'asi_se_ven_los_errores',
         funcion:'estoMismo',
         caso:'así se ven los casos donde se espera que lance una excepción pero no se lanza',
         entrada:["valor obtenido"],
-        error:"texto de la excepcion esperada"
+        esperado:{
+            error:"texto de la excepcion esperada"
+        }
     });
     this.agregarCaso({
         modulo:'asi_se_ven_los_errores',
