@@ -208,6 +208,19 @@ function ArgumentoEspecial(){
 function ArgumentoEspecialMonovalente(){
 }
 
+function ArgumentoEspecialRegExp(regexp){
+    this.compatible=function(obtenido){
+        return obtenido.match(regexp);
+    }
+    this.mostrarEsperado=function(){
+        return "/"+regexp.source+"/"+(regexp.global?'g':'')+(regexp.ignoreCase?'i':'')+(regexp.multiline?'m':'')
+    }
+    this.mostrarIguales=function(obtenido){
+        return this.mostrarEsperado()+' ~ '+JSON.stringify(obtenido);
+    }
+}
+ArgumentoEspecialRegExp.prototype=Object.create(ArgumentoEspecialMonovalente.prototype);
+
 function ArgumentoEspecialColeccion(){
 }
 
@@ -377,8 +390,8 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
         var controlBidireccional=true;
         var rta={}; // solo se ponen si se necesita: tieneError:false, tieneAdvertencias:false
         if( typeof esperado =='object'?(
-                esperado instanceof RegExp?(
-                    !esperado.test(obtenido)
+                esperado instanceof ArgumentoEspecialMonovalente?(
+                    !esperado.compatible(obtenido)
                 ):(
                     typeof obtenido !='object' ||
                         (esperado===null)!==(obtenido===null) ||
@@ -388,23 +401,21 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
                         (esperado instanceof ArgumentoEspecialMonovalente) && !esperado.compatible(obtenido) || 
                         (esperado instanceof Date) && esperado.toString()!=obtenido.toString()
                 )
-            ):(
-                typeof esperado =='function' && esperado instanceof RegExp?(
-                    !esperado.test(obtenido)
-                ):(
-                    esperado!==obtenido
-                )
-            )
+            ):esperado!==obtenido
         ){
             if(!caso.ignorarDiferenciaDeTiposNumericos || isNaN(esperado) || isNaN(obtenido) || esperado!=obtenido){
                 rta.tieneError=true;
             }else{
                 rta.tieneAdvertencias=true;
             }
-            rta.esperado=esperado;
+            if(typeof esperado =='object' && esperado instanceof ArgumentoEspecialMonovalente){
+                rta.esperado=esperado.mostrarEsperado();
+            }else{
+                rta.esperado=esperado;
+            }
             rta.obtenido=obtenido;
-        }else if(typeof(esperado)=='object' && esperado instanceof ArgumentoEspecialParaMock){
-            rta.iguales=probador.cadenaParaMostrar(esperado);
+        }else if(typeof(esperado)=='object' && esperado instanceof ArgumentoEspecialMonovalente){
+            rta.iguales=esperado.mostrarIguales(obtenido);
         }else if(typeof(esperado)!='object' || esperado==null && obtenido==null || esperado instanceof Date || esperado instanceof RegExp){
             rta.iguales=probador.cadenaParaMostrar(obtenido);
         }else{
@@ -625,13 +636,13 @@ Probador.prototype.agregarCasosEjemplo=function(){
         entrada:[{un_dato:'uno', lista:['elemento1', 'elemento2'], dato_agregado:'agregado'}],
         esperado:{respuesta:new ArgumentoEspecialIgnorarSobrantes({un_dato:'uno', lista:['elemento1', 'elemento2']})}
     });
-    return; 
     this.agregarCaso({
         modulo:'asi_se_ven_los_ok',
+        objetoThis:app_global,
         funcion:'lanzarExcepcion',
         caso:'así se ve cuando coincide el texto de la excepción',
         entrada:["texto de la excepcion"],
-        error:"texto de la excepcion"
+        esperado:{error:"texto de la excepcion"}
     });
     this.agregarCaso({
         modulo:'asi_se_ven_los_errores',
@@ -639,14 +650,15 @@ Probador.prototype.agregarCasosEjemplo=function(){
         mostrarAunqueNoFalleHasta:'2013-03-31',
         caso:'prueba de RegExp que falla',
         entrada:[{
-            simple:'palabra más larga de lo esperada',
-            conBarra:'palabra con prefijo',
+            falla:'palabra más larga de lo esperada',
+            anda:'palabra con prefijo',
         }],
         esperado:{respuesta:{
-            simple:/^Palabra$/gi,
-            conBarra:/^prefijo$/g,
+            falla:new ArgumentoEspecialRegExp(/^Palabra$/i),
+            anda:new ArgumentoEspecialRegExp(/prefijo$/),
         }}
     });
+    return; 
     this.agregarCaso({
         modulo:'asi_se_ven_los_ok',
         funcion:'estoMismo',
