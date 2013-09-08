@@ -3,6 +3,9 @@
 
 function Aplicacion(){
     this.esAplicacion=true;
+    this.controlador={
+        controlar:function(){}
+    }
 }
 
 Aplicacion.prototype.currentTimeStamp=function(){
