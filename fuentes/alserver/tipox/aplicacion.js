@@ -5,7 +5,11 @@ function Aplicacion(){
     this.esAplicacion=true;
     this.controlador={
         controlar:function(){}
-    }
+    };
+    var d=new Date();
+    var d2=d.toISOString();
+    var d3=d2.substr(0,'2099-12-31'.length)
+    this.hoyString=d3;
     this.hoyString=new Date().toISOString().substr(0,'2099-12-31'.length);
 }
 

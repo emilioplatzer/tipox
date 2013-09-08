@@ -219,6 +219,7 @@ function ArgumentoEspecialRegExp(regexp){
         return this.mostrarEsperado()+' ~ '+JSON.stringify(obtenido);
     }
 }
+
 ArgumentoEspecialRegExp.prototype=Object.create(ArgumentoEspecialMonovalente.prototype);
 
 function ArgumentoEspecialColeccion(){
