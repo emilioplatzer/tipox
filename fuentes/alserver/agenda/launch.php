@@ -7,7 +7,7 @@ lanzar(array(
         "../tercera/md5_paj",
         "../tipox/app_pr",
         "../tipox/grilla_pr",
-        "../extensiones/compatibilidad",
+        // "../extensiones/compatibilidad",
         "temporario",
         "main"
     ),
