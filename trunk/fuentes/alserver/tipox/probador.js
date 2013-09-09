@@ -159,7 +159,7 @@ Probador.prototype.correrPruebas=function(params){
 Probador.prototype.registrarCaso=function(caso,params){
     this.app.controlador.controlar({
         funcion:{obligatorio:true},
-        modulo: {obligatorio:true},
+        modulo: {obligatorio:true}
     });
     if(!(caso.modulo in this.pendientesPorModulos)){
         this.pendientesPorModulos[caso.modulo]=0;
@@ -168,7 +168,7 @@ Probador.prototype.registrarCaso=function(caso,params){
     var mensaje={
         modulo:caso.modulo, 
         caso:caso.caso, 
-        estado:caso.ignorado?'ignorada':(pendiente?'pendiente':'salteada'),
+        estado:caso.ignorado?'ignorada':(pendiente?'pendiente':'salteada')
     }
     var tituloCaso=[caso.caso];
     if(caso.ignorado && caso.ignorado.substr && caso.ignorado.substr(0,1)=='#' && this.app.tracUrl){  
@@ -680,11 +680,11 @@ Probador.prototype.agregarCasosEjemplo=function(){
         caso:'prueba de RegExp que falla',
         entrada:[{
             falla:'palabra más larga de lo esperada',
-            anda:'palabra con prefijo',
+            anda:'palabra con prefijo'
         }],
         esperado:{respuesta:{
             falla:new ArgumentoEspecialRegExp(/^Palabra$/i),
-            anda:new ArgumentoEspecialRegExp(/prefijo$/),
+            anda:new ArgumentoEspecialRegExp(/prefijo$/)
         }}
     });
     this.agregarCaso({
@@ -695,7 +695,7 @@ Probador.prototype.agregarCasosEjemplo=function(){
         entrada:[{
             simple:'palabra',
             conBarra:'uno/otro',
-            conEspacioOpcional:'todojunto separado',
+            conEspacioOpcional:'todojunto separado'
         }],
         esperado:{respuesta:{
             simple:new ArgumentoEspecialRegExp(/^Palabra$/i),
@@ -709,10 +709,10 @@ Probador.prototype.agregarCasosEjemplo=function(){
         mostrarAunqueNoFalleHasta:'2013-03-31',
         caso:'prueba de Fechas, hay que usar UTC',
         entrada:[{
-            dia:fechaAmd('1991-06-05').getUTCDate(),
+            dia:fechaAmd('1991-06-05').getUTCDate()
         }],
         esperado:{respuesta:{
-            dia:5,
+            dia:5
         }}
     });
     this.agregarCaso({

@@ -303,8 +303,8 @@ Colocador.prototype.creadores.lista={tipo:'tipox', descripcion:'lista genérica 
             nuevo.nodes.push({tipox:contenido.tagElement, nodes:contenido.elementos[i]});
         }
         return nuevo;
-    },
-}}
+    }
+}};
 
 Colocador.prototype.creadores.funcion={tipo:'tipox', descripcion:'muestra la corrida de una función sobre la app', creador:{
     nuevo:function(tipox,contenido){
@@ -317,8 +317,8 @@ Colocador.prototype.creadores.funcion={tipo:'tipox', descripcion:'muestra la cor
         destino.ongrab=function(){
             return this[contenido.funcion].apply(this,contenido.parametros||[]);
         }
-    },
-}};
+    }
+}}
 
 Colocador.prototype.creadores.tabla={tipo:'tipox', descripcion:'tabla simple basada en filas de celdas', creador:{
     translate:function(contenido){
@@ -336,6 +336,6 @@ Colocador.prototype.creadores.tabla={tipo:'tipox', descripcion:'tabla simple bas
         }
         rta.nodes=nodesFilas;
         return rta;
-    },
+    }
 }}
 
