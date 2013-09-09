@@ -13,6 +13,7 @@ function FlujoDirectoProbador(){
     var destino;
     var mensajesPendientes;
     var agregarMensaje;
+    var maxProfundidadPredeterminada=10;
     var preparar=function(){
         destino=document.getElementById('debugDirecto');
         listoParaEnviar=true;
@@ -34,11 +35,19 @@ function FlujoDirectoProbador(){
                 document.body.appendChild(destino);
             }
         }
-        var ponerValorEn=function(destino,mensaje){
+        var ponerValorEn=function(destino,mensaje,maxProfundidad,profundidad){
             var mensajeString;
-            try{
-                mensajeString=JSON.stringify(mensaje);
-                if(mensaje instanceof Object && !(mensaje instanceof Date)){
+            if(typeof mensaje == 'object' && !(mensaje instanceof Date)){
+                if(profundidad>=maxProfundidad){
+                    var boton=document.createElement('button');
+                    boton.innerText='+';
+                    // boton.datosPonerValorEn=mensaje;
+                    boton.addEventListener('click',function(){
+                        ponerValorEn(destino,mensaje,maxProfundidad+maxProfundidadPredeterminada,profundidad);
+                        this.style.display='none';
+                    });
+                    destino.appendChild(boton);
+                }else{
                     var tabla=document.createElement('table');
                     var fila;
                     var celda;
@@ -59,32 +68,38 @@ function FlujoDirectoProbador(){
                         celda.innerText=i;
                         celda.className='JSON_index';
                         celda=fila.insertCell(-1);
-                        ponerValorEn(celda,mensaje[i]);
+                        ponerValorEn(celda,mensaje[i],maxProfundidad,profundidad+1);
                         cantidad++;
                     }
                     if(celdaMargen){
                         celdaMargen.rowSpan=cantidad+1;
                     }
                     destino.appendChild(tabla);
-                }else if(mensaje===undefined){
-                    destino.innerText='undefined';
-                    destino.className='JSON_undefined';
-                }else if(mensaje===null){
-                    destino.innerText='null';
-                    destino.className='JSON_null';
-                }else{
-                    destino.innerText=mensajeString;
-                    destino.className='JSON_'+typeof mensaje;
                 }
-            }catch(err){
-                destino.innerText=mensajeString;
+            }else{
+                try{
+                    mensajeString=JSON.stringify(mensaje);
+                    if(mensaje===undefined){
+                        destino.innerText='undefined';
+                        destino.className='JSON_undefined';
+                    }else if(mensaje===null){
+                        destino.innerText='null';
+                        destino.className='JSON_null';
+                    }else{
+                        destino.innerText=mensajeString;
+                        destino.className='JSON_'+typeof mensaje;
+                    }
+                }catch(err){
+                    destino.innerText=mensajeString;
+                }
             }
         }
         agregarMensaje=function(mensaje){
             var nuevo_div=document.createElement('div');
-            ponerValorEn(nuevo_div,mensaje);
+            ponerValorEn(nuevo_div,mensaje,maxProfundidadPredeterminada,0);
             destino.appendChild(nuevo_div);
         }
+        preparado=true;
     }
     this.enviar=function(mensaje){
         if(!preparado){
@@ -590,9 +605,9 @@ Probador.prototype.agregarCasosEjemplo=function(){
         mostrarAunqueNoFalleHasta:'2013-03-31',
         caso:'Hay un problema con las fechas porque el constructor de Date considera GMT0 pero al extraer usa el Locale',
         entrada:[{
-            dia:new Date('1991-06-05').getDate(),
-            mostrar:new Date('1991-06-05').toString(),
-            mostrarUTC:new Date('1991-06-05').toUTCString()
+            dia:fechaAmd('1991-06-05').getDate(),
+            mostrar:fechaAmd('1991-06-05').toString(),
+            mostrarUTC:fechaAmd('1991-06-05').toUTCString()
         }],
         esperado:{respuesta:{
             dia:5,
@@ -681,7 +696,7 @@ Probador.prototype.agregarCasosEjemplo=function(){
         mostrarAunqueNoFalleHasta:'2013-03-31',
         caso:'prueba de Fechas, hay que usar UTC',
         entrada:[{
-            dia:new Date('1991-06-05').getUTCDate(),
+            dia:fechaAmd('1991-06-05').getUTCDate(),
         }],
         esperado:{respuesta:{
             dia:5,
@@ -1105,9 +1120,9 @@ if(!Aplicacion.prototype.sinBaseDeDatos){
         entrada:[{hacer:'select',from:'prueba_tabla_comun',where:true,order_by:true}],
         mostrarAunqueNoFalleHasta:'2013-03-31',
         salida:[
-            {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,fecha:new Date('2001-12-31'),"ultima_modificacion":"2001-01-01"},
+            {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,fecha:fechaAmd('2001-12-31'),"ultima_modificacion":"2001-01-01"},
             {id:2,nombre:"dos",importe:0.11,activo:false,cantidad:1   ,fecha:null                  ,"ultima_modificacion":"2001-01-01"},
-            {id:3,nombre:"año",importe:2000,activo:null ,cantidad:null,fecha:new Date('1991-05-06'),"ultima_modificacion":"2001-01-01"}
+            {id:3,nombre:"año",importe:2000,activo:null ,cantidad:null,fecha:fechaAmd('1991-05-06'),"ultima_modificacion":"2001-01-01"}
         ]
     });
 

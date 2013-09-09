@@ -5,7 +5,7 @@ $lanzador=new Lanzador(array(
     'title'=>'info sobre tipox',
     'js'=>array(
         '../tipox/comunes.js',
-        '../tipox/compatibilidad.js',
+        '../tipox/chromatizador.js',
         '../tipox/aplicacion.js',
         '../tipox/colocador.js',
         '../tipox/probador.js',

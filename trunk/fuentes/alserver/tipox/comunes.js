@@ -106,3 +106,7 @@ function obtener_top_global(elemento){
     }
     return posicion_global;
 }
+
+function fechaAmd(cadenaAnnoMesDia){
+    return new Date(cadenaAnnoMesDia);
+}
