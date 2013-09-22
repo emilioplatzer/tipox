@@ -152,7 +152,7 @@ Probador.prototype.correrPruebas=function(params){
         var caso=this.casosDePrueba[i];
         this.registrarCaso(caso,params);
     }
-    this.probarVariosCasos(100);
+    this.probarVariosCasos(1);
     // document.getElementById('TDD_caso:así se ven lo errores en los casos de prueba fallidos').parentNode.style.display='none';
 }
 
@@ -210,6 +210,7 @@ Probador.prototype.probarVariosCasos=function(cuantos){
         }else{
             this.probarElCaso(caso);
         }
+        seguirProcesando--;
     }
     var este=this;
     if(this.casosPendientes.length){
