@@ -10,18 +10,19 @@
 function FlujoColocadorProbador(){
     var preparado=false;
     var elementoResultados;
+    this.colocador=new Colocador();
     var preparar=function(){
         elementoResultados=document.getElementById('TDD_resultados')||
-            this.app.colocador.colocar({destino:document.body,contenido:{tipox:'div', className:'TDD_resultados'}});
+            this.colocador.colocar({destino:document.body,contenido:{tipox:'div', className:'TDD_resultados'}});
         preparado=true;
     }
     this.enviar=function(mensaje){
         if(!preparado){
-            preparar();
+            preparar.call(this);
         }
         var idModulo='TDD_modulo:'+mensaje.modulo;
         var elementoModulo=document.getElementById(idModulo)||
-            this.app.colocador.colocar({
+            this.colocador.colocar({
                 destino:elementoResultados,
                 contenido:{
                     tipox:'div', className:'TDD_modulo', id:idModulo, nodes:[
@@ -29,7 +30,7 @@ function FlujoColocadorProbador(){
                             classList:['TDD_modulo_titulo','TDD_prueba_pendiente'], 
                             dataset:{clasePrueba:'TDD_prueba_pendiente'},
                             id:idModulo+'_titulo', 
-                            innerText:caso.modulo, 
+                            innerText:mensaje.modulo, 
                             eventos:{click:'toggleDisplayAbajo'}
                         },
                         {tipox:'div', id:idModulo+'_casos', style:{display:'none'}}
@@ -38,15 +39,15 @@ function FlujoColocadorProbador(){
             });
         var elementoModuloCasos=document.getElementById(idModulo+'_casos');
         var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
-        var idCaso='TDD_caso:'+caso.caso;
-        var tituloCaso=[caso.caso];
+        var idCaso='TDD_caso:'+mensaje.caso;
+        var tituloCaso=[mensaje.caso];
         if(mensaje.ticket){
-            var ticket={tipox:'a', href:this.app.tracUrl+'/ticket/'+caso.ignorado.substr(1), innerText:caso.ignorado};
+            var ticket={tipox:'a', href:this.app.tracUrl+'/ticket/'+mensaje.ignorado.substr(1), innerText:mensaje.ignorado};
             tituloCaso.push(ticket);
             this.app.colocador.colocar({destino:elementoModuloTitulo, contenido:[' ',ticket]});
         }
-        var elementoCaso=this.app.colocador.colocar({
-            destino:elementoModuloCasos
+        var elementoCaso=this.colocador.colocar({
+            destino:elementoModuloCasos,
             contenido:{
                 tipox:'div', classList:['TDD_caso', 'TDD_estado_'+mensaje.estado], id:idCaso, nodes:[{
                     tipox:'div', 
@@ -65,8 +66,8 @@ function FlujoColocadorProbador(){
                 ]};
             }
             // elementoCaso=document.getElementById(idCaso);
-            this.app.colocador.colocar({
-                destino:elementoCaso
+            this.colocador.colocar({
+                destino:elementoCaso,
                 contenido:{
                     tipox:'div', className:'TDD_error', nodes:[]
                 }
@@ -75,9 +76,7 @@ function FlujoColocadorProbador(){
     }
 }
 
-
-
-Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCaso,salvarEntrada,appMock){
+Probador.prototype.compararObtenidoX=function(obtenidoOk,errorObtenido,caso,idCaso,salvarEntrada,appMock){
     this.cantidadPruebas++;
     if(!(caso.modulo in this.cantidadPruebasPorModulos)){
         this.cantidadPruebasPorModulos[caso.modulo]=0;
@@ -248,11 +247,11 @@ Probador.prototype.compararObtenido=function(obtenidoOk,errorObtenido,caso,idCas
     }
 };
 
-Probador.prototype.MostrarNoEsperabaNada=function(){ 
+Probador.prototype.MostrarNoEsperabaNadaX=function(){
     this.vacio='vacio';
 }
 
-Probador.prototype.prioridadEstados={   
+Probador.prototype.prioridadEstadosX={   
     TDD_prueba_ok:1,
     TDD_prueba_ignorada:2,
     TDD_prueba_comenzada:3,
@@ -261,7 +260,7 @@ Probador.prototype.prioridadEstados={
     TDD_prueba_fallida:9
 }
 
-Probador.prototype.cambioEstado=function(caso,nombreClase){
+Probador.prototype.cambioEstadoX=function(caso,nombreClase){
     var elementoTitulo=document.getElementById('TDD_modulo:'+caso.modulo+'_titulo');
     var elementoCaso  =document.getElementById('TDD_caso:'  +caso.caso  +'_titulo');
     this.cambioEstadoDeUno(elementoCaso,nombreClase);
@@ -279,7 +278,7 @@ Probador.prototype.cambioEstado=function(caso,nombreClase){
     this.cambioEstadoDeUno(elementoTitulo,maxPrioridad);
 }
 
-Probador.prototype.cambioEstadoDeUno=function(elemento,nombreClase){
+Probador.prototype.cambioEstadoDeUnoX=function(elemento,nombreClase){
     if(!!elemento.dataset.clasePrueba){
         elemento.classList.remove(elemento.dataset.clasePrueba);
     }
@@ -287,31 +286,14 @@ Probador.prototype.cambioEstadoDeUno=function(elemento,nombreClase){
     elemento.dataset.clasePrueba=nombreClase;
 }
 
-Aplicacion.prototype.cargarCasosDePrueba=function(){
+Aplicacion.prototype.cargarCasosDePruebaX=function(){
     Aplicacion.prototype.casosDePrueba=[];
     for(var i=0; i<Aplicacion.prototype.paraCargarCasosDePrueba.length; i++){
         Aplicacion.prototype.paraCargarCasosDePrueba[i]();
     }
 }
 
-var ArgumentoEspecialParaMock=function(definicion){
-    this.id=definicion.id;
-}
-
-ArgumentoEspecialParaMock.stringify=function(clave, valor){
-    if(valor instanceof HTMLElement){
-    
-        return JSON.stringify(new ArgumentoEspecialParaMock({id:valor.id}));
-    }
-    return valor;
-}
-
-ArgumentoEspecialParaMock.prototype.compatible=function(valor){
-    var rta=valor instanceof HTMLElement && this.id==valor.id;
-    return rta;
-}
-
-Aplicacion.prototype.appMock=function(definicion){
+Aplicacion.prototype.appMockX=function(definicion){
     var mock=definicion.mockBasadoEnAplicacion?new Aplicacion():{esAplicacion:true};
     var rtaMock={obtenido:{}, esperado:{}};
     var app=this;
@@ -382,7 +364,7 @@ Aplicacion.prototype.appMock=function(definicion){
     return mock;
 }
 
-Aplicacion.prototype.probarEvento=function(definicion){
+Aplicacion.prototype.probarEventoX=function(definicion){
     var funcionEvento=this.eventos[definicion.nombre];
     if(definicion.sinMock){
         return funcionEvento.call(this,definicion.evento,document.getElementById(definicion.idDestino),{probando:true});
@@ -408,7 +390,7 @@ Aplicacion.prototype.probarEvento=function(definicion){
     }
 }
 
-Aplicacion.prototype.probarFuncionModificadoraApp=function(definicion){
+Aplicacion.prototype.probarFuncionModificadoraAppX=function(definicion){
     var mock=this.appMock(definicion);
     mock[definicion.funcion]=this[definicion.funcion];
     for(var variable in definicion.miembrosModificables){
@@ -423,599 +405,15 @@ Aplicacion.prototype.probarFuncionModificadoraApp=function(definicion){
     return mock;
 }
 
-Aplicacion.prototype.pruebaGrabSimple=function(definicion){
+Aplicacion.prototype.pruebaGrabSimpleX=function(definicion){
     this.colocar(TDD_zona_de_pruebas,{tipox:'div', id:'TDD_zona_de_pruebas_simple', nodes:definicion});
     var rta=TDD_zona_de_pruebas_simple.innerHTML;
     TDD_zona_de_pruebas.removeChild(TDD_zona_de_pruebas_simple);
     return rta;
 }
 
-Aplicacion.prototype.pruebaTraduccion=function(definicion){
+Aplicacion.prototype.pruebaTraduccionX=function(definicion){
     var creador=this.domCreator(definicion.tipox);
     return creador.translate(definicion);
 }
 
-Aplicacion.prototype.paraCargarCasosDePrueba=[];
-
-Aplicacion.prototype.paraCargarCasosDePrueba.push(function(){
-//////////////// CASOS DE PRUEBA ////////////////////
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'estoMismo',
-    caso:'así se ven lo errores en los casos de prueba fallidos',
-    entrada:[{
-        iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
-        si_no_coinciden:'y abajo en rojo el obtenido',
-        'si falta algun campo':{'en el esperado':'y muestra el obtenido'},
-        'como se ve si el tipo no coincide':1,
-        'y si la estructura no coincide':"{uno:1, dos:2}"}],
-    salida:{
-        iguales:'cuando el valor del campo del esperado y el obtenido coinciden se ve un solo dato',
-        si_no_coinciden:'el valor esperado se ve arriba',
-        'si falta algun campo':{'en el obtenido':'muestra el esperado y'},
-        'como se ve si el tipo no coincide':"1",
-        'y si la estructura no coincide':{uno:1, dos:2}}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'splice',
-    caso:'así se ve cuando una función modifica un dato interno',
-    entrada:[["uno", "dos", "tres", "cuatro"],2,1,"3"],
-    salida:["tres"]
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'lanzarExcepcion',
-    caso:'así se ven los casos que lanzan excepciones cuando se esperaba un resultado',
-    entrada:["texto de la excepcion no esperada"],
-    salida:{campo_esperado:'valor esperado', otro_campo:'otro valor esperado'}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'estoMismo',
-    caso:'así se ven los casos donde se espera que lance una excepción pero no se lanza',
-    entrada:["valor obtenido"],
-    error:"texto de la excepcion esperada"
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'lanzarExcepcion',
-    caso:'así se ven cuando no coincide el texto de la excepción',
-    entrada:["texto de la excepcion obtenida"],
-    error:"texto de la excepcion esperada"
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'estoMismo',
-    mostrarAunqueNoFalleHasta:'2013-03-31',
-    caso:'Hay un problema con las fechas porque el constructor de Date considera GMT0 pero al extraer usa el Locale',
-    entrada:[{
-        dia:new Date('1991-06-05').getDate(),
-        mostrar:new Date('1991-06-05').toString(),
-        mostrarUTC:new Date('1991-06-05').toUTCString()
-    }],
-    salida:{
-        dia:5,
-        mostrar:'1991-06-05 sin hora ni GMT',
-        mostrarUTC:'1991-06-05 sin hora ni GMT'
-    }
-});
-
-Aplicacion.prototype.asi_se_ven_los_ignorados=function(){
-    this.lanzarExcepcion('Esto nunca debe ejecutarse porque es un ejemplo');
-}
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ignorados',
-    funcion:'estoMismo',
-    caso:'Los casos de prueba ignorados se ven así',
-    ignorado:true,
-    entrada:[{iguales:'este es',abajo:'solo en obtenido',distinto:'obtenido'}],
-    salida:{iguales:'este es',arriba:'solo en esperado',distinto:'esperado'}
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    caso:'Se puede comparar en forma exacta usando el campo "salida"',
-    entrada:[{iguales:'este es',este_tambien:7}],
-    salida:{iguales:'este es',este_tambien:7}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    caso:'Se puede comparar de modo de que estén ciertos campos pero no controlar si sobran (para eso se usa "salidaMinima")',
-    entrada:[{iguales:'sí', este_sobra:'en lo esperado no está, pero no molesta'}],
-    salidaMinima:{iguales:'sí'}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    mostrarAunqueNoFalleHasta:'2099-12-31',
-    caso:'Se puede pedir que muestre el resultado aunque sea correcto especificando en el caso la propiedad mostrarAunqueNoFalleHasta',
-    entrada:[{un_dato:'uno', lista:['elemento1', 'elemento2'], dato_agregado:'agregado'}],
-    salidaMinima:{un_dato:'uno', lista:['elemento1', 'elemento2']}
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'lanzarExcepcion',
-    caso:'así se ve cuando coincide el texto de la excepción',
-    entrada:["texto de la excepcion"],
-    error:"texto de la excepcion"
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_errores',
-    funcion:'estoMismo',
-    mostrarAunqueNoFalleHasta:'2013-03-31',
-    caso:'prueba de RegExp que falla',
-    entrada:[{
-        simple:'palabra más larga de lo esperada',
-        conBarra:'palabra con prefijo',
-    }],
-    salida:{
-        simple:/^Palabra$/gi,
-        conBarra:/^prefijo$/g,
-    }
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    mostrarAunqueNoFalleHasta:'2013-03-31',
-    caso:'prueba de RegExp',
-    entrada:[{
-        simple:'palabra',
-        conBarra:'uno/otro',
-        conEspacioOpcional:'todojunto separado',
-    }],
-    salida:{
-        simple:/^Palabra$/i,
-        conBarra:/^uno\/otro$/,
-        conEspacioOpcional:/^todo ?junto ?separado$/
-    }
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    mostrarAunqueNoFalleHasta:'2013-03-31',
-    caso:'prueba de Fechas, hay que usar UTC',
-    entrada:[{
-        dia:new Date('1991-06-05').getUTCDate(),
-    }],
-    salida:{
-        dia:5,
-    }
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    caso:'veo que el sort ordene bien',
-    entrada:[[91,1,9,11,111].sort(function(a,b){return a-b})],
-    salida:[1,9,11,91,111]
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    caso:'veo que el reverse dé vuelta',
-    entrada:[[91,1,9,11,111].reverse()],
-    salida:[111,11,9,1,91]
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'asi_se_ven_los_ok',
-    funcion:'estoMismo',
-    caso:'veo que el sort ordene al revés',
-    entrada:[[91,1,9,11,111].sort(function(a,b){return b-a})],
-    salida:[111,91,11,9,1]
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'control interno del sistema',
-    funcion:'enviarPaquete',
-    caso:'control de que el sistema esté instalado',
-    aclaracionSiFalla:['se puede instalar poniendo directamente ',{tipox:'a', href:'app.php?proceso=instalarBaseDeDatos', innerText:'app.php?proceso=instalarBaseDeDatos'}],
-    entrada:[{proceso:'control_instalacion',paquete:{tipo:'base'}}],
-    salidaMinima:{estadoInstalacion:'completa'}
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'control interno del sistema',
-    funcion:'enviarPaquete',
-    caso:'control de que el sistema esté preparado para correr casos de prueba en la base',
-    aclaracionSiFalla:['se puede instalar poniendo directamente ',{tipox:'a', href:'app.php?proceso=instalarBaseDeDatos', innerText:'app.php?proceso=instalarBaseDeDatos'}],
-    entrada:[{proceso:'control_instalacion',paquete:{tipo:'tdd'}}],
-    salidaMinima:{estadoInstalacion:'completa'}
-});
-
-if(Aplicacion.prototype.paginas.entrar){
-    Aplicacion.prototype.casosDePrueba.push({
-        modulo:'control de usuarios',
-        funcion:'enviarPaquete',
-        caso:'entrada al sistema exitosa',
-        entrada:[{proceso:'entrada',paquete:{usuario:'abel',password:hex_md5('abel'+'clave1')}}],
-        salidaMinima:{activo:true}
-    });
-    Aplicacion.prototype.casosDePrueba.push({
-        modulo:'control de usuarios',
-        funcion:'enviarPaquete',
-        caso:'entrada al sistema fallida por clave erronea',
-        entrada:[{proceso:'entrada',paquete:{usuario:'abel',password:hex_md5('abel'+'clave2')}}],
-        error:'el usuario o la clave no corresponden a un usuario activo'
-    });
-    Aplicacion.prototype.casosDePrueba.push({
-        modulo:'control de usuarios',
-        funcion:'enviarPaquete',
-        caso:'entrada al sistema fallida por usuario inexistente',
-        entrada:[{proceso:'entrada',paquete:{usuario:'beto',password:hex_md5('beto')}}],
-        error:'el usuario o la clave no corresponden a un usuario activo'
-    });
-    Aplicacion.prototype.casosDePrueba.push({
-        modulo:'control de usuarios',
-        funcion:'enviarPaquete',
-        caso:'entrada al sistema fallida por usuario inactivo',
-        entrada:[{proceso:'entrada',paquete:{usuario:'cain',password:hex_md5('cain'+'clave2')}}],
-        error:'el usuario "cain" no esta activo'
-    });
-    Aplicacion.prototype.casosDePrueba.push({
-        modulo:'control de usuarios',
-        funcion:'probarEvento',
-        caso:'entrada al sistema errónea a través del evento entrada',
-        elementos:{
-            usuario:{tipox:'input', type:'text', value:'abel'}, 
-            password:{tipox:'input', type:'password', value:'clave2'},
-            resultado:{tipox:'div'},
-            boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
-        },
-        entrada:[{
-            nombre:'entrar_aplicacion',
-            incluirDocumentoEnSalida:true,
-            mocks:[{ 
-                funcion:'enviarPaquete', 
-                argumentos:[{proceso:'entrada', paquete:{usuario:'abel', password:hex_md5('abel'+'clave2')}}], 
-                futuro:{recibirError:"clave errónea"}
-            }]
-        }],
-        salidaDom:{documento:{
-            resultado:{innerText:'clave errónea', className:'resultado_error'}, 
-            boton_entrar:{disabled:false}
-        }}
-    });
-    Aplicacion.prototype.casosDePrueba.push({
-        modulo:'control de usuarios',
-        funcion:'probarEvento',
-        caso:'entrada al sistema exitosa a través del evento entrada',
-        // relanzarExcepcionSiHay:true,
-        elementos:{
-            usuario:{tipox:'input', type:'text', value:'abel'}, 
-            password:{tipox:'input', type:'password', value:'clave1'},
-            resultado:{tipox:'div'},
-            boton_entrar:{tipox:'input', type:'button', disabled:'disabled'}
-        },
-        entrada:[{
-            nombre:'entrar_aplicacion',
-            incluirDocumentoEnSalida:true,
-            mocks:[{ 
-                funcion:'enviarPaquete', 
-                argumentos:[{proceso:'entrada', paquete:{usuario:'abel', password:hex_md5('abel'+'clave1')}}], 
-                futuro:{recibirListo:{activo:true}}
-            },{ 
-                funcion:'cambiarUrl', 
-                argumentos:['{"menu":"donde_entra"}'], 
-                retornar:null
-            },{ 
-                miembro:'urlBienvenida', 
-                valor:'{"menu":"donde_entra"}'
-            }]
-        }],
-        salidaDom:{documento:{
-            resultado:{innerText:'Validado. Entrando...', className:'resultado_ok'}, 
-            boton_entrar:{disabled:true}
-        }}
-    });
-}
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'creación de elementos del DOM a través de objetos tipox',
-    funcion:'pruebaTraduccion',
-    caso:'traducir el tipox:lista',
-    entrada:[{tipox:'lista', tagList:'ol(1)', tagElement:'li(2)', elementos:[
-                'uno', 
-                'dos', 
-                {esto:{queda:{}}}
-            ]}],
-    salida:{tipox:'ol(1)',nodes:[
-                {tipox:'li(2)', nodes:'uno'}, 
-                {tipox:'li(2)', nodes:'dos'}, 
-                {tipox:'li(2)', nodes:{esto:{queda:{}}}}
-            ]}
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'creación de elementos del DOM a través de objetos tipox',
-    funcion:'pruebaGrabSimple',
-    caso:'caso de ejemplo',
-    entrada:[{tipox:'p', id:'id.p', className:'la_clase', nodes:[ "texto libre ", {tipox:'span', className:'cita', innerText:"un span"}]}],
-    salida:'<p id="id.p" class="la_clase">texto libre <span class="cita">un span</span></p>'
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'creación de elementos del DOM a través de objetos tipox',
-    funcion:'pruebaGrabSimple',
-    caso:'creación de elemento del DOM con style',
-    entrada:[{tipox:'p', style:{width:200, backgroundColor:'#333'}}],
-    salida:/<p style="width: 200px; background-color: rgb\(51, 51, 51\); ?"><\/p>/
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'creación de elementos del DOM a través de objetos tipox',
-    funcion:'pruebaGrabSimple',
-    caso:'los nodos internos indexado por id',
-    entrada:[{tipox:'div', id:'id1', nodes:{indexadoPor:'id', id2:{tipox:'div', innerText:'texto 2'},id3:{tipox:'div', innerText:'texto 3'}}}],
-    salida:'<div id="id1"><div id="id2">texto 2</div><div id="id3">texto 3</div></div>'
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'creación de elementos del DOM a través de objetos tipox',
-    funcion:'pruebaGrabSimple',
-    caso:'el innerText solo puede recibir strings',
-    entrada:[{tipox:'div', id:'id1', innerText:[]}],
-    error:'el innerText solo puede recibir strings'
-});
-
-var paraProbarTipoxTabla={
-    objeto:{a:{b:"uno",c:"dos"},d:{e:{tipox:'button'},f:"cuatro"}}, 
-    arreglo:[["uno","dos"],[{tipox:'button'},"cuatro"]]
-};
-
-for(var cual_paraProbarTipoxTabla in paraProbarTipoxTabla){
-    var contenido_paraProbarTipoxTabla=paraProbarTipoxTabla[cual_paraProbarTipoxTabla];
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'creación de elementos del DOM a través de objetos tipox',
-    funcion:'pruebaTraduccion',
-    caso:'tabla simple (no tiene que importar si las filas están o no indexadas) basado en: '+cual_paraProbarTipoxTabla,
-    entrada:[{tipox:'tabla', id:'id1', className:'esta', filas:contenido_paraProbarTipoxTabla}],
-    salida:{tipox:'table', id:'id1', className:'esta', nodes:[
-        {tipox:'tr', nodes:[
-            {tipox:'td', nodes:"uno"},
-            {tipox:'td', nodes:"dos"},
-        ]},
-        {tipox:'tr', nodes:[
-            {tipox:'td', nodes:{tipox:'button'}},
-            {tipox:'td', nodes:"cuatro"},
-        ]}
-    ]},
-});
-}
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'creación de elementos del DOM a través de objetos tipox',
-    funcion:'aplicarFuncion',
-    caso:'prueba de dataset directo del objeto',
-    elementos:{}, // para que se cree el contenedor para después hacer el colocar
-    entrada:[function(){
-        var definicion={tipox:'div', id:'idds', dataset:{uno:'uno', otroAtributoInterno:'otro'}};
-        return this.colocar('TDD_zona_'+'prueba de dataset directo del objeto',definicion);        
-    },[]],
-    salidaDom:{dataset:{uno:'uno', otroAtributoInterno:'otro'}}
-});
-
-Aplicacion.prototype.aplicarFuncion=function(hacer,parametros){
-    return hacer.apply(this,parametros)
-}
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'objeto Futuro',
-    funcion:'aplicarFuncion',
-    caso:'caso simple llega el dato después del luego',
-    entrada:[function(){
-        var futuro=this.newFuturo();
-        var rta='todavía no recibí nada';
-        futuro.luego("devuelve lo recibido",
-            function(mensaje,app){
-                rta=mensaje;
-            }
-        );
-        futuro.recibirListo('ya lo recibí');
-        return rta;
-    },[]],
-    salida:"ya lo recibí" 
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'objeto Futuro',
-    funcion:'aplicarFuncion',
-    caso:'caso simple llega el dato antes del luego',
-    entrada:[function(){
-        var futuro=this.newFuturo();
-        var rta='todavía no recibí nada';
-        futuro.recibirListo('ya lo recibí');
-        futuro.luego("devuelve el mismo mensaje recibido",
-            function(mensaje,app){
-                rta=mensaje;
-            }
-        );
-        return rta;
-    },[]],
-    salida:"ya lo recibí"
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'objeto Futuro',
-    funcion:'aplicarFuncion',
-    caso:'caso encadenado llega el dato después de varios luegos',
-    entrada:[function(){
-        var futuro=this.newFuturo();
-        var rta='todavía no recibí nada';
-        futuro.luego("agrega A", 
-            function(mensaje,app){
-                return mensaje+' paso A';
-            }
-        ).luego("agrega B",
-            function(mensaje,app){
-                rta=mensaje+' paso B';
-            }
-        );
-        futuro.recibirListo('recibido');
-        return rta;
-    },[]],
-    salida:"recibido paso A paso B" 
-});
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'objeto Futuro',
-    funcion:'aplicarFuncion',
-    caso:'caso encadenado llega el dato después de varios luegos que devuelven futuros',
-    entrada:[function(){
-        var rescate_f2;
-        var futuro=this.newFuturo();
-        var rta='todavía no recibí nada';
-        futuro.luego("agrega una A",
-            function(mensaje,app){
-                return mensaje+' paso A';
-            }
-        ).luego("prepara un futuro interno",
-            function(mensaje,app){
-                var f2=app.newFuturo();
-                f2.tengo=mensaje;
-                rescate_f2=f2;
-                return f2;
-            }
-        ).luego("agrega la C a un futuro encadenado",
-            function(mensaje,app){
-                return mensaje+' paso C';
-            }
-        );
-        futuro.luego("agrega la D",
-            function(mensaje,app){
-                rta=mensaje+' paso D';
-            }
-        );
-        futuro.recibirListo('recibido');
-        rescate_f2.recibirListo('x');
-        return {primera_parte:rescate_f2.tengo, segunda_parte:rta};
-    },[]],
-    salida:{primera_parte:'recibido paso A', segunda_parte:'x paso C paso D'}
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'objeto Futuro',
-    funcion:'aplicarFuncion',
-    caso:'un futuro tiene un luego que ya devolvió un futuro y después llamo a un luego',
-    entrada:[function(){
-        var futuro=this.newFuturo();
-        var f2;
-        var rta='todavía no recibí nada';
-        futuro.luego("prepara un futuro interno",
-            function(mensaje,app){
-                f2=app.newFuturo();
-                f2.luego("agrega una A",
-                    function(mensaje,app){
-                        return mensaje+' paso A';
-                    }
-                );
-                return f2;
-            }
-        );
-        futuro.recibirListo('Y');
-        futuro.luego("agrega una B después de recibir la Y",
-            function(mensaje,app){
-                rta=mensaje+' paso B';
-            }
-        );
-        f2.recibirListo('x');
-        return rta;
-    },[]],
-    salida:"x paso A paso B"
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'objeto Futuro',
-    funcion:'aplicarFuncion',
-    caso:'caso encadenado llega el dato, un luego lanza una excepción, es atrapada por un alFallar y no se sigue procesando',
-    entrada:[function(){
-        var rescate_f2;
-        var futuro=this.newFuturo();
-        var rta='todavía no recibí nada';
-        futuro.luego("agrega una A",
-            function(mensaje,app){
-                return mensaje+' paso A';
-            }
-        ).luego("suma el paso B",
-            function(mensaje,app){
-                return mensaje+' paso B';
-            }
-        ).luego("lanza un error, para ver",
-            function(mensaje,app){
-                throw new Error(mensaje+' paso C');
-            }
-        ).alFallar("alfallar recibido entre C y D",
-            function(mensaje,app){
-                rta=mensaje+' recibido como error';
-            }
-        ).luego("paso D",
-            function(mensaje,app){
-                rta=mensaje+' paso D';
-            }
-        ).alFallar("segundo error",
-            function(mensaje,app){
-                rta=mensaje+' segundo error';
-            }
-        );
-        futuro.recibirListo('listo');
-        return rta;
-    },[]],
-    salida:"listo paso A paso B paso C recibido como error"
-});
-
-Aplicacion.prototype.casosDePrueba.push({
-    modulo:'objeto Futuro',
-    funcion:'aplicarFuncion',
-    caso:'caso encadenado con un alFallar que recupera',
-    entrada:[function(){
-        var rescate_f2;
-        var futuro=this.newFuturo();
-        var rta='todavía no recibí nada';
-        futuro.luego("paso A",
-            function(mensaje,app){
-                return mensaje+' paso A';
-            }
-        ).alFallar("recuperado",
-            function(mensaje,app){
-                return mensaje+' recuperado';
-            }
-        ).luego("paso B",
-            function(mensaje,app){
-                rta=mensaje+' paso B';
-            }
-        ).alFallar("segundo error",
-            function(mensaje,app){
-                rta=mensaje+' segundo error';
-            }
-        );
-        futuro.recibirError('error');
-        return rta;
-    },[]],
-    salida:"error recuperado paso B"
-});
-
-// Aplicacion.prototype.casosDePrueba=[];
-if(!Aplicacion.prototype.sinBaseDeDatos){
-    Aplicacion.prototype.casosDePrueba.push({
-        modulo:'acceso a datos del servidor',
-        funcion:'accesoDb',
-        caso:'traer los datos de la prueba_tabla_comun',
-        entrada:[{hacer:'select',from:'prueba_tabla_comun',where:true,order_by:true}],
-        mostrarAunqueNoFalleHasta:'2013-03-31',
-        salida:[
-            {id:1,nombre:"uno",importe:null,activo:true ,cantidad:-9  ,fecha:new Date('2001-12-31'),"ultima_modificacion":"2001-01-01"},
-            {id:2,nombre:"dos",importe:0.11,activo:false,cantidad:1   ,fecha:null                  ,"ultima_modificacion":"2001-01-01"},
-            {id:3,nombre:"año",importe:2000,activo:null ,cantidad:null,fecha:new Date('1991-05-06'),"ultima_modificacion":"2001-01-01"}
-        ]
-    });
-
-    Aplicacion.prototype.casosDePrueba.push({
-        modulo:'acceso a datos del servidor',
-        funcion:'accesoDb',
-        caso:'para traer todos los datos (sin where) hay que poner where:true',
-        entrada:[{hacer:'select',from:'prueba_tabla_comun'}],
-        error:"el acceso a datos debe tener una clausula where"
-    });
-}
-//////////////// FIN CASOS DE PRUEBA ////////////////////
-});

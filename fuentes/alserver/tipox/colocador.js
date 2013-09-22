@@ -17,12 +17,12 @@ Colocador.prototype.creadorElementoDOM={
             case 'eventos': 
                 for(var id_evento in contenido.eventos) if(contenido.eventos.hasOwnProperty(id_evento)){
                     var app=this.app;
-                    destino.addEventListener(id_evento,function(evento,elemento){
+                    destino.addEventListener(id_evento,function(evento){
                         if("registro excepciones"){
                             try{
                                 return app.eventos[contenido.eventos[id_evento]].call(app,evento,this);
                             }catch(err){
-                                app.RegistrarExcepcion(err,elemento||menu);
+                                app.lanzarExcepcion(err,this);
                             }
                         }else{
                             return app.eventos[contenido.eventos[id_evento]].call(app,evento,this);
