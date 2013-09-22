@@ -79,9 +79,9 @@ function FlujoColocadorProbador(){
         var elementoCaso=document.getElementById(idCaso)||this.colocador.colocar({
             destino:elementoModuloCasos,
             contenido:{
-                tipox:'div', classList:['TDD_caso'], id:idCaso, nodes:[{
+                tipox:'div', className:'TDD_caso', id:idCaso, nodes:[{
                     tipox:'div', 
-                    classList:['TDD_caso_titulo', 'TDD_estado_'+mensaje.estado], 
+                    // classList:['TDD_caso_titulo', 'TDD_estado_'+mensaje.estado], 
                     id:idCaso+'_titulo', 
                     dataset:{estadoTdd:mensaje.estado},
                     nodes:tituloCaso

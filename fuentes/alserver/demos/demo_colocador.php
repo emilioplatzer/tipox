@@ -11,5 +11,8 @@ $lanzador=new Lanzador(array(
     ),
     'empezar'=>'cargando'
 ));
-$lanzador->lanzar();
+
+if(basename($_SERVER['PHP_SELF'])==basename(__FILE__)){
+    $lanzador->lanzar();
+}
 ?>

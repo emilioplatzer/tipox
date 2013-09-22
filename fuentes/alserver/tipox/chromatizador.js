@@ -143,7 +143,7 @@ var chromatizador={
         destino.classListum={
             padre:{},
             contains:function(clase){
-                var arreglo=(this.padre.className||'').split(' ');
+                var arreglo=this.padre.className?this.padre.className.split(' '):[];
                 for(var i=0; i<arreglo.length; i++){
                     if(clase==arreglo[i]){
                         return true;
@@ -152,17 +152,17 @@ var chromatizador={
                 return false;
             },
             add:function(clase){
-                var arreglo=(this.padre.className||'').split(' ');
+                var arreglo=this.padre.className?this.padre.className.split(' '):[];
                 for(var i=0; i<arreglo.length; i++){
                     if(clase==arreglo[i]){
                         return ;
                     }
                 }
                 arreglo.push(clase);
-                this.padre.className=arreglo.join(' ')||null;
+                this.padre.className=arreglo.join(' ');
             },
             remove:function(clase){
-                var arreglo=(this.padre.className||'').split(' ');
+                var arreglo=this.padre.className?this.padre.className.split(' '):[];
                 for(var i=0; i<arreglo.length; i++){
                     while(i<arreglo.length && clase==arreglo[i]){
                         arreglo.splice(i,1);
