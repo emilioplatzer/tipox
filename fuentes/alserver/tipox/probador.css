@@ -110,8 +110,9 @@
 }
 
 .TDD_estado_pendiente:before{
-    content:'\27B2';
-    color:blue;
+    /* content:'\27B2';
+    color:blue; */
+    content:url('tdd_estado_pendiente.png'); 
 }
 
 .TDD_estado_en_espera{
@@ -132,18 +133,21 @@
 }
 
 .TDD_estado_ok:before{
-    content:'\2714';
-    color:green;
+    /* content:'\2714'; 
+    color:green; */
+    content:url('tdd_estado_ok.png'); 
 }
 
 .TDD_estado_ignorada:before{
-    content:'\25B2';
-    color:yellow;
+    /* content:'\25B2';
+    color:yellow; */
+    content:url('tdd_estado_ignorada.png'); 
 }
 
 .TDD_estado_fallida:before{
-    content:'\2718';
-    color:red;
+    /* content:'\2718';
+    color:red; */
+    content:url('tdd_estado_fallida.png'); 
 }
 
 .TDD_caso{

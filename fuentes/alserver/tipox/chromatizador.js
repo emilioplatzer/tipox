@@ -4,7 +4,7 @@
 var chromatizador={
     agregarAddEventListener:function(base){
         base.addEventListener=function(nombreEvento,funcion){
-            base.attachEvent('on'+nombreEvento,funcion);
+            this.attachEvent('on'+nombreEvento,funcion);
         }
     },
     agregarInnerText:function(){
@@ -127,6 +127,67 @@ var chromatizador={
         // 9. return A
         return A;
       };      
+    },
+    agregarClassList:function(){
+        var destino=Element.prototype;
+        Object.defineProperty(destino,"classList", {
+            get:function(){
+                this.classListum.padre=this;
+                return this.classListum;
+            },
+            set:function(val){
+                this.classListum.padre=this;
+                this.classListum = val;
+            }
+        });
+        destino.classListum={
+            padre:{},
+            contains:function(clase){
+                var arreglo=(this.padre.className||'').split(' ');
+                for(var i=0; i<arreglo.length; i++){
+                    if(clase==arreglo[i]){
+                        return true;
+                    }
+                }
+                return false;
+            },
+            add:function(clase){
+                var arreglo=(this.padre.className||'').split(' ');
+                for(var i=0; i<arreglo.length; i++){
+                    if(clase==arreglo[i]){
+                        return ;
+                    }
+                }
+                arreglo.push(clase);
+                this.padre.className=arreglo.join(' ')||null;
+            },
+            remove:function(clase){
+                var arreglo=(this.padre.className||'').split(' ');
+                for(var i=0; i<arreglo.length; i++){
+                    while(i<arreglo.length && clase==arreglo[i]){
+                        arreglo.splice(i,1);
+                    }
+                }
+               this. padre.className=arreglo.join(' ')||null;
+            }
+        }
+    },
+    agregarDataset:function(){
+        var destino=Element.prototype;
+        Object.defineProperty(destino,"dataset",{
+            get:function(){
+                if(!('datasetum' in this)){
+                    this.datasetum={};
+                }
+                return this.datasetum;
+            },
+            set:function(val){
+                if(!('datasetum' in this)){
+                    this.datasetum={};
+                }
+                this.datasetum = val;
+            }
+        });
     },
     agregarJSON:function(){
         /*
@@ -627,6 +688,9 @@ var chromatizador={
         if(!window.JSON){ // IE6 
             this.agregarJSON();
         }
+        if(!Object.defineProperty){
+            throw new Error('tratar con http://johndyer.name/native-browser-get-set-properties-in-javascript/');
+        }
         if(!elementoSpan.addEventListener){ // IE8
             this.agregarAddEventListener(Element.prototype);
         }
@@ -644,6 +708,12 @@ var chromatizador={
         }
         if(!Array.prototype.map){ // IE8
             this.agregarArrayMap();
+        }
+        if(!elementoSpan.classList){ // IE8
+            this.agregarClassList(Element.prototype);
+        }
+        if(!elementoSpan.dataset){ // IE8
+            this.agregarDataset(Element.prototype);
         }
     }
 }
