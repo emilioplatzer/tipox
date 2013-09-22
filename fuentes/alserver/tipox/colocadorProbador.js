@@ -16,6 +16,36 @@ function FlujoColocadorProbador(){
             this.colocador.colocar({destino:document.body,contenido:{tipox:'div', className:'TDD_resultados'}});
         preparado=true;
     }
+    var prioridadEstados={   
+        ok:1,
+        ignorada:2,
+        comenzada:3,
+        pendiente:6,
+        en_espera:8,
+        fallida:9
+    }
+    var cambiarEstadoElemento=function(estado,elemento){
+        if(!!elemento.dataset.estadoTdd){
+            elemento.classList.remove('TDD_estado_'+elemento.dataset.estadoTdd);
+        }
+        elemento.classList.add('TDD_estado_'+estado);
+        elemento.dataset.estadoTdd=estado;
+    }
+    var cambiarEstado=function(estado,elementoCasoTitulo,elementoModuloTitulo){
+        cambiarEstadoElemento(estado,elementoCasoTitulo);
+        if(!('hijos' in elementoModuloTitulo)){
+            elementoModuloTitulo.hijos={};
+        }
+        elementoModuloTitulo.hijos[elementoCasoTitulo.id]=estado;
+        var estadoMaxPrioridad='ok';
+        for(var hijo in elementoModuloTitulo.hijos){
+            var estadoHijo=elementoModuloTitulo.hijos[hijo];
+            if(prioridadEstados[estadoMaxPrioridad]<prioridadEstados[estadoHijo]){
+                estadoMaxPrioridad=estadoHijo;
+            }
+        }
+        cambiarEstadoElemento(estadoMaxPrioridad,elementoModuloTitulo);
+    }
     this.enviar=function(mensaje){
         if(!preparado){
             preparar.call(this);
@@ -27,13 +57,13 @@ function FlujoColocadorProbador(){
                 contenido:{
                     tipox:'div', className:'TDD_modulo', id:idModulo, nodes:[
                         {tipox:'div', 
-                            classList:['TDD_modulo_titulo','TDD_prueba_pendiente'], 
-                            dataset:{clasePrueba:'TDD_prueba_pendiente'},
+                            classList:['TDD_modulo_titulo','TDD_estado_pendiente'], 
+                            dataset:{estadoTdd:'pendiente'},
                             id:idModulo+'_titulo', 
                             innerText:mensaje.modulo, 
                             eventos:{click:'toggleDisplayAbajo'}
                         },
-                        {tipox:'div', id:idModulo+'_casos', style:{display:'none'}}
+                        {tipox:'div', id:idModulo+'_casos'/*, style:{display:'none'}*/}
                     ]
                 }
             });
@@ -46,10 +76,10 @@ function FlujoColocadorProbador(){
             tituloCaso.push(ticket);
             this.app.colocador.colocar({destino:elementoModuloTitulo, contenido:[' ',ticket]});
         }
-        var elementoCaso=this.colocador.colocar({
+        var elementoCaso=document.getElementById(idCaso)||this.colocador.colocar({
             destino:elementoModuloCasos,
             contenido:{
-                tipox:'div', classList:['TDD_caso', 'TDD_estado_'+mensaje.estado], id:idCaso, nodes:[{
+                tipox:'div', classList:['TDD_caso'], id:idCaso, nodes:[{
                     tipox:'div', 
                     classList:['TDD_caso_titulo', 'TDD_estado_'+mensaje.estado], 
                     id:idCaso+'_titulo', 
@@ -58,6 +88,8 @@ function FlujoColocadorProbador(){
                 }]
             }
         });
+        var elementoCasoTitulo=document.getElementById(idCaso+'_titulo')
+        cambiarEstado(mensaje.estado,elementoCasoTitulo,elementoModuloTitulo);
         if(mensaje.errores){
             var nodoBonito=function(esperado,obtenido,claseEsperado,claseObtenido){
                 return {tipox:'table', nodes:[
