@@ -54,6 +54,10 @@ function FlujoColocadorProbador(){
         }
         cambiarEstadoElemento(estadoMaxPrioridad,elementoModuloTitulo);
     }
+    var toggleView=function(nodoRaiz){
+        nodoRaiz.tabla.style.display=nodoRaiz.mostrar?'table':'none';
+        nodoRaiz.innerText=nodoRaiz.mostrar?'\u2295':'\u2296';
+    }
     this.agregarNodos=function(destino,nodo,cruzEn,profundidad){
         if('nodes' in nodo){
             var raizMas=this.colocador.colocar({destino:cruzEn||destino, contenido:{tipox:'raiz_mas'}, ubicacion:cruzEn?cruzEn.firstChild:null});
@@ -61,13 +65,20 @@ function FlujoColocadorProbador(){
             for(var idNodo in nodo.nodes) if(nodo.nodes.hasOwnProperty(idNodo)){
                 var fila=this.colocador.colocar({destino:tabla,contenido:{
                     tipox:'tr', nodes:[
-                        {tipox:'td', nodes:idNodo},
+                        {tipox:'td', className:'TDD_label_lista', nodes:idNodo},
                         {tipox:'td', className:'TDD_contenido'}
                     ]
                 }});
                 if(Number(profundidad||0)<5){
                     this.agregarNodos(fila.cells[fila.cells.length-1], nodo.nodes[idNodo], fila.cells[0], (Number(profundidad)||0)+1);
                 }
+            }
+            raizMas.mostrar=!!nodo.tieneError;
+            raizMas.tabla=tabla;
+            toggleView(raizMas);
+            raizMas.onclick=function(){
+                this.mostrar=!this.mostrar;
+                toggleView(this);
             }
         }else{
             var tabla=this.colocador.colocar({destino:destino, contenido:{tipox:'table'}});
@@ -86,7 +97,7 @@ function FlujoColocadorProbador(){
                         mostrar=JSON.stringify(mostrar);
                     }
                     this.colocador.colocar({destino:destino, contenido:{tipox:'tr', nodes:[
-                        {tipox:'td', className:'TDD_label', nodes:idAtributo},
+                        {tipox:'td', className:'TDD_label_nodo', nodes:idAtributo},
                         {tipox:'td', className:'TDD_'+idAtributo, nodes:[{tipox:'pre', className:clase, innerText:mostrar}]}
                     ]}});
                 }
