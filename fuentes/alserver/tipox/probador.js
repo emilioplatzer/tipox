@@ -420,7 +420,7 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
         var controlBidireccional=true;
         var rta={}; // solo se ponen si se necesita: tieneError:false, tieneAdvertencias:false
         if( typeof esperado =='object'?(
-                esperado instanceof ArgumentoEspecialMonovalente || window.sinInstanceOf && esperado.soyArgumentoEspecialMonovalente?(
+                esperado instanceof ArgumentoEspecialMonovalente || window.sinInstanceOf && esperado!==null && esperado.soyArgumentoEspecialMonovalente?(
                     !esperado.compatible(obtenido)
                 ):(
                     typeof obtenido !='object' ||
@@ -428,7 +428,7 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
                         (esperado===undefined)!==(obtenido===undefined) ||
                         (esperado instanceof Array)!==(obtenido instanceof Array || controlandoDom && !!considerarArray[({}).toString.call(obtenido)]) ||
                         (esperado instanceof Date)!==(esperado instanceof Date) ||
-                        (esperado instanceof ArgumentoEspecialMonovalente || window.sinInstanceOf && esperado.soyArgumentoEspecialMonovalente) && !esperado.compatible(obtenido) || 
+                        (esperado instanceof ArgumentoEspecialMonovalente || window.sinInstanceOf && !!esperado.soyArgumentoEspecialMonovalente) && !esperado.compatible(obtenido) || 
                         (esperado instanceof Date) && esperado.toString()!=obtenido.toString()
                 )
             ):esperado!==obtenido
@@ -438,7 +438,7 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
             }else{
                 rta.tieneAdvertencias=true;
             }
-            if(typeof esperado =='object' && esperado instanceof ArgumentoEspecialMonovalente || window.sinInstanceOf && esperado.soyArgumentoEspecialMonovalente){
+            if(typeof esperado =='object' && esperado instanceof ArgumentoEspecialMonovalente || window.sinInstanceOf && esperado!==null && esperado.soyArgumentoEspecialMonovalente){
                 rta.esperado=esperado.mostrarEsperado();
             }else{
                 rta.esperado=esperado;
