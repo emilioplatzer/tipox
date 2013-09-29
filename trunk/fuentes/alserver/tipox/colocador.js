@@ -130,7 +130,11 @@ Colocador.prototype.colocar=function(params){
         }
     }
     if(nuevoElemento){
-        elementoDestino.insertBefore(nuevoElemento,params.ubicacion);
+        if(!params.ubicacion){
+            elementoDestino.appendChild(nuevoElemento);
+        }else{
+            elementoDestino.insertBefore(nuevoElemento,params.ubicacion||null);
+        }
         elementoAgregado=nuevoElemento;
         if('ongrab' in nuevoElemento){
             console.assert(nuevoElemento.ongrab instanceof Function);
