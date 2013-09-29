@@ -7,6 +7,14 @@
     // hermano.style.display=hermano.style.display?null:'none';
 // }
 
+Colocador.prototype.creadores.raiz_mas={tipo:'tipox', descripcion:'el [+] para desplegar más opciones', creador:{
+    translate:function(contenido){
+        return {
+            tipox:'span', className:'raiz_mas', nodes:'\u229E'
+        };
+    }
+}};
+
 function FlujoColocadorProbador(){
     var preparado=false;
     var elementoResultados;
@@ -45,6 +53,54 @@ function FlujoColocadorProbador(){
             }
         }
         cambiarEstadoElemento(estadoMaxPrioridad,elementoModuloTitulo);
+    }
+    this.agregarNodos=function(destino,nodo,cruzEn,profundidad){
+        if('nodes' in nodo){
+            var raizMas=this.colocador.colocar({destino:cruzEn||destino, contenido:{tipox:'raiz_mas'}, ubicacion:cruzEn?cruzEn.firstChild:null});
+            var tabla=this.colocador.colocar({destino:destino,contenido:{tipox:'tabla'}});
+            for(var idNodo in nodo.nodes) if(nodo.nodes.hasOwnProperty(idNodo)){
+                var fila=this.colocador.colocar({destino:tabla,contenido:{
+                    tipox:'tr', nodes:[
+                        {tipox:'td', nodes:idNodo},
+                        {tipox:'td', className:'TDD_contenido'}
+                    ]
+                }});
+                if(Number(profundidad||0)<5){
+                    this.agregarNodos(fila.cells[fila.cells.length-1], nodo.nodes[idNodo], fila.cells[0], (Number(profundidad)||0)+1);
+                }
+            }
+        }else{
+            var tabla=this.colocador.colocar({destino:destino, contenido:{tipox:'table'}});
+            for(var idAtributo in nodo) if(nodo.hasOwnProperty(idAtributo)){
+                if(idAtributo!='tieneError'){
+                    var mostrar=nodo[idAtributo];
+                    var clase='JSON_'+typeof(mostrar);
+                    if(mostrar===null){
+                        mostrar='null';
+                        clase='JSON_null';
+                    }else if(mostrar===''){
+                        mostrar="''";
+                        clase='JSON_emptyString';
+                    }
+                    if(clase=='JSON_object'){
+                        mostrar=JSON.stringify(mostrar);
+                    }
+                    this.colocador.colocar({destino:destino, contenido:{tipox:'tr', nodes:[
+                        {tipox:'td', className:'TDD_label', nodes:idAtributo},
+                        {tipox:'td', className:'TDD_'+idAtributo, nodes:[{tipox:'pre', className:clase, innerText:mostrar}]}
+                    ]}});
+                }
+            };
+        }
+        /*
+        // elementoCaso=document.getElementById(idCaso);
+        this.colocador.colocar({
+            destino:elementoCaso,
+            contenido:{
+                tipox:'div', className:'TDD_error', nodes:[]
+            }
+        });
+        */
     }
     this.enviar=function(mensaje){
         if(!preparado){
@@ -90,20 +146,8 @@ function FlujoColocadorProbador(){
         });
         var elementoCasoTitulo=document.getElementById(idCaso+'_titulo')
         cambiarEstado(mensaje.estado,elementoCasoTitulo,elementoModuloTitulo);
-        if(mensaje.errores){
-            var nodoBonito=function(esperado,obtenido,claseEsperado,claseObtenido){
-                return {tipox:'table', nodes:[
-                        {tipox:'tr', nodes:[{tipox:'td', className:claseEsperado, nodes:[{tipox:'pre', innerText:esperado}]}]},
-                        {tipox:'tr', nodes:[{tipox:'td', className:claseObtenido, nodes:[{tipox:'pre', innerText:obtenido}]}]},
-                ]};
-            }
-            // elementoCaso=document.getElementById(idCaso);
-            this.colocador.colocar({
-                destino:elementoCaso,
-                contenido:{
-                    tipox:'div', className:'TDD_error', nodes:[]
-                }
-            });
+        if(mensaje.resultado){
+            this.agregarNodos(elementoCaso,mensaje.resultado,elementoCasoTitulo);
         }
     }
 }

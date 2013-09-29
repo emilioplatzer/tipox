@@ -9,6 +9,14 @@
     border-radius:5px;
 }
 
+.JSON_object{
+    color:brown;
+}
+
+.JSON_string{
+    color:black;
+}
+
 .JSON_index{
     vertical-align:top;
     font-size:90%;
@@ -18,6 +26,11 @@
 .JSON_undefined{
     color:red;
     font-size:80%;
+}
+
+.JSON_emptyString{
+    color:red;
+    font-weight:bold;
 }
 
 .JSON_null{
@@ -103,6 +116,9 @@
 
 .TDD_obtenido_sobrante{
     background-color:#BFF;
+}
+
+.TDD_nodo:first_child{
 }
 
 .TDD_modulo_titulo{

@@ -447,7 +447,7 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
         }else if(typeof(esperado)=='object' && esperado instanceof ArgumentoEspecialMonovalente || window.sinInstanceOf && esperado.soyArgumentoEspecialMonovalente){
             rta.iguales=esperado.mostrarIguales(obtenido);
         }else if(typeof(esperado)!='object' || esperado==null && obtenido==null || esperado instanceof Date || esperado instanceof RegExp){
-            rta.iguales=probador.cadenaParaMostrar(obtenido);
+            rta.iguales=obtenido; // probador.cadenaParaMostrar(obtenido);
         }else{
             rta.nodes={};
             var nodoArray;
@@ -570,6 +570,7 @@ Probador.prototype.agregarCasosEjemplo=function(){
             si_no_coinciden:'y abajo en rojo el obtenido',
             'si falta algun campo':{'en el esperado':'y muestra el obtenido'},
             'como se ve si el tipo no coincide':1,
+            'si hay un cambio en un arreglo':[1,2,3],
             'y si la estructura no coincide':"{uno:1, dos:2}"
         }],
         esperado:{respuesta:{
@@ -577,6 +578,7 @@ Probador.prototype.agregarCasosEjemplo=function(){
             si_no_coinciden:'el valor esperado se ve arriba',
             'si falta algun campo':{'en el obtenido':'muestra el esperado y'},
             'como se ve si el tipo no coincide':"1",
+            'si hay un cambio en un arreglo':[1,null,3],
             'y si la estructura no coincide':{uno:1, dos:2}
         }}
     });

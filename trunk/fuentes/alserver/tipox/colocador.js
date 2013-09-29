@@ -108,21 +108,21 @@ Colocador.prototype.colocar=function(params){
         nuevoElemento=document.createTextNode(params.contenido);
     }else if(params.contenido instanceof Array){
         for(var i=0; i<params.contenido.length; i++){
-            this.colocar({destino:elementoDestino,contenido:params.contenido[i],futuro:futuro});
+            this.colocar({destino:elementoDestino,contenido:params.contenido[i],ubicacion:params.ubicacion,futuro:futuro});
         }
     }else if(params.contenido.indexadoPor){
         for(var indice in params.contenido) if(params.contenido.hasOwnProperty(indice)){
             if(indice!='indexadoPor'){
                 var atributosAdicionales={};
                 atributosAdicionales[params.contenido.indexadoPor]=indice;
-                this.colocar({destino:elementoDestino,contenido:cambiandole(params.contenido[indice],atributosAdicionales),futuro:futuro});
+                this.colocar({destino:elementoDestino,contenido:cambiandole(params.contenido[indice],atributosAdicionales),ubicacion:params.ubicacion,futuro:futuro});
             }
         }
     }else{
         var creador=this.domCreator(params.contenido.tipox);
         if('translate' in creador){
             var contenido_traducido=creador.translate(params.contenido);
-            elementoAgregado=this.colocar({destino:elementoDestino,contenido:contenido_traducido,futuro:futuro});
+            elementoAgregado=this.colocar({destino:elementoDestino,contenido:contenido_traducido,ubicacion:params.ubicacion,futuro:futuro});
         }else{
             nuevoElemento=creador.nuevo(params.contenido.tipox,params.contenido);
             creador.asignarAtributos(nuevoElemento,params.contenido,futuro);
@@ -130,7 +130,7 @@ Colocador.prototype.colocar=function(params){
         }
     }
     if(nuevoElemento){
-        elementoDestino.appendChild(nuevoElemento);
+        elementoDestino.insertBefore(nuevoElemento,params.ubicacion);
         elementoAgregado=nuevoElemento;
         if('ongrab' in nuevoElemento){
             console.assert(nuevoElemento.ongrab instanceof Function);
