@@ -60,25 +60,31 @@ function FlujoColocadorProbador(){
     }
     this.agregarNodos=function(destino,nodo,cruzEn,profundidad){
         if('nodes' in nodo){
+            var esto=this;
             var raizMas=this.colocador.colocar({destino:cruzEn||destino, contenido:{tipox:'raiz_mas'}, ubicacion:cruzEn?cruzEn.firstChild:null});
-            var tabla=this.colocador.colocar({destino:destino,contenido:{tipox:'tabla'}});
-            for(var idNodo in nodo.nodes) if(nodo.nodes.hasOwnProperty(idNodo)){
-                var fila=this.colocador.colocar({destino:tabla,contenido:{
-                    tipox:'tr', nodes:[
-                        {tipox:'td', className:'TDD_label_lista', nodes:idNodo},
-                        {tipox:'td', className:'TDD_contenido'}
-                    ]
-                }});
-                if(Number(profundidad||0)<5){
-                    this.agregarNodos(fila.cells[fila.cells.length-1], nodo.nodes[idNodo], fila.cells[0], (Number(profundidad)||0)+1);
+            var listarNodos=function(){
+                var tabla=esto.colocador.colocar({destino:destino,contenido:{tipox:'tabla'}});
+                for(var idNodo in nodo.nodes) if(nodo.nodes.hasOwnProperty(idNodo)){
+                    var fila=esto.colocador.colocar({destino:tabla,contenido:{
+                        tipox:'tr', nodes:[
+                            {tipox:'td', className:'TDD_label_lista', nodes:idNodo},
+                            {tipox:'td', className:'TDD_contenido'}
+                        ]
+                    }});
+                    esto.agregarNodos(fila.cells[fila.cells.length-1], nodo.nodes[idNodo], fila.cells[0], (Number(profundidad)||0)+1);
+                }
+                raizMas.mostrar=!!nodo.tieneError;
+                raizMas.tabla=tabla;
+                toggleView(raizMas);
+                raizMas.onclick=function(){
+                    this.mostrar=!this.mostrar;
+                    toggleView(this);
                 }
             }
-            raizMas.mostrar=!!nodo.tieneError;
-            raizMas.tabla=tabla;
-            toggleView(raizMas);
-            raizMas.onclick=function(){
-                this.mostrar=!this.mostrar;
-                toggleView(this);
+            if(Number(profundidad||0)<5){
+                listarNodos();
+            }else{
+                raizMas.onclick=listarNodos;
             }
         }else{
             var tabla=this.colocador.colocar({destino:destino, contenido:{tipox:'table'}});
