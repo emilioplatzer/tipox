@@ -68,13 +68,13 @@
     border:1px solid gray;
 }
 
-.TDD_label_esperado_obtenido{
+.TDD_label_nodo{
     font-size:80%;
     color:blue;
     vertical-align:top;
 }
 
-.TDD_label{
+.TDD_label_lista{
     font-size:80%;
     color:blue;
     vertical-align:top;
