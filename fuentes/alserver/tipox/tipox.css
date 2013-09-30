@@ -103,9 +103,11 @@ pre{
 }
 
 .expandidor_expandir:before{
-    content:'\2295'
+    /* content:'\2295' */
+    content:url('../tipox/expandir.png')
 }
 
 .expandidor_contraer:before{
-    content:'\2296'
+    /* content:'\2296' */
+    content:url('../tipox/contraer.png')
 }
