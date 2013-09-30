@@ -18,7 +18,7 @@ function hacerExpandidor(elementoTitulo, elementoExpandible, valorInicial){
             }else{
                 this.mostrar=cambio;
             }
-            this.expandible.style.display=this.mostrar?null:'none';
+            this.expandible.style.display=this.mostrar?'':'none';
             this.titulo.classList.add('expandidor_'+(this.mostrar?'contraer':'expandir'));
             this.titulo.classList.remove('expandidor_'+(this.mostrar?'expandir':'contraer'));
         }
