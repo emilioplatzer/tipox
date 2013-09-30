@@ -101,3 +101,11 @@ pre{
     background-color:#FF8;
     z-Index:10;
 }
+
+.expandidor_expandir:before{
+    content:'\2295'
+}
+
+.expandidor_contraer:before{
+    content:'\2296'
+}
