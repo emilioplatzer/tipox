@@ -8,20 +8,24 @@
 // }
 
 function hacerExpandidor(elementoTitulo, elementoExpandible, valorInicial){
-    var toggleView=function(elementoTitulo){
-        elementoTitulo.expandidor.elemento.style.display=elementoTitulo.expandidor.mostrar?null:'none';
-        // elementoTitulo.innerText=elementoTitulo.mostrar?'\u2295':'\u2296';
-        elementoTitulo.classList.add('expandidor_'+(elementoTitulo.expandidor.mostrar?'contraer':'expandir'));
-        elementoTitulo.classList.remove('expandidor_'+(elementoTitulo.expandidor.mostrar?'expandir':'contraer'));
-    }
     elementoTitulo.expandidor={
-        elemento:elementoExpandible,
-        mostrar:!!valorInicial
+        expandible:elementoExpandible,
+        mostrar:!valorInicial,
+        titulo:elementoTitulo,
+        cambiar:function(cambio){
+            if(cambio===null || cambio===undefined){
+                this.mostrar=!this.mostrar;
+            }else{
+                this.mostrar=cambio;
+            }
+            this.expandible.style.display=this.mostrar?null:'none';
+            this.titulo.classList.add('expandidor_'+(this.mostrar?'contraer':'expandir'));
+            this.titulo.classList.remove('expandidor_'+(this.mostrar?'expandir':'contraer'));
+        }
     }
-    toggleView(elementoTitulo);
+    elementoTitulo.expandidor.cambiar();
     elementoTitulo.onclick=function(){
-        this.expandidor.mostrar=!this.expandidor.mostrar;
-        toggleView(this);
+        this.expandidor.cambiar();
     }
 }
 
@@ -125,24 +129,29 @@ function FlujoColocadorProbador(){
             preparar.call(this);
         }
         var idModulo='TDD_modulo:'+mensaje.modulo;
-        var elementoModulo=document.getElementById(idModulo)||
-            this.colocador.colocar({
+        var elementoModulo=document.getElementById(idModulo);
+        var nuevo=false;
+        if(!elementoModulo){
+            elementoModulo=this.colocador.colocar({
                 destino:elementoResultados,
                 contenido:{
-                    tipox:'div', className:'TDD_modulo', id:idModulo, nodes:[
+                    tipox:'div', classList:['TDD_modulo','TDD_estado_pendiente'], id:idModulo, dataset:{estadoTdd:'pendiente'}, nodes:[
                         {tipox:'div', 
-                            classList:['TDD_modulo_titulo','TDD_estado_pendiente'], 
-                            dataset:{estadoTdd:'pendiente'},
+                            className:'TDD_modulo_titulo', 
                             id:idModulo+'_titulo', 
-                            innerText:mensaje.modulo, 
-                            eventos:{click:'toggleDisplayAbajo'}
+                            innerText:mensaje.modulo
                         },
                         {tipox:'div', id:idModulo+'_casos'/*, style:{display:'none'}*/}
                     ]
                 }
             });
+            nuevo=true;
+        }
         var elementoModuloCasos=document.getElementById(idModulo+'_casos');
         var elementoModuloTitulo=document.getElementById(idModulo+'_titulo');
+        if(nuevo){
+            hacerExpandidor(elementoModuloTitulo,elementoModuloCasos,false);
+        }
         var idCaso='TDD_caso:'+mensaje.caso;
         var tituloCaso=[mensaje.caso];
         if(mensaje.ticket){
@@ -162,8 +171,13 @@ function FlujoColocadorProbador(){
             }
         });
         var elementoCasoTitulo=document.getElementById(idCaso+'_titulo')
-        cambiarEstado(mensaje.estado,elementoCaso,elementoModuloTitulo);
+        cambiarEstado(mensaje.estado,elementoCaso,elementoModulo);
         if(mensaje.resultado){
+            if(mensaje.resultado.tieneError){
+                if(!elementoModuloTitulo.expandidor.mostrar){
+                    elementoModuloTitulo.expandidor.cambiar();
+                }
+            }
             this.agregarNodos(elementoCaso,mensaje.resultado,elementoCasoTitulo);
         }
     }
