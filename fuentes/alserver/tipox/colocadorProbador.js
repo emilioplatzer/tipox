@@ -153,17 +153,16 @@ function FlujoColocadorProbador(){
         var elementoCaso=document.getElementById(idCaso)||this.colocador.colocar({
             destino:elementoModuloCasos,
             contenido:{
-                tipox:'div', className:'TDD_caso', id:idCaso, nodes:[{
+                tipox:'div', className:'TDD_caso', id:idCaso, dataset:{estadoTdd:mensaje.estado},
+                nodes:[{
                     tipox:'div', 
-                    // classList:['TDD_caso_titulo', 'TDD_estado_'+mensaje.estado], 
                     id:idCaso+'_titulo', 
-                    dataset:{estadoTdd:mensaje.estado},
                     nodes:tituloCaso
                 }]
             }
         });
         var elementoCasoTitulo=document.getElementById(idCaso+'_titulo')
-        cambiarEstado(mensaje.estado,elementoCasoTitulo,elementoModuloTitulo);
+        cambiarEstado(mensaje.estado,elementoCaso,elementoModuloTitulo);
         if(mensaje.resultado){
             this.agregarNodos(elementoCaso,mensaje.resultado,elementoCasoTitulo);
         }
