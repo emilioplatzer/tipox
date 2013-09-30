@@ -7,13 +7,23 @@
     // hermano.style.display=hermano.style.display?null:'none';
 // }
 
-Colocador.prototype.creadores.raiz_mas={tipo:'tipox', descripcion:'el [+] para desplegar más opciones', creador:{
-    translate:function(contenido){
-        return {
-            tipox:'span', className:'raiz_mas', nodes:'\u229E'
-        };
+function hacerExpandidor(elementoTitulo, elementoExpandible, valorInicial){
+    var toggleView=function(elementoTitulo){
+        elementoTitulo.expandidor.elemento.style.display=elementoTitulo.expandidor.mostrar?null:'none';
+        // elementoTitulo.innerText=elementoTitulo.mostrar?'\u2295':'\u2296';
+        elementoTitulo.classList.add('expandidor_'+(elementoTitulo.expandidor.mostrar?'contraer':'expandir'));
+        elementoTitulo.classList.remove('expandidor_'+(elementoTitulo.expandidor.mostrar?'expandir':'contraer'));
     }
-}};
+    elementoTitulo.expandidor={
+        elemento:elementoExpandible,
+        mostrar:!!valorInicial
+    }
+    toggleView(elementoTitulo);
+    elementoTitulo.onclick=function(){
+        this.expandidor.mostrar=!this.expandidor.mostrar;
+        toggleView(this);
+    }
+}
 
 function FlujoColocadorProbador(){
     var preparado=false;
@@ -54,14 +64,11 @@ function FlujoColocadorProbador(){
         }
         cambiarEstadoElemento(estadoMaxPrioridad,elementoModuloTitulo);
     }
-    var toggleView=function(nodoRaiz){
-        nodoRaiz.tabla.style.display=nodoRaiz.mostrar?'table':'none';
-        nodoRaiz.innerText=nodoRaiz.mostrar?'\u2295':'\u2296';
-    }
     this.agregarNodos=function(destino,nodo,cruzEn,profundidad){
         if('nodes' in nodo){
             var esto=this;
-            var raizMas=this.colocador.colocar({destino:cruzEn||destino, contenido:{tipox:'raiz_mas'}, ubicacion:cruzEn?cruzEn.firstChild:null});
+            // var raizMas=this.colocador.colocar({destino:cruzEn||destino, contenido:{tipox:'raiz_mas'}, ubicacion:cruzEn?cruzEn.firstChild:null});
+            var raizMas=cruzEn;
             var listarNodos=function(){
                 var tabla=esto.colocador.colocar({destino:destino,contenido:{tipox:'tabla'}});
                 for(var idNodo in nodo.nodes) if(nodo.nodes.hasOwnProperty(idNodo)){
@@ -73,13 +80,7 @@ function FlujoColocadorProbador(){
                     }});
                     esto.agregarNodos(fila.cells[fila.cells.length-1], nodo.nodes[idNodo], fila.cells[0], (Number(profundidad)||0)+1);
                 }
-                raizMas.mostrar=!!nodo.tieneError;
-                raizMas.tabla=tabla;
-                toggleView(raizMas);
-                raizMas.onclick=function(){
-                    this.mostrar=!this.mostrar;
-                    toggleView(this);
-                }
+                hacerExpandidor(cruzEn,tabla,!!nodo.tieneError);
             }
             if(Number(profundidad||0)<5){
                 listarNodos();
