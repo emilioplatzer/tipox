@@ -128,8 +128,40 @@ var chromatizador={
         return A;
       };      
     },
-    agregarClassList:function(){
-        var destino=Element.prototype;
+    agregarDefineProperty:function(){
+        //basado en: http://johndyer.name/native-browser-get-set-properties-in-javascript/
+        Object.defineProperty=function(destino, propiedad, definicion){
+            if(destino.__defineGetter__){
+                destino.__defineGetter__(propiedad, definicion.get);
+                destino.__defineSetter__(propiedad, definicion.set);
+            }else{
+                // IE6-7
+                // must be a real DOM object (to have attachEvent) and must be attached to document (for onpropertychange to fire)
+                var onPropertyChange = function (e) {
+                    if (event.propertyName == propiedad) {
+                        // temporarily remove the event so it doesn't fire again and create a loop
+                        destino.detachEvent("onpropertychange", onPropertyChange);
+                        // get the changed value, run it through the set function
+                        var newValue = definicion.set(destino[propiedad]);
+                        // restore the get function
+                        destino[propiedad] = definicion.get;
+                        destino[propiedad].toString = definicion.get;
+                        // restore the event
+                        destino.attachEvent("onpropertychange", onPropertyChange);
+                    }
+                };
+                
+                destino[propiedad] = definicion.get;
+                destino[propiedad].toString = definicion.get;
+                try{
+                    destino.attachEvent("onpropertychange", onPropertyChange);
+                }catch(err){
+                    throw new Error('tratando de attachEvent("onpropertychange") a '+JSON.stringify(destino)+': '+err.message+'/'+err.stack);
+                }
+            }
+        }
+    },
+    agregarClassList:function(destino){
         Object.defineProperty(destino,"classList", {
             get:function(){
                 this.classListum.padre=this;
@@ -172,8 +204,7 @@ var chromatizador={
             }
         }
     },
-    agregarDataset:function(){
-        var destino=Element.prototype;
+    agregarDataset:function(destino){
         Object.defineProperty(destino,"dataset",{
             get:function(){
                 if(!('datasetum' in this)){
@@ -677,19 +708,23 @@ var chromatizador={
             }
         }());
     },
+    agregados:{
+    },
     chromatizar:function(){
         var elementoSpan=document.createElement('span');
         if(!window.addEventListener){ // IE8
             this.agregarAddEventListener(window);
         }
         if(!window.Element){ // IE6 
+            this.agregados.Element=true;
             window.Element=Object;
         }
         if(!window.JSON){ // IE6 
             this.agregarJSON();
         }
-        if(!Object.defineProperty){
-            throw new Error('tratar con http://johndyer.name/native-browser-get-set-properties-in-javascript/');
+        if(!Object.defineProperty){ // IE6
+            this.agregados.defineProperty=true;
+            this.agregarDefineProperty(); 
         }
         if(!elementoSpan.addEventListener){ // IE8
             this.agregarAddEventListener(Element.prototype);
@@ -710,10 +745,14 @@ var chromatizador={
             this.agregarArrayMap();
         }
         if(!elementoSpan.classList){ // IE8
-            this.agregarClassList(Element.prototype);
+            if(!this.agregados.defineProperty){
+                this.agregarClassList(Element.prototype);
+            }
         }
         if(!elementoSpan.dataset){ // IE8
-            this.agregarDataset(Element.prototype);
+            if(!this.agregados.defineProperty){
+                this.agregarDataset(Element.prototype);
+            }
         }
     }
 }
