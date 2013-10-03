@@ -84,7 +84,34 @@ Colocador.prototype.creadorElementoDOM={
     }
 }
 
+if(window.chromatizador && chromatizador.agregados.defineProperty){
+    Colocador.prototype.creadorElementoDOM.atributosEspeciales.classList={
+        asignar:function(elementoDestino, valor){
+            chromatizador.agregarClassList(elementoDestino);
+            for(var i=0; i<valor.length; i++){
+                if(!elementoDestino.classList.add){
+                    var x=elementoDestino.classList;
+                    alert('no lo tiene. Tiene '+x);
+                    // alert('no lo tiene. tiene '+elementoDestino.classList);
+                }
+                elementoDestino.classList.add(valor[i]);
+            }
+        }
+    }
+    Colocador.prototype.creadorElementoDOM.atributosEspeciales.dataset={
+        asignar:function(elementoDestino, valor){
+            chromatizador.agregarDataset(elementoDestino);
+            for(var att in valor) if(valor.hasOwnProperty(att)){
+                elementoDestino.dataset[att]=valor[att];
+            }
+        }
+    }
+}
+
 Colocador.prototype.colocar=function(params){
+    if(!params.destino){
+        // alert('sin destino '+JSON.stringify(params.contenido));
+    }
     var elementoDestino;
     var futuro=params.futuro;
     if(params.externo && this.app.newFuturo){

@@ -142,17 +142,17 @@ var chromatizador={
                         // temporarily remove the event so it doesn't fire again and create a loop
                         destino.detachEvent("onpropertychange", onPropertyChange);
                         // get the changed value, run it through the set function
-                        var newValue = definicion.set(destino[propiedad]);
+                        var newValue = definicion.set.apply(destino,destino[propiedad]);
                         // restore the get function
-                        destino[propiedad] = definicion.get;
-                        destino[propiedad].toString = definicion.get;
+                        destino[propiedad] = newValue;
+                        destino[propiedad].toString = newValue.toString();
                         // restore the event
                         destino.attachEvent("onpropertychange", onPropertyChange);
                     }
                 };
-                
-                destino[propiedad] = definicion.get;
-                destino[propiedad].toString = definicion.get;
+                var actualValue=definicion.get.apply(destino);
+                destino[propiedad] = actualValue;
+                destino[propiedad].toString = actualValue.toString();
                 try{
                     destino.attachEvent("onpropertychange", onPropertyChange);
                 }catch(err){
@@ -162,16 +162,6 @@ var chromatizador={
         }
     },
     agregarClassList:function(destino){
-        Object.defineProperty(destino,"classList", {
-            get:function(){
-                this.classListum.padre=this;
-                return this.classListum;
-            },
-            set:function(val){
-                this.classListum.padre=this;
-                this.classListum = val;
-            }
-        });
         destino.classListum={
             padre:{},
             contains:function(clase){
@@ -200,10 +190,20 @@ var chromatizador={
                         arreglo.splice(i,1);
                     }
                 }
-               this. padre.className=arreglo.join(' ')||null;
+               this.padre.className=arreglo.join(' ')||null;
             }
         }
-    },
+        Object.defineProperty(destino,"classList", {
+            get:function(){ 
+                this.classListum.padre=this;
+                return this.classListum;
+            },
+            set:function(val){
+                this.classListum.padre=this;
+                this.classListum = val;
+            }
+        });
+},
     agregarDataset:function(destino){
         Object.defineProperty(destino,"dataset",{
             get:function(){
@@ -745,7 +745,7 @@ var chromatizador={
             this.agregarArrayMap();
         }
         if(!elementoSpan.classList){ // IE8
-            if(!this.agregados.defineProperty){
+            if(!this.agregados.defineProperty){ //IE6
                 this.agregarClassList(Element.prototype);
             }
         }
