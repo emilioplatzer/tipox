@@ -223,7 +223,6 @@ function ArgumentoEspecial(){
 
 function ArgumentoEspecialMonovalente(){
 }
-ArgumentoEspecialMonovalente.prototype.soyArgumentoEspecialMonovalente=true;
 
 function ArgumentoEspecialRegExp(regexp){
     this.compatible=function(obtenido){
@@ -243,7 +242,6 @@ ArgumentoEspecialRegExp.prototype=Object.create(ArgumentoEspecialMonovalente.pro
 
 function ArgumentoEspecialColeccion(){
 }
-ArgumentoEspecialColeccion.prototype.soyArgumentoEspecialColeccion=true;
 
 function ArgumentoEspecialAsincronico(canal){
 }
@@ -259,15 +257,6 @@ function ArgumentoEspecialIgnorarSobrantes(camposMinimos){
     this.mostrarSobrantes=true;
 }
 ArgumentoEspecialIgnorarSobrantes.prototype=Object.create(ArgumentoEspecialColeccion.prototype);
-
-(function(){
-    var controlar=new ArgumentoEspecialIgnorarSobrantes();
-    if(!(controlar instanceof ArgumentoEspecialColeccion)){
-        window.sinInstanceOf=true;
-        ArgumentoEspecialAsimetrico.prototype.soyArgumentoEspecialColeccion=true;
-        ArgumentoEspecialIgnorarSobrantes.prototype.soyArgumentoEspecialColeccion=true;
-    }
-}())    
 
 Probador.prototype.probarElCaso=function(caso){
     this.mensajes.enviar({modulo:caso.modulo, caso:caso.caso, estado:'comenzada'});
@@ -420,7 +409,7 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
         var controlBidireccional=true;
         var rta={}; // solo se ponen si se necesita: tieneError:false, tieneAdvertencias:false
         if( typeof esperado =='object'?(
-                esperado instanceof ArgumentoEspecialMonovalente || window.sinInstanceOf && esperado!==null && esperado.soyArgumentoEspecialMonovalente?(
+                esperado instanceof ArgumentoEspecialMonovalente?(
                     !esperado.compatible(obtenido)
                 ):(
                     typeof obtenido !='object' ||
@@ -428,7 +417,7 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
                         (esperado===undefined)!==(obtenido===undefined) ||
                         (esperado instanceof Array)!==(obtenido instanceof Array || controlandoDom && !!considerarArray[({}).toString.call(obtenido)]) ||
                         (esperado instanceof Date)!==(esperado instanceof Date) ||
-                        (esperado instanceof ArgumentoEspecialMonovalente || window.sinInstanceOf && !!esperado.soyArgumentoEspecialMonovalente) && !esperado.compatible(obtenido) || 
+                        (esperado instanceof ArgumentoEspecialMonovalente) && !esperado.compatible(obtenido) || 
                         (esperado instanceof Date) && esperado.toString()!=obtenido.toString()
                 )
             ):esperado!==obtenido
@@ -438,13 +427,13 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
             }else{
                 rta.tieneAdvertencias=true;
             }
-            if(typeof esperado =='object' && esperado instanceof ArgumentoEspecialMonovalente || window.sinInstanceOf && esperado!==null && esperado.soyArgumentoEspecialMonovalente){
+            if(typeof esperado =='object' && esperado instanceof ArgumentoEspecialMonovalente){
                 rta.esperado=esperado.mostrarEsperado();
             }else{
                 rta.esperado=esperado;
             }
             rta.obtenido=obtenido;
-        }else if(typeof(esperado)=='object' && esperado instanceof ArgumentoEspecialMonovalente || window.sinInstanceOf && esperado.soyArgumentoEspecialMonovalente){
+        }else if(typeof(esperado)=='object' && esperado instanceof ArgumentoEspecialMonovalente){
             rta.iguales=esperado.mostrarIguales(obtenido);
         }else if(typeof(esperado)!='object' || esperado==null && obtenido==null || esperado instanceof Date || esperado instanceof RegExp){
             rta.iguales=obtenido; // probador.cadenaParaMostrar(obtenido);
@@ -461,7 +450,7 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
                     claseContenido='TDD_contenido';
                 }
             }
-            if(esperado instanceof ArgumentoEspecialColeccion || window.sinInstanceOf && esperado.soyArgumentoEspecialColeccion){
+            if(esperado instanceof ArgumentoEspecialColeccion){
                 recorridoBidireccional=esperado.mostrarSobrantes;
                 controlBidireccional=false;
                 esperado=esperado.camposMinimos;
