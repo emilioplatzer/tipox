@@ -50,7 +50,7 @@ var chromatizador={
         }
         Object.prototype.create=function(objetoBase){
             var f=function(){};
-            f.prototype=objetoBase.prototype;
+            f.prototype=objetoBase;
             var o=new f();
             return o;
         }
