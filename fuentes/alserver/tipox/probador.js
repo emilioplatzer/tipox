@@ -696,11 +696,13 @@ Probador.prototype.agregarCasosEjemplo=function(){
         mostrarAunqueNoFalleHasta:'2013-03-31',
         caso:'prueba de RegExp',
         entrada:[{
+            elemental:'palabra',
             simple:'palabra',
             conBarra:'uno/otro',
             conEspacioOpcional:'todojunto separado'
         }],
         esperado:{respuesta:{
+            elemental:new ArgumentoEspecialRegExp(/palabra/),
             simple:new ArgumentoEspecialRegExp(/^Palabra$/i),
             conBarra:new ArgumentoEspecialRegExp(/^uno\/otro$/),
             conEspacioOpcional:new ArgumentoEspecialRegExp(/^todo ?junto ?separado$/)
