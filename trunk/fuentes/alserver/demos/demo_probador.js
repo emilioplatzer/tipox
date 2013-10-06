@@ -7,7 +7,7 @@ window.addEventListener('load',function(){
         destino:document.body,
         contenido:{
             tipox:'div', nodes:[
-                {tipox:'h1', nodes:["Demo de casos de prueba ", {tipox:'small', nodes:["(del framework ", {tipox:'logo_tipox'}, ")."]}]}
+                {tipox:'h1', id:'debug_html', nodes:["Demo de casos de prueba ", {tipox:'small', nodes:["(del framework ", {tipox:'logo_tipox'}, ")."]}]}
             ]
         },
         reemplazar:true
@@ -16,4 +16,9 @@ window.addEventListener('load',function(){
     var probador=new Probador();
     probador.agregarCasosEjemplo();
     probador.probarTodo({sinTryCatch:true});
+    document.getElementById('debug_html').onclick=function(){
+        var ta=document.createElement('textarea');
+        document.body.appendChild(ta);
+        ta.value=document.body.innerHTML;
+    }
 });

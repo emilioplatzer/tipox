@@ -74,7 +74,7 @@ function FlujoColocadorProbador(){
             var esto=this;
             var raizMas=cruzEn;
             var listarNodos=function(){
-                var tabla=esto.colocador.colocar({destino:destino,contenido:{tipox:'tabla'}});
+                var tabla=esto.colocador.colocar({destino:destino,contenido:{tipox:'table'}});
                 for(var idNodo in nodo.nodes) if(nodo.nodes.hasOwnProperty(idNodo)){
                     var fila=esto.colocador.colocar({destino:tabla,contenido:{
                         tipox:'tr', nodes:[
@@ -84,7 +84,6 @@ function FlujoColocadorProbador(){
                     }});
                     // esto.agregarNodos(fila.cells[fila.cells.length-1], nodo.nodes[idNodo], fila.cells[0], (Number(profundidad)||0)+1);
                     esto.agregarNodos(fila.childNodes[fila.childNodes.length-1], nodo.nodes[idNodo], fila.childNodes[0], (Number(profundidad)||0)+1);
-                    document.getElementById('debug_probador').innerText+=' pap87';
                 }
                 hacerExpandidor(cruzEn,tabla,!!nodo.tieneError);
             }
@@ -109,10 +108,13 @@ function FlujoColocadorProbador(){
                     if(clase=='JSON_object'){
                         mostrar=JSON.stringify(mostrar);
                     }
-                    this.colocador.colocar({destino:destino, contenido:{tipox:'tr', nodes:[
+                    this.colocador.colocar({destino:tabla, contenido:{tipox:'tr', nodes:[
                         {tipox:'td', className:'TDD_label_nodo', nodes:idAtributo},
                         {tipox:'td', className:'TDD_'+idAtributo, nodes:[{tipox:'pre', className:clase, innerText:mostrar}]}
                     ]}});
+                    // if(mostrar=='texto de la excepcion esperada'){
+                        // alert('pap '+destino.innerHTML);
+                    // }
                 }
             };
         }
@@ -125,6 +127,7 @@ function FlujoColocadorProbador(){
             }
         });
         */
+        // document.getElementById('debug_probador').innerText+=' AN'+(Number(profundidad)||0)+1+' '+destino.innerText.substr(0,10);
     }
     this.enviar=function(mensaje){
         if(!preparado){
@@ -179,13 +182,13 @@ function FlujoColocadorProbador(){
         var elementoCasoTitulo=document.getElementById(idCaso+'_titulo')
         cambiarEstado(mensaje.estado,elementoCaso,elementoModulo);
         if(mensaje.resultado){
-            elementoModuloTitulo.innerText+=DEBUGPOINT; 
             if(mensaje.resultado.tieneError){
                 if(!elementoModuloTitulo.expandidor.mostrar){
                     elementoModuloTitulo.expandidor.cambiar();
                 }
             }
             this.agregarNodos(elementoCaso,mensaje.resultado,elementoCasoTitulo);
+            elementoModuloTitulo.innerText+=DEBUGPOINT; 
         }
     }
 }

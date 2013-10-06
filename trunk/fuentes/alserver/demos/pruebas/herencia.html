@@ -1,0 +1,82 @@
+<input type=button value=probar onclick="ahora()">
+<div id=aca>
+<script>
+"use strict";
+
+function ahora(){
+
+function mostrar(mensaje,color){
+    var p=document.createElement('p');
+    p.innerText=mensaje;
+    p.style.border='1px solid '+(color||'green');
+    document.getElementById('aca').appendChild(p);
+}
+
+function probar(f,esperado){
+    var obtenido=f();
+    var mensaje=f.toString()+':'+obtenido;
+    var color='green';
+    if(obtenido!==esperado){
+        mensaje+='!='+esperado;
+        color='red';
+    }
+    mostrar(mensaje,color);
+}
+
+function Figura(){
+    this.soy=function(){
+        return 'figura';
+    }
+}
+
+Figura.prototype.forma='tengo';
+
+var figura=new Figura();
+
+probar(function(){ return figura.soy(); },"figura");
+probar(function(){ return figura.forma; },"tengo");
+probar(function(){ return figura instanceof Figura; },true);
+
+function Circulo(){
+    this.soy=function(){
+        return 'circulo';
+    }
+}
+
+if(!Object.create || true){
+        Object.prototype.createM=function(objetoBase){
+            var f=function(){};
+            f.prototype=objetoBase;
+            var o=new f();
+            return o;
+        }
+        Object.prototype.createE=function(objetoBase){
+            function F(){}
+            return function(o){
+                if(arguments.length!=1){
+                    throw new Error('Falta parametro obligatorio de Object.create');
+                }
+                F.prototype = o;
+                return new F()
+            }
+        }
+    Object.prototype.createS=function (o) {
+        function F() { }
+        F.prototype = o;
+        return new F();
+    };
+}
+
+Circulo.prototype=Object.createM(Figura.prototype);
+
+var circulo=new Circulo();
+
+probar(function(){ return circulo.soy(); },"circulo");
+probar(function(){ return circulo.forma; },"tengo");
+probar(function(){ return circulo instanceof Figura; },true);
+probar(function(){ return circulo instanceof Circulo; },true);
+
+}
+ahora();
+</script>
+</div>
