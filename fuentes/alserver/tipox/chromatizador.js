@@ -190,7 +190,7 @@ var chromatizador={
                         arreglo.splice(i,1);
                     }
                 }
-               this.padre.className=arreglo.join(' ')||null;
+                this.padre.className=arreglo.join(' ')||null;
             }
         }
         Object.defineProperty(destino,"classList", {
