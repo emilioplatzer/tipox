@@ -736,6 +736,7 @@ var chromatizador={
             this.agregarDateToISOString();
         }
         if(!Object.create){ // IE8
+            this.agregados.objectCreate=true;
             this.agregarObjectCreate();
         }
         if(isNaN(fechaAmd('2001-12-31').getTime()) || true){ // Safari

@@ -84,7 +84,7 @@ Colocador.prototype.creadorElementoDOM={
     }
 }
 
-if(window.chromatizador && chromatizador.agregados.defineProperty){
+if(window.chromatizador && (chromatizador.agregados.defineProperty || chromatizador.agregados.objectCreate)){
     Colocador.prototype.creadorElementoDOM.atributosEspeciales.classList={
         asignar:function(elementoDestino, valor){
             chromatizador.agregarClassList(elementoDestino);
