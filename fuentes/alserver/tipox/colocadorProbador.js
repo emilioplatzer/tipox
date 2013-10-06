@@ -1,6 +1,7 @@
 ﻿// Por $Author: emilioplatzer@gmail.com $ Revisión $Revision: 88 $ del $Date: 2013-09-07 15:58:38 -0300 (sáb 07 de sep de 2013) $
 "use strict";
 
+var DEBUGPOINT='.';
 
 // Aplicacion.prototype.eventos.toggleDisplayAbajo=function(evento,elemento){
     // var hermano=elemento.nextSibling;
@@ -69,24 +70,21 @@ function FlujoColocadorProbador(){
         cambiarEstadoElemento(estadoMaxPrioridad,elementoModuloTitulo);
     }
     this.agregarNodos=function(destino,nodo,cruzEn,profundidad){
-        if(!destino){
-            // alert('sin destino en agregarNodos');
-        }
         if('nodes' in nodo){
             var esto=this;
-            // var raizMas=this.colocador.colocar({destino:cruzEn||destino, contenido:{tipox:'raiz_mas'}, ubicacion:cruzEn?cruzEn.firstChild:null});
             var raizMas=cruzEn;
             var listarNodos=function(){
                 var tabla=esto.colocador.colocar({destino:destino,contenido:{tipox:'tabla'}});
                 for(var idNodo in nodo.nodes) if(nodo.nodes.hasOwnProperty(idNodo)){
                     var fila=esto.colocador.colocar({destino:tabla,contenido:{
                         tipox:'tr', nodes:[
-                            {tipox:'td', className:'TDD_label_lista', nodes:idNodo},
+                            {tipox:'td', classList:['TDD_label_lista'], nodes:idNodo},
                             {tipox:'td', className:'TDD_contenido'}
                         ]
                     }});
                     // esto.agregarNodos(fila.cells[fila.cells.length-1], nodo.nodes[idNodo], fila.cells[0], (Number(profundidad)||0)+1);
                     esto.agregarNodos(fila.childNodes[fila.childNodes.length-1], nodo.nodes[idNodo], fila.childNodes[0], (Number(profundidad)||0)+1);
+                    document.getElementById('debug_probador').innerText+=' pap87';
                 }
                 hacerExpandidor(cruzEn,tabla,!!nodo.tieneError);
             }
@@ -170,6 +168,7 @@ function FlujoColocadorProbador(){
                 nodes:[{
                     tipox:'div', 
                     id:idCaso+'_titulo', 
+                    classList:[],
                     nodes:tituloCaso
                 }]
             }
@@ -180,6 +179,7 @@ function FlujoColocadorProbador(){
         var elementoCasoTitulo=document.getElementById(idCaso+'_titulo')
         cambiarEstado(mensaje.estado,elementoCaso,elementoModulo);
         if(mensaje.resultado){
+            elementoModuloTitulo.innerText+=DEBUGPOINT; 
             if(mensaje.resultado.tieneError){
                 if(!elementoModuloTitulo.expandidor.mostrar){
                     elementoModuloTitulo.expandidor.cambiar();
