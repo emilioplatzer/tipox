@@ -12,6 +12,7 @@ window.addEventListener('load',function(){
         },
         reemplazar:true
     });
+    colocador.colocar({destino:document.body, contenido:{tipox:'div', id:'debug_probador', /*style:'border:solid 1px brown',*/ innerText:'pruebas'}});
     var probador=new Probador();
     probador.agregarCasosEjemplo();
     probador.probarTodo({sinTryCatch:true});
