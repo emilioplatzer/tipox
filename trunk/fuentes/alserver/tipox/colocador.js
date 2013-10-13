@@ -84,6 +84,24 @@ Colocador.prototype.creadorElementoDOM={
     }
 }
 
+Colocador.prototype.CreadorElementoRow=cambiandole(
+    Colocador.prototype.creadorElementoDOM, 
+    {nuevo:function(tagName, contenido, destino){
+        var fila=destino.insertRow(-1);
+        fila.colocado=true;
+        return fila;
+    }}
+);
+
+Colocador.prototype.CreadorElementoCell=cambiandole(
+    Colocador.prototype.creadorElementoDOM, 
+    {nuevo:function(tagName, contenido, destino){
+        var celda=destino.insertCell(-1);
+        celda.colocado=true;
+        return celda;
+    }}
+);
+
 if(window.chromatizador && (chromatizador.agregados.defineProperty || chromatizador.agregados.objectCreate)){
     Colocador.prototype.creadorElementoDOM.atributosEspeciales.classList={
         asignar:function(elementoDestino, valor){
@@ -106,6 +124,11 @@ if(window.chromatizador && (chromatizador.agregados.defineProperty || chromatiza
             }
         }
     }
+}
+
+Colocador.prototype.colocacionesDirectas={
+    TR:{metodo:'insertRow', parametro:-1},
+    TD:{metodo:'insertCell', parametro:-1}
 }
 
 Colocador.prototype.colocar=function(params){
@@ -151,16 +174,18 @@ Colocador.prototype.colocar=function(params){
             var contenido_traducido=creador.translate(params.contenido);
             elementoAgregado=this.colocar({destino:elementoDestino,contenido:contenido_traducido,ubicacion:params.ubicacion,futuro:futuro});
         }else{
-            nuevoElemento=creador.nuevo(params.contenido.tipox,params.contenido);
+            nuevoElemento=creador.nuevo(params.contenido.tipox,params.contenido,elementoDestino);
             creador.asignarAtributos(nuevoElemento,params.contenido,futuro);
             this.colocar({destino:nuevoElemento,contenido:params.contenido.nodes,futuro:futuro});
         }
     }
     if(nuevoElemento){
-        if(!params.ubicacion){
-            elementoDestino.appendChild(nuevoElemento);
-        }else{
-            elementoDestino.insertBefore(nuevoElemento,params.ubicacion||null);
+        if(!nuevoElemento.colocado){
+            if(!params.ubicacion){
+                elementoDestino.appendChild(nuevoElemento);
+            }else{
+                elementoDestino.insertBefore(nuevoElemento,params.ubicacion||null);
+            }
         }
         elementoAgregado=nuevoElemento;
         if('ongrab' in nuevoElemento){
@@ -299,14 +324,14 @@ Colocador.prototype.creadores={
     "sup":{tipo:'HTML4', descripcion:"Defines superscripted text", creador:Colocador.prototype.creadorElementoDOM},
     "table":{tipo:'HTML4', descripcion:"Defines a table", creador:Colocador.prototype.creadorElementoDOM},
     "tbody":{tipo:'HTML4', descripcion:"Groups the body content in a table", creador:Colocador.prototype.creadorElementoDOM},
-    "td":{tipo:'HTML4', descripcion:"Defines a cell in a table", creador:Colocador.prototype.creadorElementoDOM},
+    "td":{tipo:'HTML4', descripcion:"Defines a cell in a table", creador:Colocador.prototype.CreadorElementoCell},
     "textarea":{tipo:'HTML4', descripcion:"Defines a multiline input control (text area)", creador:Colocador.prototype.creadorElementoDOM},
     "tfoot":{tipo:'HTML4', descripcion:"Groups the footer content in a table", creador:Colocador.prototype.creadorElementoDOM},
     "th":{tipo:'HTML4', descripcion:"Defines a header cell in a table", creador:Colocador.prototype.creadorElementoDOM},
     "thead":{tipo:'HTML4', descripcion:"Groups the header content in a table", creador:Colocador.prototype.creadorElementoDOM},
     "time":{tipo:'HTML5', descripcion:"Defines a date/time", creador:Colocador.prototype.creadorElementoDOM},
     "title":{tipo:'HTML4', descripcion:"Defines a title for the document", creador:Colocador.prototype.creadorElementoDOM},
-    "tr":{tipo:'HTML4', descripcion:"Defines a row in a table", creador:Colocador.prototype.creadorElementoDOM},
+    "tr":{tipo:'HTML4', descripcion:"Defines a row in a table", creador:Colocador.prototype.CreadorElementoRow},
     "track":{tipo:'HTML5', descripcion:"Defines text tracks for media elements (<video> and <audio>)", creador:Colocador.prototype.creadorElementoDOM},
     "tt":{tipo:'HTML4', descripcion:"Not supported in HTML5. Defines teletype text", creador:Colocador.prototype.creadorElementoDOM},
     "u":{tipo:'HTML4', descripcion:"Defines text that should be stylistically different from normal text", creador:Colocador.prototype.creadorElementoDOM},

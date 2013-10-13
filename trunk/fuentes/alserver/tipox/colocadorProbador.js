@@ -1,13 +1,6 @@
 ﻿// Por $Author: emilioplatzer@gmail.com $ Revisión $Revision: 88 $ del $Date: 2013-09-07 15:58:38 -0300 (sáb 07 de sep de 2013) $
 "use strict";
 
-var DEBUGPOINT='.';
-
-// Aplicacion.prototype.eventos.toggleDisplayAbajo=function(evento,elemento){
-    // var hermano=elemento.nextSibling;
-    // hermano.style.display=hermano.style.display?null:'none';
-// }
-
 function hacerExpandidor(elementoTitulo, elementoExpandible, valorInicial){
     elementoTitulo.expandidor={
         expandible:elementoExpandible,
@@ -82,7 +75,6 @@ function FlujoColocadorProbador(){
                             {tipox:'td', className:'TDD_contenido'}
                         ]
                     }});
-                    // esto.agregarNodos(fila.cells[fila.cells.length-1], nodo.nodes[idNodo], fila.cells[0], (Number(profundidad)||0)+1);
                     esto.agregarNodos(fila.childNodes[fila.childNodes.length-1], nodo.nodes[idNodo], fila.childNodes[0], (Number(profundidad)||0)+1);
                 }
                 hacerExpandidor(cruzEn,tabla,!!nodo.tieneError);
@@ -112,22 +104,9 @@ function FlujoColocadorProbador(){
                         {tipox:'td', className:'TDD_label_nodo', nodes:idAtributo},
                         {tipox:'td', className:'TDD_'+idAtributo, nodes:[{tipox:'pre', className:clase, innerText:mostrar}]}
                     ]}});
-                    // if(mostrar=='texto de la excepcion esperada'){
-                        // alert('pap '+destino.innerHTML);
-                    // }
                 }
             };
         }
-        /*
-        // elementoCaso=document.getElementById(idCaso);
-        this.colocador.colocar({
-            destino:elementoCaso,
-            contenido:{
-                tipox:'div', className:'TDD_error', nodes:[]
-            }
-        });
-        */
-        // document.getElementById('debug_probador').innerText+=' AN'+(Number(profundidad)||0)+1+' '+destino.innerText.substr(0,10);
     }
     this.enviar=function(mensaje){
         if(!preparado){
@@ -176,9 +155,6 @@ function FlujoColocadorProbador(){
                 }]
             }
         });
-        if(!elementoCaso){
-            // alert('sin destino elementoCaso');
-        }
         var elementoCasoTitulo=document.getElementById(idCaso+'_titulo')
         cambiarEstado(mensaje.estado,elementoCaso,elementoModulo);
         if(mensaje.resultado){
@@ -188,7 +164,6 @@ function FlujoColocadorProbador(){
                 }
             }
             this.agregarNodos(elementoCaso,mensaje.resultado,elementoCasoTitulo);
-            elementoModuloTitulo.innerText+=DEBUGPOINT; 
         }
     }
 }

@@ -159,6 +159,11 @@ Aplicacion.prototype.creadorElementoDOM={
     }
 }
 
+Aplicacion.prototype.colocacionesDirectas={
+    TR:{metodo:'insertRow', parametro:-1},
+    TD:{metodo:'insertCell', parametro:-1}
+}
+
 Aplicacion.prototype.colocar=function(elemento,definicion,futuro,atributosAdicionales,debug){
     var elementoDestino;
     var grabExterno=!futuro;
@@ -202,7 +207,12 @@ Aplicacion.prototype.colocar=function(elemento,definicion,futuro,atributosAdicio
         }
     }
     if(nuevoElemento){
-        elementoDestino.appendChild(nuevoElemento);
+        var colocacionDirecta=this.colocacionesDirectas[nuevoElemento.tagName];
+        if(colocacionDirecta && elementoDestino[colocacionDirecta.metodo]){
+            elementoDestino.[colocacionDirecta.metodo](colocacionDirecta.parametro);
+        }else{
+            elementoDestino.appendChild(nuevoElemento);
+        }
         elementoAgregado=nuevoElemento;
         if('ongrab' in nuevoElemento){
             console.assert(nuevoElemento.ongrab instanceof Function);
