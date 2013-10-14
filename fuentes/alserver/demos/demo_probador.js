@@ -15,6 +15,7 @@ window.addEventListener('load',function(){
     colocador.colocar({destino:document.body, contenido:{tipox:'div', id:'debug_probador', /*style:'border:solid 1px brown',*/ innerText:'pruebas'}});
     var probador=new Probador();
     probador.agregarCasosEjemplo();
+    probador.agregarCasosRegistrados();
     probador.probarTodo({sinTryCatch:true});
     document.getElementById('debug_html').onclick=function(){
         var ta=document.createElement('textarea');

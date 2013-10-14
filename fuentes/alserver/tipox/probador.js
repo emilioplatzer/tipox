@@ -152,7 +152,7 @@ Probador.prototype.correrPruebas=function(params){
         var caso=this.casosDePrueba[i];
         this.registrarCaso(caso,params);
     }
-    this.probarVariosCasos(1);
+    this.probarVariosCasos(20);
     // document.getElementById('TDD_caso:así se ven lo errores en los casos de prueba fallidos').parentNode.style.display='none';
 }
 
@@ -163,6 +163,10 @@ Probador.prototype.registrarCaso=function(caso,params){
     });
     if(!(caso.modulo in this.pendientesPorModulos)){
         this.pendientesPorModulos[caso.modulo]=0;
+    }
+    if(!caso.caso){
+        var cadenaParametros=JSON.stringify(caso.entrada);
+        caso.caso=caso.funcion+'('+cadenaParametros.substr(1,cadenaParametros.length-2)+')';
     }
     var pendiente=!caso.ignorado && (!params.soloProbar || params.soloProbar[caso.caso])
     var mensaje={
@@ -507,6 +511,9 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
     if(this.app.hoyString<=caso.mostrarAunqueNoFalleHasta){
         mensaje.mostrar=true;
     }
+    if(caso.modulo=='asi_se_ven_los_errores'){
+        mensaje.ocultarAunqueError=true;
+    }
     this.mensajes.enviar(mensaje);
 }
 
@@ -546,7 +553,17 @@ ArgumentoEspecialParaMock.prototype.compatible=function(valor){
 // Aplicacion.prototype.paraCargarCasosDePrueba=[];
 
 Probador.prototype.agregarCaso=function(caso){
-    this.casosDePrueba.push(caso);
+    this.casosDePrueba.push(cambiandole(this.casoPredeterminado,caso));
+}
+
+Probador.prototype.registradorCasosPrueba=[];
+
+Probador.prototype.agregarCasosRegistrados=function(){
+    this.casoPredeterminado={};
+    for(var i=0; i<this.registradorCasosPrueba.length; i++){
+        this.registradorCasosPrueba[i].call(this);
+        this.casoPredeterminado={};
+    }
 }
 
 Probador.prototype.agregarCasosEjemplo=function(){

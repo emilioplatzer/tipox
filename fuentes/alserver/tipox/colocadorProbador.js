@@ -158,7 +158,7 @@ function FlujoColocadorProbador(){
         var elementoCasoTitulo=document.getElementById(idCaso+'_titulo')
         cambiarEstado(mensaje.estado,elementoCaso,elementoModulo);
         if(mensaje.resultado){
-            if(mensaje.resultado.tieneError){
+            if(mensaje.resultado.tieneError && !mensaje.ocultarAunqueError){
                 if(!elementoModuloTitulo.expandidor.mostrar){
                     elementoModuloTitulo.expandidor.cambiar();
                 }

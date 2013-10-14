@@ -7,6 +7,8 @@ $lanzador=new Lanzador(array(
         '../tipox/chromatizador.js',
         '../tipox/aplicacion.js',
         '../tipox/colocador.js',
+        '../tipox/colocador.js',
+        '../tipox/letras.js',
         'demo_colocador.js'
     ),
     'empezar'=>'cargando'
