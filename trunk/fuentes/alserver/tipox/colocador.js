@@ -132,8 +132,11 @@ Colocador.prototype.colocacionesDirectas={
 }
 
 Colocador.prototype.colocar=function(params){
+    if(!'contenido' in params){
+        throw new Error('contenido sin especificar en Colocador.colocar');
+    }
     if(!params.destino){
-        // alert('sin destino '+JSON.stringify(params.contenido));
+        params.destino=document.body;
     }
     var elementoDestino;
     var futuro=params.futuro;
