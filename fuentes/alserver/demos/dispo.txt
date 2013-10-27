@@ -11,3 +11,6 @@ chrome      1366        1241        la pantalla está maximizada y con 110% de zo
 chrome      1110        1094        la pantalla no está maximizada (evidentemente el ancho en pixeles de la ventana influye
 SIII        720         360         vertical, no-scale
 SIII        1280        640         horizontal, no-scale
+SIII        720         289         vertical, con un poco de zoom
+SIII        1280        768         horizontal, width=768
+SIII        720         768         vertical, width=768
