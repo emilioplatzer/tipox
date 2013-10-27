@@ -16,18 +16,23 @@ Colocador.prototype.creadorElementoDOM={
                 break;
             case 'eventos': 
                 for(var id_evento in contenido.eventos) if(contenido.eventos.hasOwnProperty(id_evento)){
-                    var app=this.app;
-                    destino.addEventListener(id_evento,function(evento){
-                        if("registro excepciones"){
-                            try{
+                    var manejador=contenido.eventos[id_evento];
+                    if(typeof manejador=='string'){
+                        var app=this.app;
+                        destino.addEventListener(id_evento,function(evento){
+                            if("registro excepciones"){
+                                try{
+                                    return app.eventos[contenido.eventos[id_evento]].call(app,evento,this);
+                                }catch(err){
+                                    app.lanzarExcepcion(err,this);
+                                }
+                            }else{
                                 return app.eventos[contenido.eventos[id_evento]].call(app,evento,this);
-                            }catch(err){
-                                app.lanzarExcepcion(err,this);
                             }
-                        }else{
-                            return app.eventos[contenido.eventos[id_evento]].call(app,evento,this);
-                        }
-                    });
+                        });
+                    }else{
+                        destino.addEventListener(id_evento,manejador);
+                    }
                 }
                 break;
             default:

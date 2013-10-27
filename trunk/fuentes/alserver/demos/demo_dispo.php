@@ -1,24 +1,22 @@
 <?php
-/* Por $Author$ Revisión $Revision$ del $Date$ */
+/* Por $Author$ Revisión $Revision: 23 $ del $Date$ */
 include "../tipox/launch.php";
 
 $lanzador=new Lanzador(array(
-    'title'=>'info sobre tipox',
+    'title'=>'demo dispo',
     'js'=>array(
         '../tipox/comunes.js',
         '../tipox/chromatizador.js',
         '../tipox/aplicacion.js',
         '../tipox/colocador.js',
-        '../tipox/probador.js',
-        'demo_probador.js'
+        "demo_dispo.js"
     ),
     'css'=>array(
-        '../tipox/probador.css',
+        "demo_dispo.css"
     ),
     'empezar'=>'cargando'
 ));
 
-if(basename($_SERVER['PHP_SELF'])==basename(__FILE__)){
-    $lanzador->lanzar();
-}
+$lanzador->lanzar();
+
 ?>

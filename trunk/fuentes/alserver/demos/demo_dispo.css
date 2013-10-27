@@ -1,0 +1,13 @@
+﻿/* Por $Author$ Revisión $Revision: 23 $ del $Date$ */
+body{
+}
+
+table{
+    border-collapse:collapse;
+    margin:0px;
+    border:1px dashed green;
+}
+
+td{
+    border:1px dashed green;
+}

@@ -1,4 +1,5 @@
 <?php
+/* Por $Author$ Revisión $Revision$ del $Date$ */
 include "demo_probador.php";
 
 $lanzador->params['title']='Demo para poner importe en letras';

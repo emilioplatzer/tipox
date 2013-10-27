@@ -1,4 +1,4 @@
-﻿// Por $Author: emilioplatzer@gmail.com $ Revisión $Revision: 23 $ del $Date: 2013-03-18 01:49:46 -0300 (lun 18 de mar de 2013) $
+﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
 
 window.addEventListener('load',function(){
