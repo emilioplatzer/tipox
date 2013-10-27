@@ -1,0 +1,13 @@
+/* Por $Author: emilioplatzer@gmail.com $ Revisión $Revision: 23 $ del $Date: 2013-10-27 12:53:15 -0300 (dom 27 de oct de 2013) $ */
+
+Por lo que veo:
+window.outerWidth tiene los pixeles físicos de ancho
+window.innerWidth tiene los pixeles lógicos de ancho
+
+Por ejemplo en el chrome en mi máquina que tiene 1366px de ancho cuando 
+plataforma  outerWidth  innerWidth  cuando
+chrome      1366        1366        la pantalla está maximizada con 100% de zoom (o sea tamaño natural)
+chrome      1366        1241        la pantalla está maximizada y con 110% de zoom
+chrome      1110        1094        la pantalla no está maximizada (evidentemente el ancho en pixeles de la ventana influye
+SIII        720         360         vertical, no-scale
+SIII        1280        640         horizontal, no-scale
