@@ -17,6 +17,10 @@ $lanzador=new Lanzador(array(
     'empezar'=>'cargando'
 ));
 
+if($_REQUEST['a']==1){
+    $lanzador->params['meta'][]=array('name'=>'viewport', 'content'=>'user-scalable=no');
+}
+
 $lanzador->lanzar();
 
 ?>

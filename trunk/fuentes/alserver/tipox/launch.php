@@ -10,10 +10,16 @@ class Lanzador{
         'en blanco'=>'',
         'cargando'=>"cargando...<br><div style='padding:10px'><img src='../imagenes/reloj.gif' alt='cargando...' style='text-align:center'></div>",
     );
+    var $al_header=array(
+        'meta'=>array(),
+        'link'=>array(),
+        'css'=>array('prefijo'=>'<link rel=stylesheet href=','directo'=>true)
+    );
     var $definicion_params=array(
         'js'       =>array('validar'=>'is_array' ,'predeterminado'=>array()    ),
         'css'      =>array('validar'=>'is_array' ,'predeterminado'=>array()    ),
-        'links'    =>array('validar'=>'is_array' ,'predeterminado'=>array()    ),
+        'link'     =>array('validar'=>'is_array' ,'predeterminado'=>array()    ),
+        'meta'     =>array('validar'=>'is_array' ,'predeterminado'=>array()    ),
         'title'    =>array('validar'=>'is_string','obligatorio'=>true          ),
         'para_ipad'=>array('validar'=>'is_bool'  ,'predeterminado'=>false      ),
         'empezar'  =>array('predeterminado'=>'en blanco')
@@ -46,15 +52,21 @@ HTML;
             echo <<<HTML
 <meta name="format-detection" content="telephone=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name='viewport' content='user-scalable=no, width=768'>
 
 HTML;
         }
-        foreach($this->params['css'] as $un_css){
-            echo "<link rel=stylesheet href='{$un_css}' />\n";
-        }
-        foreach($this->params['links'] as $un_link){
-            echo "<link rel=\"{$un_link['rel']}\" href=\"{$un_link['href']}\">\n";
+        foreach($this->al_header as $campo=>$def){
+            foreach((@$this->params[$campo]?:array()) as $un_elemento){
+                echo @$def['prefijo']?:"<{$campo}";
+                if(@$def['directo']){
+                    echo "'{$un_elemento}'";
+                }else{
+                    foreach($un_elemento as $atributo=>$valor){
+                        echo " {$atributo}=".json_encode($valor);
+                    }
+                }
+                echo ">\n";
+            }
         }
         echo <<<HTML
 </head>
@@ -74,7 +86,7 @@ HTML;
     }
 }
 
-function lanzar($def){
+function lanzar_obsoleto($def){
 $versionManifiestoOffline=@$def['version_offline']?:'';
 $offline=!!@$def['offline'];
 $def['title']=isset($def['title'])?$def['title']:'men&uacute;';
@@ -91,7 +103,7 @@ $def['css']=array_merge(array(
     '../tipox/tipox.css',
     '../tipox/grilla.css'
 ),$def['css']);
-$def['links']=@$def['links']?:array();
+$def['link']=@$def['link']?:array();
 $objetosACachear=array_merge(
     array(
         '.',
@@ -105,10 +117,10 @@ $objetosACachear=array_merge(
 );
 if(isset($def['app_icon'])){
     $objetosACachear[]=$def['app_icon'];
-    $def['links']=array_merge(array(
+    $def['link']=array_merge(array(
         array('rel'=>"apple-touch-icon", "href"=>$def['app_icon']),
         array('rel'=>"icon", "href"=>$def['app_icon']),
-    ),$def['links']);
+    ),$def['link']);
 }
 if(isset($_REQUEST['generar'])){
     generarManifiesto(array_merge($objetosACachear,$def['objetos_offline']),$versionManifiestoOffline);
