@@ -17,7 +17,7 @@ $lanzador=new Lanzador(array(
     'empezar'=>'cargando'
 ));
 
-switch($_REQUEST['a']){
+switch(@$_REQUEST['a']){
 case 1:
     $lanzador->params['meta'][]=array('name'=>'viewport', 'content'=>'user-scalable=no');
     break;

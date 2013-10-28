@@ -14,3 +14,16 @@ SIII        1280        640         horizontal, no-scale
 SIII        720         289         vertical, con un poco de zoom
 SIII        1280        768         horizontal, width=768
 SIII        720         768         vertical, width=768
+ipad3       768         980         vertical, no-scale
+ipad3       1024        981         horizontal, no-scale
+ipad3       768         768         horizontal, no-scale, width=device
+ipad3       1024        1024        horizontal, no-scale, width=device
+ipad3       788         750         horizontal, apenas scale , width=device
+htc         480         320         vertical,
+htc         800         480         horizontal
+htc         800         768         horizontal, width=768
+blackberry  320         320         al arrancar
+blackberry  320         349         al refrescar
+
+
+blackberry = Mozilla/5.0 (BlackBerry; U; BlackBerry 9300; es) AppleWebKit/534.8+ (KHTML, like Gecko) Version/6.0.0.668 Mobile Safari/534.8+
