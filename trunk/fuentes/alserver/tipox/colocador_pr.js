@@ -7,11 +7,24 @@ Probador.prototype.registradorCasosPrueba.push(function(){
     this.agregarCaso({ 
         caso:'elemento que se recicla',
         elementos:[
+            {tipox:'div', id:'id_prueba_destino', nodes:[
+                {tipox:'div', id:'id_prueba_colocando1', innerText:'este dato'}
+            ]}
+        ],
+        objetoThis:this.colocador,
+        entrada:[{destino:'id_prueba_destino', contenido:{tipox:'div', id:'id_prueba_colocando1'}, reciclar:true}], 
+        esperado:{respuesta:new ArgumentoEspecialAsimetrico({id:'id_prueba_colocando1', innerText:'este dato'})}
+    });
+    this.agregarCaso({ 
+        caso:'elemento que quiere reciclarse pero está en otro lugar del DOM',
+        elementos:[
             {tipox:'div', id:'id_prueba_destino'},
-            {tipox:'div', id:'id_prueba_colocando', innerText:'este dato'},
+            {tipox:'div', id:'id_prueba_destino_incorrecto', nodes:[
+                {tipox:'div', id:'id_prueba_colocando', innerText:'este dato'}
+            ]},
         ],
         objetoThis:this.colocador,
         entrada:[{destino:'id_prueba_destino', contenido:{tipox:'div', id:'id_prueba_colocando'}, reciclar:true}], 
-        esperado:{respuesta:new ArgumentoEspecialAsimetrico({id:'id_prueba_colocando', innerText:'este dato'})}
+        esperado:{error:'el elemento id_prueba_colocando existe en otro lugar del DOM en id_prueba_destino_incorrecto'}
     });
 });

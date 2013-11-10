@@ -157,8 +157,11 @@ Colocador.prototype.colocar=function(params){
     if(params.reciclar && params.contenido.id){
         var existe=document.getElementById(params.contenido.id);
         if(existe){
-            // if(existe===destino.getElementById(params.contenido.id)
-            return existe;
+            if(existe.parentNode===elementoDestino){
+                return existe;
+            }else{
+                this.app.lanzarExcepcion('el elemento '+params.contenido.id+' existe en otro lugar del DOM en '+existe.parentNode.id);
+            }
         }
     }
     var futuro=params.futuro;
