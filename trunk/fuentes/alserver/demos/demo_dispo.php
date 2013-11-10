@@ -19,7 +19,6 @@ $lanzador=new Lanzador(array(
 
 switch(@$_REQUEST['a']){
 case 1:
-    $lanzador->params['meta'][]=array('name'=>'viewport', 'content'=>'user-scalable=no');
     break;
 case 2:
     $lanzador->params['meta'][]=array('name'=>'viewport', 'content'=>'user-scalable=yes, initial-scale=1.0, width=device-width');
@@ -27,6 +26,8 @@ case 2:
 case 3:
     $lanzador->params['meta'][]=array('name'=>'viewport', 'content'=>'user-scalable=yes, width=768');
     break;
+default:
+    $lanzador->params['meta'][]=array('name'=>'viewport', 'content'=>'user-scalable=no');
 }
 
 $lanzador->lanzar();
