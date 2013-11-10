@@ -11,3 +11,15 @@ table{
 td{
     border:1px dashed green;
 }
+
+.revisar_modificado{
+    color:red;
+}
+
+.revisar_txt{
+    color:blue;
+}
+
+.revisar_num{
+    font-weight:bold;
+}

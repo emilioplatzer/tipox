@@ -157,9 +157,20 @@ Probador.prototype.correrPruebas=function(params){
 }
 
 Probador.prototype.registrarCaso=function(caso,params){
-    this.app.controlador.controlar({
-        funcion:{obligatorio:true},
-        modulo: {obligatorio:true}
+    this.app.controlador.controlar(caso,{
+        funcion:   {obligatorio:true, uso:'función que se va a probar'},
+        modulo:    {obligatorio:true, uso:'nombre del módulo'},
+        caso:      {uso:'nombre del caso (si no se especifica se usa el nombre de la función con sus parámetros)'},
+        entrada:   {uso:'Parámetros de entrada de la función que se va a probar'},
+        esperado:  {uso:'Valores esperados', controlar:{
+            resultado: {uso:'lo devuelto por la función'}
+        }},
+        objetoThis:{uso:'Objeto al que se le aplicará la función'},
+        elementos: {uso:'Elementos que deben exisitir en el DOM para que se pueda correr la prueba'},
+        ignorado:  {uso:'Indica si el caso debe ignorarse, se puede especificar un número de ticket'},
+        mostrarAunqueNoFalleHasta:{uso:'Muestra el resultado de la prueba aunque no falle hasta la fecha especificada'},
+        aclaracionSiFalla:{uso:'Texto qué debe mostrar si falla la prueba'}
+        // elementos:{uso:''}
     });
     if(!(caso.modulo in this.pendientesPorModulos)){
         this.pendientesPorModulos[caso.modulo]=0;
@@ -241,8 +252,24 @@ function ArgumentoEspecialRegExp(regexp){
         return this.mostrarEsperado()+' ~ '+JSON.stringify(obtenido);
     }
 }
-
 ArgumentoEspecialRegExp.prototype=Object.create(ArgumentoEspecialMonovalente.prototype);
+
+/*
+function ArgumentoEspecialElemento(definicion){
+    this.compatible=function(obtenido){
+        return obtenido.id;
+    }
+    this.mostrarEsperado=function(){
+        // alert('mostrarEsperado '+"/"+regexp.source+"/"+(regexp.global?'g':'')+(regexp.ignoreCase?'i':'')+(regexp.multiline?'m':''));
+        return "/"+regexp.source+"/"+(regexp.global?'g':'')+(regexp.ignoreCase?'i':'')+(regexp.multiline?'m':'')
+    }
+    this.mostrarIguales=function(obtenido){
+        // alert('mostrar Iguales '+this.mostrarEsperado()+' ~ '+JSON.stringify(obtenido));
+        return this.mostrarEsperado()+' ~ '+JSON.stringify(obtenido);
+    }
+}
+ArgumentoEspecialElemento.prototype=Object.create(ArgumentoEspecialMonovalente.prototype);
+*/
 
 function ArgumentoEspecialColeccion(){
 }
@@ -265,12 +292,20 @@ ArgumentoEspecialIgnorarSobrantes.prototype=Object.create(ArgumentoEspecialColec
 Probador.prototype.probarElCaso=function(caso){
     this.mensajes.enviar({modulo:caso.modulo, caso:caso.caso, estado:'comenzada'});
     if(caso.elementos){
-        this.app.colocar(document.getElementById('TDD_zona_de_pruebas'),{tipox:'div', id:'TDD_zona_'+caso.caso, className:'TDD_una_prueba'});
+        var zona_de_pruebas=this.colocador.colocar({
+            contenido:{tipox:'div', id:'TDD_zona_de_pruebas'}, 
+            reciclar:true
+        });
+        var zona_de_prueba=this.colocador.colocar({
+            destino:'TDD_zona_de_pruebas', 
+            contenido:{tipox:'div', id:'TDD_zona_'+caso.caso, className:'TDD_una_prueba'}, 
+            reciclar:true
+        });
         for(var elemento in caso.elementos){
             this.elementosBloqueados[elemento]=true;
             var defElemento=caso.elementos[elemento];
             if(defElemento){
-                this.app.colocador.colocar({destino:'TDD_zona_'+caso.caso, contenido:cambiandole(defElemento,{id:elemento})});
+                this.colocador.colocar({destino:'TDD_zona_'+caso.caso, contenido:cambiandole({id:elemento},defElemento)});
             }
         }
     }

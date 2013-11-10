@@ -3,8 +3,24 @@
 
 function Aplicacion(){
     this.esAplicacion=true;
+    var este=this;
     this.controlador={
-        controlar:function(){}
+        controlar:function(params,def_params){
+            for(var nombre_param in params){
+                if(!(nombre_param in def_params)){
+                    este.lanzarExcepcion('sobra el parámetro '+nombre_param);
+                }
+            }
+            for(var nombre_param in def_params){
+                var def_param=def_params[nombre_param];
+                if(def_param.obligatorio && !(nombre_param in params)){
+                    este.lanzarExcepcion('falta el parámetro '+nombre_param);
+                }
+                if('predeterminado' in def_param && !(nombre_param in params)){
+                    params[nombre_param]=def_param.predeterminado;
+                }
+            }
+        }
     };
     var d=new Date();
     var d2=d.toISOString();

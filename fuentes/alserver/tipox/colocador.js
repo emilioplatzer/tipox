@@ -137,17 +137,15 @@ Colocador.prototype.colocacionesDirectas={
 }
 
 Colocador.prototype.colocar=function(params){
-    if(!'contenido' in params){
-        throw new Error('contenido sin especificar en Colocador.colocar');
-    }
-    if(!params.destino){
-        params.destino=document.body;
-    }
+    this.app.controlador.controlar(params,{
+        contenido: {obligatorio:true, uso:'el contenido en formato tipox con el que se creará un Elemento que debe colocarse en el destino'},
+        destino:   {predeterminado:document.body, uso:'el id o elemento destino donde se colocará el elemento nuevo'},
+        ubicacion: {uso:'lugar donde debe ubicarse el elemento (si no se especifica va al final, si se especifica va delante del elemento especificado)'},
+        reemplazar:{uso:'de existir el elemento destino indica si debe ser reemplazado su contenido'},
+        reciclar:  {uso:'de existir el elemento se deja el que está'},
+        futuro:    {uso:'OBSOLTETO no usar'}
+    });
     var elementoDestino;
-    var futuro=params.futuro;
-    if(params.externo && this.app.newFuturo){
-        futuro=this.app.newFuturo();
-    }
     if(typeof(params.destino)=='string'){
         elementoDestino=document.getElementById(params.destino);
         if(!elementoDestino){
@@ -156,7 +154,21 @@ Colocador.prototype.colocar=function(params){
     }else{
         elementoDestino=params.destino;
     }
+    if(params.reciclar && params.contenido.id){
+        var existe=document.getElementById(params.contenido.id);
+        if(existe){
+            // if(existe===destino.getElementById(params.contenido.id)
+            return existe;
+        }
+    }
+    var futuro=params.futuro;
+    if(params.externo && this.app.newFuturo){
+        futuro=this.app.newFuturo();
+    }
     if(params.reemplazar){
+        if(params.reciclar){
+            this.app.lanzarExcepcion('No se puede reemplazar y reciclar a la vez');
+        }
         elementoDestino.innerHTML='';
     }
     var nuevoElemento;
@@ -402,4 +414,3 @@ Colocador.prototype.creadores.tabla={tipo:'tipox', descripcion:'tabla simple bas
         return rta;
     }
 }}
-
