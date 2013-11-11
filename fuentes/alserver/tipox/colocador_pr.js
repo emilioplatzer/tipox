@@ -27,4 +27,44 @@ Probador.prototype.registradorCasosPrueba.push(function(){
         entrada:[{destino:'id_prueba_destino', contenido:{tipox:'div', id:'id_prueba_colocando'}, reciclar:true}], 
         esperado:{error:'el elemento id_prueba_colocando existe en otro lugar del DOM en id_prueba_destino_incorrecto'}
     });
+    this.agregarCaso({ 
+        caso:'opcion devolver del colocar',
+        elementos:[
+            {tipox:'div', id:'id_prueba_destino'},
+        ],
+        objetoThis:this.colocador,
+        entrada:[{
+            destino:'id_prueba_destino', 
+            contenido:{tipox:'div', id:'id_prueba_externo', nodes:[{tipox:'div', id:'id_prueba_interno', innerText:'esto'}]}, 
+            devolver:'id_prueba_interno'
+        }], 
+        esperado:{respuesta:new ArgumentoEspecialAsimetrico({id:'id_prueba_interno', innerText:'esto'})}
+    });
+    this.agregarCaso({ 
+        caso:'intento de devolver un id no colocado',
+        elementos:[
+            {tipox:'div', id:'id_prueba_destino'},
+        ],
+        objetoThis:this.colocador,
+        entrada:[{
+            destino:'id_prueba_destino', 
+            contenido:{tipox:'div', id:'id_prueba_externo', nodes:[{tipox:'div', id:'id_prueba_interno2', innerText:'esto'}]}, 
+            devolver:'id_prueba_inexistente'
+        }], 
+        esperado:{error:'no se puede devolver id_prueba_inexistente porque no fue colocado con el colocador'}
+    });
+    this.agregarCaso({ 
+        caso:'intento de devolver un id colocado en otro lado',
+        elementos:[
+            {tipox:'div', id:'id_prueba_destino'},
+            {tipox:'div', id:'id_otro_lado'},
+        ],
+        objetoThis:this.colocador,
+        entrada:[{
+            destino:'id_prueba_destino', 
+            contenido:{tipox:'div', id:'id_prueba_externo', nodes:[{tipox:'div', id:'id_prueba_interno2', innerText:'esto'}]}, 
+            devolver:'id_otro_lado'
+        }], 
+        esperado:{error:'no se puede devolver id_otro_lado porque no fue colocado con el colocador'}
+    });
 });
