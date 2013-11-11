@@ -1,6 +1,8 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
 
+var CONTROLARTODO=true;
+
 function trim(esto) {
 "use strict";
     if(esto==null || esto==undefined || typeof esto!="string"){
@@ -105,6 +107,14 @@ function obtener_top_global(elemento){
         elemento = elemento.offsetParent;
     }
     return posicion_global;
+}
+
+function buscarPadre(elemento,caracterizador){
+    var funcionDetencion=caracterizador;
+    while(elemento.parentNode && !funcionDetencion(elemento.parentNode)){ 
+        elemento=elemento.parentNode;
+    }
+    return elemento.parentNode;
 }
 
 function fechaAmd(cadenaAnnoMesDia){

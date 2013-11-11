@@ -44,20 +44,16 @@ function mostrarRevisar(revisar, destino, objetivo, sufijoId){
     if(!sufijoId){
         ahora=new Date().getTime();
     }
-    var tabla=colocador.colocar({destino:destino, contenido:{tipox:'table', className:'resultados', id:'tabla'+JSON.stringify(sufijoID)}});
+    var tabla=colocador.colocar({destino:destino, contenido:{tipox:'table', className:'resultados', id:'tabla'+JSON.stringify(sufijoId)}, reciclar:true});
     for(var campo in revisar){
         var def=revisar[campo];
         var id=(sufijoId||[]).concat([campo]);
         var id_json=JSON.stringify(id);
         var celda=document.getElementById(id_json);
-        if(!celda){
-            var fila=colocador.colocar({destino:tabla, contenido:{tipox:'tr', nodes:[
-                {tipox:'td', className:'label', nodes:campo}, 
-                {tipox:'td', classList:[], id:id_json}
-            ]}});
-            // celda=fila.cells[fila.cells.length-1];
-            celda=document.getElementById(id_json);
-        }
+        var celda=colocador.colocar({destino:tabla, contenido:{tipox:'tr', nodes:[
+            {tipox:'td', className:'label', nodes:campo}, 
+            {tipox:'td', classList:[], id:id_json}
+        ]}});
         if(def.claseElemento){
             if(!celda.ultimaModificacion){
                 celda.classList.add(def.claseElemento);

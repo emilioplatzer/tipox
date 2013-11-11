@@ -143,6 +143,7 @@ Colocador.prototype.colocar=function(params){
         ubicacion: {uso:'lugar donde debe ubicarse el elemento (si no se especifica va al final, si se especifica va delante del elemento especificado)'},
         reemplazar:{uso:'de existir el elemento destino indica si debe ser reemplazado su contenido'},
         reciclar:  {uso:'de existir el elemento se deja el que está'},
+        devolver:  {uso:'especifica el ID de cuál de los elementos debe devolver (si no devuelve el más externo o sea el principal)'},
         futuro:    {uso:'OBSOLTETO no usar'}
     });
     var elementoDestino;
@@ -227,6 +228,16 @@ Colocador.prototype.colocar=function(params){
     }
     if(params.externo && this.newFuturo){
         futuro.recibirListo(null);
+    }
+    if(params.devolver){
+        if(typeof params.devolver=='string'){
+            var devolver=document.getElementById(params.devolver);
+            if(devolver && (!CONTROLARTODO || buscarPadre(devolver, function(nodo){return nodo===elementoAgregado;}))){
+                return devolver;
+            }else{
+                this.app.lanzarExcepcion('no se puede devolver '+params.devolver+' porque no fue colocado con el colocador');
+            }
+        }
     }
     return elementoAgregado;
 }
