@@ -120,3 +120,17 @@ function buscarPadre(elemento,caracterizador){
 function fechaAmd(cadenaAnnoMesDia){
     return new Date(cadenaAnnoMesDia);
 }
+
+function alertarUnaVez(mensaje,mostrarCondicionalmente){
+    if(mostrarCondicionalmente!==false){
+        if(!alertarUnaVez.alertas){
+            alertarUnaVez.alertas={};
+        }
+        if(!alertarUnaVez.alertas[mensaje]){
+            alert(mensaje);
+            alertarUnaVez.alertas[mensaje]=1;
+        }else{
+            alertarUnaVez.alertas[mensaje]++;
+        }
+    }
+}

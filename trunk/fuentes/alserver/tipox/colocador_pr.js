@@ -94,6 +94,6 @@ Probador.prototype.registradorCasosPrueba.push(function(){
             destino:'id_prueba_destino', 
             contenido:{tipox:'div', id:'id_existente', innerText:'8'}
         }], 
-        esperado:{respuesta:new ArgumentoEspecialAsimetrico({localName:'div', id:'id_existente', innerText:'8'})}
+        esperado:{respuesta:new ArgumentoEspecialAsimetrico({tagName:'DIV', id:'id_existente', innerText:'8'})}
     });
 });
