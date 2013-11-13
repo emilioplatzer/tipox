@@ -98,11 +98,16 @@ function FlujoColocadorProbador(){
                         clase='JSON_emptyString';
                     }
                     if(clase=='JSON_object'){
-                        mostrar=JSON.stringify(mostrar);
+                        try{
+                            mostrar=JSON.stringify(mostrar);
+                        }catch(err){
+                            // mostrar=mostrar.toString();
+                            mostrar=JSON.stringifyCircular(mostrar);
+                        }
                     }
                     this.colocador.colocar({destino:tabla, contenido:{tipox:'tr', nodes:[
                         {tipox:'td', className:'TDD_label_nodo', nodes:idAtributo},
-                        {tipox:'td', className:'TDD_'+idAtributo, nodes:[{tipox:'pre', className:clase, innerText:mostrar}]}
+                        {tipox:'td', className:'TDD_'+idAtributo, nodes:[{tipox:'pre', className:clase, nodes:mostrar}]}
                     ]}});
                 }
             };

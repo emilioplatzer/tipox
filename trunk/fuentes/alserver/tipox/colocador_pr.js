@@ -3,6 +3,9 @@
 
 Probador.prototype.registradorCasosPrueba.push(function(){
     this.colocador=new Colocador();
+    this.colocador.controlarTodo=true;
+    this.colocadorEficiente=new Colocador();
+    this.colocador.controlarTodo=false;
     this.casoPredeterminado={funcion:'colocar', modulo:'Colocador'};
     this.agregarCaso({ 
         caso:'elemento que se recicla',
@@ -66,5 +69,31 @@ Probador.prototype.registradorCasosPrueba.push(function(){
             devolver:'id_otro_lado'
         }], 
         esperado:{error:'no se puede devolver id_otro_lado porque no fue colocado con el colocador'}
+    });
+    this.agregarCaso({ 
+        caso:'intento de crear un id duplicado',
+        elementos:[
+            {tipox:'div', id:'id_prueba_destino'},
+            {tipox:'div', id:'id_existente'},
+        ],
+        objetoThis:this.colocador,
+        entrada:[{
+            destino:'id_prueba_destino', 
+            contenido:{tipox:'div', id:'id_existente'}
+        }], 
+        esperado:{error:'no se puede colocar id_existente porque hay existe un elemento con ese id'}
+    });
+    this.agregarCaso({ 
+        caso:'intento de crear un id duplicado no falla si no se controla todo',
+        elementos:[
+            {tipox:'div', id:'id_prueba_destino'},
+            {tipox:'div', id:'id_existente'},
+        ],
+        objetoThis:this.colocadorEficiente,
+        entrada:[{
+            destino:'id_prueba_destino', 
+            contenido:{tipox:'div', id:'id_existente'}
+        }], 
+        esperado:{error:undefined}
     });
 });
