@@ -212,9 +212,11 @@ Probador.prototype.probarVariosCasos=function(cuantos){
         var caso=this.casosPendientes.shift();
         var hayBloqueados=false;
         if(caso.elementos){
-            for(var elemento in caso.elementos){
-                if(document.getElementById(elemento) || this.elementosBloqueados[elemento]){
+            // alertarUnaVez('va a procesar elementos ');
+            for(var elemento in caso.elementos) if(caso.elementos.hasOwnProperty(elemento)){
+                if(document.getElementById(caso.elementos[elemento].id||elemento) || this.elementosBloqueados[caso.elementos[elemento].id||elemento]){
                     hayBloqueados=true;
+                    // alertarUnaVez('hay elementos bloqueados ('+caso.elementos[elemento].id+'||'+elemento+'), '+JSON.stringify(this.elementosBloqueados)+' / '+JSON.stringify(caso.elementos));
                     break;
                 }
             }
@@ -223,12 +225,14 @@ Probador.prototype.probarVariosCasos=function(cuantos){
             this.mensajes.enviar({modulo:caso.modulo, caso:caso.caso, estado:'en_espera'});
             this.casosPendientes.push(caso);
         }else{
+            // alertarUnaVez('va a probar el caso ',caso.elementos);
             this.probarElCaso(caso);
         }
         seguirProcesando--;
     }
     var este=this;
     if(this.casosPendientes.length){
+        // alertarUnaVez('quedan '+this.casosPendientes.length+' casos pendientes');
         setTimeout(function(){ este.probarVariosCasos(cuantos); },100);
     }
 }
@@ -301,8 +305,8 @@ Probador.prototype.probarElCaso=function(caso){
             contenido:{tipox:'div', id:'TDD_zona_'+caso.caso, className:'TDD_una_prueba'}, 
             reciclar:true
         });
-        for(var elemento in caso.elementos){
-            this.elementosBloqueados[elemento]=true;
+        for(var elemento in caso.elementos) if(caso.elementos.hasOwnProperty(elemento)){
+            this.elementosBloqueados[caso.elementos[elemento].id||elemento]=true;
             var defElemento=caso.elementos[elemento];
             if(defElemento){
                 this.colocador.colocar({destino:'TDD_zona_'+caso.caso, contenido:cambiandole({id:elemento},defElemento)});
@@ -410,7 +414,7 @@ Probador.prototype.textoDeCampos=function(objeto){
         rta=this.cadenaParaMostrar(objeto);
     }catch(err){
         var rta={};
-        for(var atributo in objeto){
+        for(var atributo in objeto) if(objeto.hasOwnProperty(atributo)){
             try{
                 rta[atributo]=objeto[atributo].toString();
             }catch(err2){
@@ -534,8 +538,8 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
         this.errores++;
     }
     if(caso.elementos){
-        for(var elemento in caso.elementos){
-            this.elementosBloqueados[elemento]=false;
+        for(var elemento in caso.elementos) if(caso.elementos.hasOwnProperty(elemento)){
+            this.elementosBloqueados[caso.elementos[elemento].id||elemento]=false;
         }
         var zonaDePrueba=document.getElementById('TDD_zona_'+caso.caso);
         if(zonaDePrueba){

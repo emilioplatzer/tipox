@@ -6,12 +6,12 @@ function Aplicacion(){
     var este=this;
     this.controlador={
         controlar:function(params,def_params){
-            for(var nombre_param in params){
+            for(var nombre_param in params) if(params.hasOwnProperty(nombre_param)){
                 if(!(nombre_param in def_params)){
                     este.lanzarExcepcion('sobra el parámetro '+nombre_param);
                 }
             }
-            for(var nombre_param in def_params){
+            for(var nombre_param in def_params) if(def_params.hasOwnProperty(nombre_param)){
                 var def_param=def_params[nombre_param];
                 if(def_param.obligatorio && !(nombre_param in params)){
                     este.lanzarExcepcion('falta el parámetro '+nombre_param);
