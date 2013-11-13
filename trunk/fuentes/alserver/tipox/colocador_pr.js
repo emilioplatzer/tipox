@@ -5,7 +5,7 @@ Probador.prototype.registradorCasosPrueba.push(function(){
     this.colocador=new Colocador();
     this.colocador.controlarTodo=true;
     this.colocadorEficiente=new Colocador();
-    this.colocador.controlarTodo=false;
+    this.colocadorEficiente.controlarTodo=false;
     this.casoPredeterminado={funcion:'colocar', modulo:'Colocador'};
     this.agregarCaso({ 
         caso:'elemento que se recicla',
@@ -92,8 +92,8 @@ Probador.prototype.registradorCasosPrueba.push(function(){
         objetoThis:this.colocadorEficiente,
         entrada:[{
             destino:'id_prueba_destino', 
-            contenido:{tipox:'div', id:'id_existente'}
+            contenido:{tipox:'div', id:'id_existente', innerText:'8'}
         }], 
-        esperado:{error:undefined}
+        esperado:{respuesta:new ArgumentoEspecialAsimetrico({localName:'div', id:'id_existente', innerText:'8'})}
     });
 });
