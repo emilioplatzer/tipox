@@ -50,10 +50,14 @@ function mostrarRevisar(revisar, destino, objetivo, sufijoId){
         var id=(sufijoId||[]).concat([campo]);
         var id_json=JSON.stringify(id);
         var celda=document.getElementById(id_json);
-        var celda=colocador.colocar({destino:tabla, contenido:{tipox:'tr', nodes:[
-            {tipox:'td', className:'label', nodes:campo}, 
-            {tipox:'td', classList:[], id:id_json}
-        ]}});
+        var celda=colocador.colocar({
+            destino:tabla, 
+            contenido:{tipox:'tr', nodes:[
+                {tipox:'td', className:'label', nodes:campo}, 
+                {tipox:'td', classList:[], id:id_json}
+            ]},
+            devolver:id_json
+        });
         if(def.claseElemento){
             if(!celda.ultimaModificacion){
                 celda.classList.add(def.claseElemento);

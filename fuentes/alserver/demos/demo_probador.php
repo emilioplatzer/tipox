@@ -8,6 +8,7 @@ $lanzador=new Lanzador(array(
         '../tipox/comunes.js',
         '../tipox/chromatizador.js',
         '../tipox/aplicacion.js',
+        '../tipox/objeto_circular.js',
         '../tipox/colocador.js',
         '../tipox/probador.js',
         'demo_probador.js'
