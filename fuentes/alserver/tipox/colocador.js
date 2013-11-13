@@ -193,6 +193,9 @@ Colocador.prototype.colocar=function(params){
             }
         }
     }else{
+        if(params.contenido.id && this.controlarTodo && document.getElementById(params.contenido.id)){
+            this.app.lanzarExcepcion('no se puede colocar '+params.contenido.id+' porque hay existe un elemento con ese id');
+        }
         var creador=this.domCreator(params.contenido.tipox);
         if('translate' in creador){
             var contenido_traducido=creador.translate(params.contenido);
