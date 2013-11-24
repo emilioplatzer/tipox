@@ -1,0 +1,24 @@
+table[class=tabla_fija]{
+    border:3px solid red;
+    border-collapse:collapse;
+}
+
+.tabla_fija tr:first-child  td{
+    background-color:#DAF;
+}
+
+.tabla_fija  td:first-child{
+    background-color:#DAF;
+}
+
+.tabla_fija  td:nth-child(2){
+    background-color:#DAF;
+}
+
+.tabla_fija td{
+    border:2px solid gray;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    padding-left:2px;
+    padding-right:2px;
+}
