@@ -30,8 +30,15 @@ Probador.prototype.registradorCasosPrueba.push(function(){
 window.addEventListener('load',function(){
     var colocador=new Colocador();
     var filas=[];
+    filas.push(['num','número en letras','binario','largo NeL','NeL^2','largo NeL^2','punto fijo', 'geringoso','md5','filtered md5']);
     for(var i=0; i<2000; i++){
-        filas.push([i, numero_a_letras(i), i.toString(2), numero_a_letras(i).length, numero_a_letras(numero_a_letras(i).length),numero_a_letras(numero_a_letras(i).length).length, numero_a_letras(i).length==numero_a_letras(numero_a_letras(i).length).length?'punto fijo':null,geringoso(numero_a_letras(i))]);
+        var bin=i.toString(2);
+        filas.push([i, numero_a_letras(i), bin, numero_a_letras(i).length, numero_a_letras(numero_a_letras(i).length),
+            numero_a_letras(numero_a_letras(i).length).length, 
+            numero_a_letras(i).length==numero_a_letras(numero_a_letras(i).length).length?'punto fijo':null,
+            geringoso(numero_a_letras(i)),hex_md5(i+""),
+            hex_md5(i+"").split('').filter(function(value,index){ return bin[index % bin.length]=='1';}).join('')
+        ]);
     }
-    colocador.colocar({contenido:{tipox:'div', nodes:{tipox:'tabla', filas:filas}}});
+    colocador.colocar({contenido:{tipox:'div', nodes:{tipox:'tabla', className:'tabla_fija', filas:filas}}});
 });
