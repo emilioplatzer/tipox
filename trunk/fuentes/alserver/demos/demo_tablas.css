@@ -7,12 +7,16 @@ table[class=tabla_fija]{
     background-color:#DAF;
 }
 
-.tabla_fija  td:first-child{
+.tabla_fija tr:nth-child(2) td{
     background-color:#DAF;
 }
 
+.tabla_fija  td:first-child{
+    background-color:#EBF;
+}
+
 .tabla_fija  td:nth-child(2){
-    background-color:#DAF;
+    background-color:#EBF;
 }
 
 .tabla_fija td{
@@ -21,4 +25,14 @@ table[class=tabla_fija]{
     text-overflow:ellipsis;
     padding-left:2px;
     padding-right:2px;
+}
+
+.tabla_cabezal_fijo{
+    position:fixed;
+    top:0px;
+    left:0px;
+    border:2px solid brown;
+    background-color:#FAC;
+    opacity:0.8;
+    /* overflow:hidden; */
 }

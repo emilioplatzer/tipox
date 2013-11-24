@@ -1,4 +1,5 @@
 ﻿// demo_tablas.js
+"use strict";
 
 function geringoso(frase){
     //return frase.replace(/(([aeiou]))/ig,'$1p$2');
@@ -30,15 +31,45 @@ Probador.prototype.registradorCasosPrueba.push(function(){
 window.addEventListener('load',function(){
     var colocador=new Colocador();
     var filas=[];
-    filas.push(['num','número en letras','binario','largo NeL','NeL^2','largo NeL^2','punto fijo', 'geringoso','md5','filtered md5']);
+    filas.push(['núm','número en letras','binario','largo NeL','NeL^2','largo NeL^2','punto fijo', 'geringoso','md5'  ,'filtered md5']);
+    filas.push(['(e)','texto'           ,'(b)'    ,'(e)'      ,'texto','(e)'        ,'texto'     , 'texto'    ,'texto','texto']);
     for(var i=0; i<2000; i++){
         var bin=i.toString(2);
-        filas.push([i, numero_a_letras(i), bin, numero_a_letras(i).length, numero_a_letras(numero_a_letras(i).length),
+        filas.push([i.toString(), numero_a_letras(i), bin, numero_a_letras(i).length, numero_a_letras(numero_a_letras(i).length),
             numero_a_letras(numero_a_letras(i).length).length, 
             numero_a_letras(i).length==numero_a_letras(numero_a_letras(i).length).length?'punto fijo':null,
             geringoso(numero_a_letras(i)),hex_md5(i+""),
-            hex_md5(i+"").split('').filter(function(value,index){ return bin[index % bin.length]=='1';}).join('')
+            hex_md5(i+"").split('').filter(function(value,index){ return bin[index % bin.length]=='1';}).join('') 
         ]);
     }
-    colocador.colocar({contenido:{tipox:'div', nodes:{tipox:'tabla', className:'tabla_fija', filas:filas}}});
+    var tabla=colocador.colocar({contenido:{tipox:'div', nodes:{tipox:'tabla', id:'esta_tabla', className:'tabla_fija', filas:filas}}, devolver:'esta_tabla'});
+    tituladorSuperior(tabla);
 });
+
+function tituladorSuperior(elementoTabla){
+    var colocador=new Colocador();
+    if(elementoTabla.tagName!='TABLE'){
+        throw new Error('se esperaba una tabla');
+    }
+    elementoTabla.titSup={
+        seccionTitulo:elementoTabla.tHead||elementoTabla.tBodies[0],
+        filasEncabezado:2,
+        columnasEncabezado:2,
+    }
+    var altura=0;
+    for(var i=0; i<elementoTabla.titSup.filasEncabezado; i++){
+        altura+=elementoTabla.titSup.seccionTitulo.rows[i].clientHeight;
+    }
+    var divEncabezado=colocador.colocar({contenido:
+        {tipox:'div',className:'tabla_cabezal_fijo', style:{height:altura, width:elementoTabla.clientWidth, visibility:'hidden'} }
+    });
+    colocador.colocar({contenido:{tipox:'div', nodes:'espacio en blanco', style:{height:800}}});
+    var top=obtener_top_global(elementoTabla);
+    window.addEventListener('scroll',function(){
+        if(top<window.pageYOffset && top+elementoTabla.scrollHeight-altura>window.pageYOffset){
+            divEncabezado.style.visibility='visible';
+        }else{
+            divEncabezado.style.visibility='hidden';
+        }
+    });
+}
