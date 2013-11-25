@@ -77,6 +77,8 @@ Colocador.prototype.creadorElementoDOM={
     atributosEspeciales:{
         width:{sufijoValor:'px'},
         height:{sufijoValor:'px'},
+        top:{sufijoValor:'px'},
+        left:{sufijoValor:'px'},
         ongrab:{
             asignar:function(elementoDestino, valor){
                 if(!(valor instanceof Function)){

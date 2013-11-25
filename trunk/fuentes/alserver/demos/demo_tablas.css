@@ -27,6 +27,14 @@ table[class=tabla_fija]{
     padding-right:2px;
 }
 
+.celda_cabezal_fijo{
+    border:2px solid gray;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    padding-left:2px;
+    padding-right:2px;
+}
+
 .tabla_cabezal_fijo{
     position:fixed;
     top:0px;
@@ -34,5 +42,5 @@ table[class=tabla_fija]{
     border:2px solid brown;
     background-color:#FAC;
     opacity:0.8;
-    /* overflow:hidden; */
+    overflow:hidden;
 }
