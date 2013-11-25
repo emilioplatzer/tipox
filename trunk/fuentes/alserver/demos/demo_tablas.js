@@ -73,12 +73,17 @@ function tituladorSuperior(elementoTabla){
     elementoTabla.titSup.divEncabezadoLat=colocador.colocar({contenido:
         {tipox:'div',className:'tabla_cabezal_fijo', style:{height:elementoTabla.clientHeight, width:ancho, visibility:'hidden'} }
     });
+    var optimizadoVertical=true;
     elementoTabla.titSup.divEncabezadoEsq=colocador.colocar({contenido:
         {tipox:'div',className:'tabla_cabezal_fijo', style:{height:altura, width:ancho, visibility:'hidden'} }
     });
     colocador.colocar({contenido:{tipox:'div', nodes:'espacio en blanco', style:{height:800}}});
     var top=obtener_top_global(elementoTabla);
     var left=obtener_left_global(elementoTabla);
+    if(optimizadoVertical){
+        elementoTabla.titSup.divEncabezadoLat.style.position='absolute';
+        elementoTabla.titSup.divEncabezadoLat.style.top=top+'px';
+    }
     window.addEventListener('scroll',function(){
         var visibilidadSup='hidden';
         if(top<window.pageYOffset && top+elementoTabla.scrollHeight-altura>window.pageYOffset){
@@ -89,7 +94,11 @@ function tituladorSuperior(elementoTabla){
         if(left<window.pageXOffset && left+elementoTabla.scrollWidth-ancho>window.pageXOffset){
             elementoTabla.titSup.divEncabezadoLat.style.visibility='visible';
             elementoTabla.titSup.divEncabezadoEsq.style.visibility=visibilidadSup;
-            elementoTabla.titSup.divEncabezadoLat.style.top=(top-window.pageYOffset)+'px';
+            if(optimizadoVertical){
+                elementoTabla.titSup.divEncabezadoLat.style.left=(window.pageXOffset)+'px';
+            }else{
+                elementoTabla.titSup.divEncabezadoLat.style.top=(top-window.pageYOffset)+'px';
+            }
         }else{
             elementoTabla.titSup.divEncabezadoLat.style.visibility='hidden';
             elementoTabla.titSup.divEncabezadoEsq.style.visibility='hidden';
@@ -113,7 +122,7 @@ function ponerTextosEncabezados(elementoTabla){
                         contenido:{
                             tipox:'div', 
                             className:'celda_cabezal_fijo',
-                            style:{width:celda.clientWidth, height:celda.clientHeight, top:celda.offsetTop, left:celda.offsetLeft, position:'absolute'},
+                            style:{width:celda.clientWidth-4, height:celda.clientHeight, top:celda.offsetTop, left:celda.offsetLeft, position:'absolute'},
                             innerHTML:celda.innerHTML
                         }
                     });
