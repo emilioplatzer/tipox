@@ -47,7 +47,10 @@ window.addEventListener('load',function(){
 });
 
 function tituladorSuperior(elementoTabla){
-    var colocador=new Colocador();
+    if(!app_global.colocador){
+        app_global.colocador=new Colocador();
+    }
+    var colocador=app_global.colocador;
     if(elementoTabla.tagName!='TABLE'){
         throw new Error('se esperaba una tabla');
     }
@@ -60,16 +63,82 @@ function tituladorSuperior(elementoTabla){
     for(var i=0; i<elementoTabla.titSup.filasEncabezado; i++){
         altura+=elementoTabla.titSup.seccionTitulo.rows[i].clientHeight;
     }
-    var divEncabezado=colocador.colocar({contenido:
+    var ancho=0;
+    for(var i=0; i<elementoTabla.titSup.columnasEncabezado; i++){
+        ancho+=elementoTabla.titSup.seccionTitulo.rows[0].cells[i].clientWidth;
+    }
+    elementoTabla.titSup.divEncabezadoSup=colocador.colocar({contenido:
         {tipox:'div',className:'tabla_cabezal_fijo', style:{height:altura, width:elementoTabla.clientWidth, visibility:'hidden'} }
+    });
+    elementoTabla.titSup.divEncabezadoLat=colocador.colocar({contenido:
+        {tipox:'div',className:'tabla_cabezal_fijo', style:{height:elementoTabla.clientHeight, width:ancho, visibility:'hidden'} }
+    });
+    elementoTabla.titSup.divEncabezadoEsq=colocador.colocar({contenido:
+        {tipox:'div',className:'tabla_cabezal_fijo', style:{height:altura, width:ancho, visibility:'hidden'} }
     });
     colocador.colocar({contenido:{tipox:'div', nodes:'espacio en blanco', style:{height:800}}});
     var top=obtener_top_global(elementoTabla);
+    var left=obtener_left_global(elementoTabla);
     window.addEventListener('scroll',function(){
+        var visibilidadSup='hidden';
         if(top<window.pageYOffset && top+elementoTabla.scrollHeight-altura>window.pageYOffset){
-            divEncabezado.style.visibility='visible';
+            visibilidadSup='visible';
+            elementoTabla.titSup.divEncabezadoSup.style.left=(left-window.pageXOffset)+'px';
+        }
+        elementoTabla.titSup.divEncabezadoSup.style.visibility=visibilidadSup;
+        if(left<window.pageXOffset && left+elementoTabla.scrollWidth-ancho>window.pageXOffset){
+            elementoTabla.titSup.divEncabezadoLat.style.visibility='visible';
+            elementoTabla.titSup.divEncabezadoEsq.style.visibility=visibilidadSup;
+            elementoTabla.titSup.divEncabezadoLat.style.top=(top-window.pageYOffset)+'px';
         }else{
-            divEncabezado.style.visibility='hidden';
+            elementoTabla.titSup.divEncabezadoLat.style.visibility='hidden';
+            elementoTabla.titSup.divEncabezadoEsq.style.visibility='hidden';
         }
     });
+    ponerTextosEncabezados(elementoTabla);
+}
+
+function ponerTextosEncabezados(elementoTabla){
+    var colocador=app_global.colocador;
+    if(elementoTabla.titSup.titulando){
+        var parar=(new Date()).getTime()+500;
+        var cilcarPoniendoTexto=function(destino, horizontal){
+            while((new Date()).getTime()<parar && elementoTabla.titSup.titulando.cual<elementoTabla.titSup.titulando.max){ 
+                for(var i=0; i<elementoTabla.titSup.filasEncabezado; i++){
+                    var celda=horizontal?
+                        elementoTabla.titSup.seccionTitulo.rows[i].cells[elementoTabla.titSup.titulando.cual]:
+                        elementoTabla.rows[elementoTabla.titSup.titulando.cual].cells[i];
+                    colocador.colocar({
+                        destino:destino,
+                        contenido:{
+                            tipox:'div', 
+                            className:'celda_cabezal_fijo',
+                            style:{width:celda.clientWidth, height:celda.clientHeight, top:celda.offsetTop, left:celda.offsetLeft, position:'absolute'},
+                            innerHTML:celda.innerHTML
+                        }
+                    });
+                }
+                elementoTabla.titSup.titulando.cual++;
+            }
+            return elementoTabla.titSup.titulando.cual>=elementoTabla.titSup.titulando.max;
+        }
+        if(elementoTabla.titSup.titulando.modo=='arriba'){
+            if(cilcarPoniendoTexto(elementoTabla.titSup.divEncabezadoSup, true)){
+                elementoTabla.titSup.titulando={modo:'esquina', cual:0, max:elementoTabla.titSup.columnasEncabezado};
+            }
+        }else if(elementoTabla.titSup.titulando.modo=='esquina'){
+            if(cilcarPoniendoTexto(elementoTabla.titSup.divEncabezadoEsq, true)){
+                elementoTabla.titSup.titulando={modo:'lateral', cual:0, max:elementoTabla.rows.length};
+            }
+        }else{
+            if(cilcarPoniendoTexto(elementoTabla.titSup.divEncabezadoLat, false)){
+                elementoTabla.titSup.titulando=false;
+            }
+        }
+    }else{
+        elementoTabla.titSup.titulando={modo:'arriba', cual:0, max:elementoTabla.titSup.seccionTitulo.rows[0].cells.length};
+    }
+    if(elementoTabla.titSup.titulando){
+        setTimeout(function(){ ponerTextosEncabezados(elementoTabla); },200);
+    }
 }

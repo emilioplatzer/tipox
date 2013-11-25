@@ -109,6 +109,16 @@ function obtener_top_global(elemento){
     return posicion_global;
 }
 
+function obtener_left_global(elemento){
+"use strict";
+    var posicion_global = 0;
+    while( elemento != null ) {
+        posicion_global += elemento.offsetLeft;
+        elemento = elemento.offsetParent;
+    }
+    return posicion_global;
+}
+
 function buscarPadre(elemento,caracterizador){
     var funcionDetencion=caracterizador;
     while(elemento.parentNode && !funcionDetencion(elemento.parentNode)){ 
