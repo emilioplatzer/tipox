@@ -1,9 +1,9 @@
 <?php
 session_start();
 
-require_once "les_paroles.php";
-
 date_default_timezone_set('America/Buenos_Aires');
+
+require_once "les_paroles.php";
 
 if(@$_REQUEST['hacer']){
 	foreach($_REQUEST as $k=>$v){
@@ -51,9 +51,17 @@ if(!isset($_SESSION['terminal'])){
 
 function iniciar_terminal(){
     $db=abrir_db();
-    $ins=$db->prepare("insert into sessionid (sessionid) values (:sessionid)");
-    $ins->execute(array(':sessionid'=>session_id()));
-    $_SESSION['terminal']=$db->lastInsertId();
+    if($db){
+        try{
+            $ins=$db->prepare("insert into sessionid (sessionid) values (:sessionid)");
+            $ins->execute(array(':sessionid'=>session_id()));
+            $_SESSION['terminal']=$db->lastInsertId();
+        }catch(Exception $err){
+            if($err->getCode()!='42S02'){ // no existe la tabla
+                throw $err;
+            }
+        }
+    }
 }
 
 $funcion();
@@ -77,22 +85,23 @@ function mostrar_opcion($juego){
     $ins=$db->prepare("select * from juegos where juego=:juego");
     $ins->execute(array(':juego'=>$juego));
     $juegos=$ins->fetchAll(PDO::FETCH_OBJ);
+    $juegos=$juegos[0];
     sanitizar($juego);
     $ins=$db->prepare("select * from opciones where juego=:juego");
     $ins->execute(array(':juego'=>$juego));
     $opciones=$ins->fetchAll(PDO::FETCH_OBJ);
     sanitizar($opciones);
     echo <<<HTML
-        <img src='{$juegos->imagen}' class=ilustracion_principal>
+        <img src='imagenes/{$juegos->imagen}' class=ilustracion_principal>
         <div class=pregunta><span class=numero_pregunta>{$juegos->juego}</span> {$juegos->descripcion}</div>
         <div class=limpiar></div>
 HTML;
     foreach($opciones as $k=>$v){
         echo <<<HTML
             <div class=opcion>
-                <a href='./?hacer=jugar&juego={$juego}&opcion={$v->opcion}>
+                <a href='./?hacer=jugar&juego={$juego}&opcion={$v->opcion}'>
                     <span class=numero_opcion>{$v->opcion}</span> 
-                    {$v->descripcion}
+                    {$v->texto}
                 </a>
             </div>
 HTML;
@@ -159,35 +168,62 @@ function abrir_db(){
         $db = new PDO(
             "mysql:host={$parametros_db['host']};port=xxx;dbname={$parametros_db['database']};charset=utf8", 
             $parametros_db['usuario'], 
-            $parametros_db['clave']/*,
+            $parametros_db['clave'],
             array(
                 PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"
-            )*/
+            )
         );
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // Set Errorhandling to Exception
+        $db->exec("SET NAMES 'utf8';");
     }
     return $db;
 }
 
+function insertar($db, $tabla, $campos, $valores){
+    $dos_puntos=array_map(function($nombre){ return ":$nombre"; },$campos);
+    $ins=$db->prepare("insert into $tabla (".
+        implode(', ',$campos).") values (".
+        implode(', ',$dos_puntos).")"
+    );
+    return $ins->execute(array_combine($dos_puntos,$valores));
+}
+
 function hacer_crear_db(){
     $db=abrir_db();
-    $sentencias=file_get_contents('creacion_db.sql');
-    foreach(explode('/*OTRA*/',$sentencias) as $sentencia){
-        try{
-            $db->query($sentencia);
+    try{
+        $sentencias=file_get_contents('creacion_db.sql');
+        foreach(explode('/*OTRA*/',$sentencias) as $sentencia){
             echo "<BR>".$sentencia." <b>ok</b>";
-        }catch(Exception $err){
-            echo "<BR>".$err->getMessage();
-            echo "<BR>".$sentencia;
-            echo "<BR>interrumpido";
-            return;
+            $db->query($sentencia);
         }
+        $datos=file_get_contents('preguntas.txt');
+        foreach(explode("\n---",$datos) as $pregunta){
+            if(trim($pregunta)){
+                $lineas=explode("\n",$pregunta);
+                $linea_pregunta=trim(array_shift($lineas));
+                $campos_pregunta=explode('|',$linea_pregunta);
+                echo "<BR>".$linea_pregunta[0]." <b>ok</b>";
+                insertar($db, 'juegos', array('juego','imagen','descripcion'), $campos_pregunta);
+                foreach($lineas as $linea_opcion){
+                    if(trim($linea_opcion)){
+                        $campos_opciones=explode('|',$linea_opcion);
+                        echo "<BR>".$campos_opciones[0]." <b>ok</b>";
+                        array_unshift($campos_opciones,$campos_pregunta[0]);
+                        insertar($db, 'opciones', array('juego','opcion','texto'), $campos_opciones);
+                    }
+                }
+            }
+        }
+    }catch(Exception $err){
+        echo "<BR><B>".$err->getMessage();
+        echo "<BR>interrumpido";
+        return;
     }
     unset($_SESSION['hacer']);
     foreach($_SESSION as $k=>$v){
         unset($_SESSION[$k]);
     }
-    mostrar_opcion(1);
+    mostrar_opcion(2);
 }
 
 ?>
