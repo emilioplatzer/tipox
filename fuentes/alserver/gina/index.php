@@ -66,6 +66,8 @@ function iniciar_terminal(){
 
 $funcion();
 
+echo "<p><small><pre>hacer={$_SESSION['hacer']}</pre></small></p>";
+
 function hacer_iniciar(){
     poner_logo();
 	echo <<<HTML
@@ -80,7 +82,7 @@ HTML;
 function sanitizar(){
 }
 
-function mostrar_opcion($juego){
+function mostrar_opciones($juego){
     $db=abrir_db();
     $ins=$db->prepare("select * from juegos where juego=:juego");
     $ins->execute(array(':juego'=>$juego));
@@ -108,14 +110,25 @@ HTML;
     }
 }
 
+function juego_actual(){
+    $db=abrir_db();
+    $ins=$db->prepare("select juego from control where activo=1");
+    $ins->execute();
+    $datos=$ins->fetch(PDO::FETCH_OBJ);
+    return $datos->juego;
+}
+
+function hacer_jugando($juego=null){
+    $juego=$juego?:juego_actual();
+    mostrar_opciones($juego);
+}
+
 function hacer_esperando($primera_vez=false){
     if(!$primera_vez){
-        $db=abrir_db();
-        $ins=$db->prepare("select juego from control where activo=1");
-        $ins->execute();
-        $datos=$ins->fetch(PDO::FETCH_OBJ);
-        if($datos && $datos->juego){
-            mostrar_opcion($datos->juego);
+        if($juego=juego_actual()){ //!QAcod if=
+            $_SESSION['hacer']='jugando';
+            mostrar_opciones($juego);
+            return;
         }else{
             poner_logo();
             echo <<<HTML
@@ -223,7 +236,7 @@ function hacer_crear_db(){
     foreach($_SESSION as $k=>$v){
         unset($_SESSION[$k]);
     }
-    mostrar_opcion(2);
+    mostrar_opciones(2);
 }
 
 ?>
