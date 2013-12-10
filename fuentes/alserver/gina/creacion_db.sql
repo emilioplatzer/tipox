@@ -51,18 +51,4 @@ create table jugada(
     foreign key (juego) references juegos (juego)
 );
 /*OTRA*/
-insert into juegos(juego, imagen, descripcion) values (1, 'bob_esponja.jpg', 'en la popluar serie de televisión "bob esponja" ¿qué tipo de animal es Patricio?');
-/*OTRA*/
-insert into opciones(juego, opcion, texto) values (1, 'A', 'ardilla');
-insert into opciones(juego, opcion, texto) values (1, 'B', 'calamar');
-insert into opciones(juego, opcion, texto) values (1, 'C', 'cangrejo');
-insert into opciones(juego, opcion, texto) values (1, 'D', 'estrella de mar');
-/*OTRA*/
-insert into juegos(juego, imagen, descripcion) values (2, 'victorius.jpg', 'en la no tan conocida serie de televisión "Victorius" ¿qué actriz interpreta a Tori Vega?');
-/*OTRA*/
-insert into opciones(juego, opcion, texto) values (2, 'A', 'Ariana Grande');
-insert into opciones(juego, opcion, texto) values (2, 'B', 'Victoria Justice');
-insert into opciones(juego, opcion, texto) values (2, 'C', 'Ellizabeth Gillies');
-insert into opciones(juego, opcion, texto) values (2, 'D', 'Daniella Monet');
-/*OTRA*/
 insert into control(juego) values (null);
