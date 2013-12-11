@@ -43,7 +43,7 @@ create table control(
     foreign key (juego) references juegos (juego)
 );
 /*OTRA*/
-create table jugada(
+create table jugadas(
     juego integer,
     jugador varchar(20),
     opcion varchar(1),

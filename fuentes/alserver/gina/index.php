@@ -14,7 +14,11 @@ if(@$_REQUEST['hacer']){
 	die();
 }
 
-$hacer=@$_SESSION['hacer']?:'iniciar';
+if(!isset($_SESSION['hacer'])){
+    $_SESSION['hacer']='iniciar';
+}
+
+$hacer=$_SESSION['hacer'];
 $funcion="hacer_$hacer";
 
 if(!function_exists($funcion)){
@@ -24,6 +28,7 @@ if(!function_exists($funcion)){
         $hacer='iniciar';
     }
     $funcion="hacer_$hacer";
+    $_SESSION['hacer']=$hacer;
 }
 
 echo <<<HTML
@@ -82,7 +87,7 @@ HTML;
 function sanitizar(){
 }
 
-function mostrar_opciones($juego){
+function mostrar_opciones($juego,$jugada){
     $db=abrir_db();
     $ins=$db->prepare("select * from juegos where juego=:juego");
     $ins->execute(array(':juego'=>$juego));
@@ -95,39 +100,52 @@ function mostrar_opciones($juego){
     sanitizar($opciones);
     echo <<<HTML
         <img src='imagenes/{$juegos->imagen}' class=ilustracion_principal>
-        <div class=pregunta><span class=numero_pregunta>{$juegos->juego}</span> {$juegos->descripcion}</div>
+        <div class=pregunta><span class=numero_pregunta>{$juegos->juego}:</span> {$juegos->descripcion}</div>
         <div class=limpiar></div>
 HTML;
     foreach($opciones as $k=>$v){
-        echo <<<HTML
-            <div class=opcion>
-                <a href='./?hacer=jugar&juego={$juego}&opcion={$v->opcion}'>
-                    <span class=numero_opcion>{$v->opcion}</span> 
-                    {$v->texto}
-                </a>
-            </div>
-HTML;
+        echo "<div class=opcion>\n";
+        if(!$jugada){
+            echo "<a href='./?hacer=jugar&juego={$juego}&jugada={$v->opcion}'>\n";
+        }else if($jugada==$v->opcion){
+            echo "<span class=elegido>";
+        }
+        echo "<span class=numero_opcion>{$v->opcion}:</span> {$v->texto}";
+        if(!$jugada){
+            echo "</a>\n";
+        }else if($jugada==$v->opcion){
+            echo "</span>";
+        }
+        echo "</div>\n";
     }
 }
 
 function juego_actual(){
     $db=abrir_db();
-    $ins=$db->prepare("select juego from control where activo=1");
-    $ins->execute();
-    $datos=$ins->fetch(PDO::FETCH_OBJ);
-    return $datos->juego;
+    $sel=$db->prepare("select juego from control where activo=1");
+    $sel->execute();
+    $datos=$sel->fetch(PDO::FETCH_OBJ);
+    return $datos && $datos->juego;
+}
+
+function hacer_jugar(){
+    $juego=juego_actual();
+    $db=abrir_db();
+    insertar($db, 'jugadas', array('juego', 'jugador', 'opcion'), array($juego, $_SESSION['jugador'], $_SESSION['jugada']));
+    $_SESSION['hacer']='esperando';
+    hacer_esperando(true);
 }
 
 function hacer_jugando($juego=null){
     $juego=$juego?:juego_actual();
-    mostrar_opciones($juego);
+    mostrar_opciones($juego,false);
 }
 
 function hacer_esperando($primera_vez=false){
     if(!$primera_vez){
         if($juego=juego_actual()){ //!QAcod if=
             $_SESSION['hacer']='jugando';
-            mostrar_opciones($juego);
+            mostrar_opciones($juego,false);
             return;
         }else{
             poner_logo();
@@ -236,7 +254,7 @@ function hacer_crear_db(){
     foreach($_SESSION as $k=>$v){
         unset($_SESSION[$k]);
     }
-    mostrar_opciones(2);
+    mostrar_opciones(2,false);
 }
 
 ?>
