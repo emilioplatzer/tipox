@@ -5,6 +5,15 @@ date_default_timezone_set('America/Buenos_Aires');
 
 require_once "les_paroles.php";
 
+file_put_contents('log.txt',json_encode($_REQUEST)."\n",FILE_APPEND);
+file_put_contents('log.txt',json_encode($_SESSION)."\n",FILE_APPEND);
+file_put_contents('log.txt',json_encode($_SERVER)."\n\n",FILE_APPEND);
+
+function recargar(){
+    header('Location: ./');
+    die();
+}
+
 if(@$_REQUEST['hacer']){
     $hacer=$_REQUEST['hacer'];
     $funcion="hacer_$hacer";
@@ -12,8 +21,7 @@ if(@$_REQUEST['hacer']){
         echo "<h1> 404 no existe la función";
     }else{
         $funcion();
-        header('Location: ./');
-        die();
+        recargar();
     }
 }
 
@@ -30,7 +38,7 @@ HTML;
 function poner_logo(){
 echo <<<HTML
 	<img id=logo src=imagenes/gina.jpg class=ilustracion_principal>
-	<h1 id=titulo>Festejando el cumple de <span id=quien_cumple>Gina</span></h1>
+	<h2 id=titulo>Festejando el cumple de <span id=quien_cumple>Gina</span></h2>
 	<div class=limpiar></div>
 HTML;
 }
@@ -84,8 +92,8 @@ function mostrar_iniciar(){
     poner_logo();
 	echo <<<HTML
 		<form method=post>
-		<p>Para jugar necesitás ingresar tu nombre</p>
-		<p><label for=nombre>nombre </label><input name=nombre id=nombre>
+		<p>Para jugar necesitás ingresar</p>
+		<p><label for=nombre>tu nombre </label><input name=nombre id=nombre>
 		<p><input type=submit value=ingresar name=hacer> <small>(t={$_SESSION['terminal']})</small>
 		</form>
 HTML;
@@ -108,7 +116,7 @@ SQL
     sanitizar($opciones);
     if($datos->estado==0){
             echo <<<HTML
-            <h1>ingresado el jugador número {$datos->numero}: {$datos->jugador}</h1>
+            <h2 id=titulo>jugador {$datos->terminal}: {$datos->jugador}</h2>
 HTML;
         $jugando=false;
     }else{
@@ -164,6 +172,11 @@ function hacer_jugar(){
 
 function hacer_ingresar(){
     $nombre=trim(strtoupper($_REQUEST['nombre']));
+    if($nombre=='LIMPIAR'){
+        limpiar_sesion();
+        $_SESSION['error']="sesión limpiada";
+        recargar();
+    }
     $_SESSION['error']="";
     $db=abrir_db();
     try{
@@ -237,10 +250,14 @@ function hacer_crear_db(){
         echo "<BR>interrumpido";
         return;
     }
+    limpiar_sesion();
+    mostrar_opciones(2,false);
+}
+
+function limpiar_sesion(){
     foreach($_SESSION as $k=>$v){
         unset($_SESSION[$k]);
     }
-    mostrar_opciones(2,false);
 }
 
 mostrar_pantalla();

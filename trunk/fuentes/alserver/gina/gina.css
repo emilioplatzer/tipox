@@ -13,8 +13,12 @@ body{
 }
 
 #logo{
-	padding-right:10px;
-	padding-bottom:10px;
+    padding:2px;
+}
+
+#titulo{
+    margin:0px;
+    padding:2px;
 }
 
 .ilustracion_principal{
