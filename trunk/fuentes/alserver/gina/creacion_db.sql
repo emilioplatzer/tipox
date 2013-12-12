@@ -1,4 +1,4 @@
-drop table if exists jugada;
+drop table if exists jugadas;
 /*OTRA*/
 drop table if exists control;
 /*OTRA*/
@@ -12,7 +12,9 @@ drop table if exists sessionid;
 /*OTRA*/
 create table sessionid(
     terminal mediumint auto_increment primary key,
-    sessionid varchar(100)
+    sessionid varchar(100),
+    user_agent varchar(1000),
+    ip varchar(16)
 ) engine=innodb;
 /*OTRA*/
 create table jugadores(
@@ -39,14 +41,14 @@ create table opciones(
 /*OTRA*/
 create table control(
     juego integer,
-    activo integer,
+    estado integer,
     foreign key (juego) references juegos (juego)
 );
 /*OTRA*/
 create table jugadas(
     juego integer,
     jugador varchar(20),
-    opcion varchar(1),
+    jugada varchar(1),
     primary key (juego,jugador),
     foreign key (juego) references juegos (juego)
 );

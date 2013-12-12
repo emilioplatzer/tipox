@@ -1,5 +1,5 @@
 
----1|bob_esponja.jpg|en la popluar serie de televisión "bob esponja" ¿qué tipo de animal es Patricio?
+---1|bob_esponja.jpg|en la popular serie de televisión "bob esponja" ¿qué tipo de animal es Patricio?
 A|ardilla
 B|calamar
 C|cangrejo
