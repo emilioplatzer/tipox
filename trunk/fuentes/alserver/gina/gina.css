@@ -37,3 +37,9 @@ body{
     font-weight:bold;
     color:blue;
 }
+
+.error{
+    color:red;
+    font-size:90%;
+    font-weight:bold;
+}

@@ -1,0 +1,4 @@
+use concurso_db;
+update control set juego=1, estado=1;
+
+update control set juego=1, estado=2;

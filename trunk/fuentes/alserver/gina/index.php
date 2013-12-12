@@ -29,7 +29,7 @@ HTML;
 
 function poner_logo(){
 echo <<<HTML
-	<img id=logo src=gina.png class=ilustracion_principal>
+	<img id=logo src=imagenes/gina.jpg class=ilustracion_principal>
 	<h1 id=titulo>Festejando el cumple de <span id=quien_cumple>Gina</span></h1>
 	<div class=limpiar></div>
 HTML;
@@ -134,10 +134,10 @@ HTML;
             echo "</div>\n";
         }
     }
+    echo "<p class=error>{$_SESSION['error']}</p>";
     if(!$jugando){
         mostrar_esperando();
     }
-    echo "<p><small>{$_SESSION['error']}</small></p>";
 }
 
 function mostrar_esperando(){
@@ -152,7 +152,11 @@ function hacer_jugar(){
     $datos=datos_actuales();
     $db=abrir_db();
     try{
-        insertar($db, 'jugadas', array('juego', 'jugador', 'jugada'), array($datos->juego, $datos->jugador, $_REQUEST['jugada']));
+        if($datos->estado==1 && $datos->juego==$_REQUEST['juego']){
+            insertar($db, 'jugadas', array('juego', 'jugador', 'jugada'), array($datos->juego, $datos->jugador, $_REQUEST['jugada']));
+        }else{
+            $_SESSION['error']="fuera de tiempo";
+        }
     }catch(Exception $err){
         $_SESSION['error']="{$err->getCode()}: {$err->getMessage()}";
     }
