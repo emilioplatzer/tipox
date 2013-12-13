@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$VERSIONAPP='A 1.06';
+$VERSIONAPP='A 1.07';
 
 date_default_timezone_set('America/Buenos_Aires');
 
