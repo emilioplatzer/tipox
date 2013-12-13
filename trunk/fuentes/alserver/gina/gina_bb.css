@@ -1,0 +1,49 @@
+body{
+    padding:0px;
+    margin:0px;
+}
+
+#titulo{
+	/* text-align:center */
+	
+}
+
+.limpiar{
+	xclear:both
+}
+
+#logo{
+    padding:2px;
+}
+
+#titulo{
+    margin:0px;
+    padding:2px;
+}
+
+.ilustracion_principal{
+    float:right;
+}
+
+.numero_pregunta{
+    font-size:120%;
+    font-weight:bold;
+}
+.numero_opcion{
+    font-size:120%;
+    font-weight:bold;
+}
+
+.ilustracion_principal{
+}
+
+.elegido{
+    font-weight:bold;
+    color:blue;
+}
+
+.error{
+    color:red;
+    font-size:90%;
+    font-weight:bold;
+}

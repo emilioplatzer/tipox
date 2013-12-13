@@ -25,11 +25,20 @@ if(@$_REQUEST['hacer']){
     }
 }
 
+$otro_csss="";
+
+if(strpos($_SERVER['HTTP_USER_AGENT'],'BlackBerry')===false){
+    $otro_csss='<link rel=stylesheet href=gina.css type="text/css">';
+}
+
 echo <<<HTML
 <!doctype html>
 <html><head><title>Gina cumple 12</title>
 <meta charset="utf-8">
-<link rel=stylesheet href=gina.css type="text/css">
+<meta name="format-detection" content="telephone=no">
+<meta name='viewport' content='width=device-width, initial-scale=1.0'>
+<link rel=stylesheet href=gina_bb.css type="text/css">
+$otro_csss
 <link rel="icon" type="image/png" href="gina.png" />
 </head>
 <body>
