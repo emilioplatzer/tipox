@@ -125,6 +125,7 @@ SQL
 HTML;
         $jugando=false;
     }else{
+        $datos->imagen=str_replace('.png','.jpg',$datos->imagen);
         echo <<<HTML
             <img src='imagenes/m_{$datos->imagen}' class=ilustracion_principal>
             <div class=pregunta><span class=numero_pregunta>{$datos->juego}:</span> {$datos->descripcion}</div>
