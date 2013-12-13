@@ -70,11 +70,17 @@ function hacer_avanzar_juego(){
 function hacer_podio(){
     $db=abrir_db();
     $cursor=$db->prepare(<<<SQL
-        SELECT u.jugador, count(p.correcta) as aciertos, 1 as posicion
-          FROM jugadores u
-            LEFT JOIN jugadas j ON u.jugador=j.jugador
-            LEFT JOIN juegos p ON p.juego=j.juego AND p.correcta=j.jugada
-          GROUP BY u.jugador
+        SELECT jugador, aciertos, CASE
+                WHEN @prevVal = aciertos THEN @curRank
+                WHEN @prevVal := aciertos THEN @curRank := @curRank + 1
+            END as posicion
+          FROM (
+            SELECT u.jugador, count(p.correcta) as aciertos
+              FROM jugadores u
+                LEFT JOIN jugadas j ON u.jugador=j.jugador
+                LEFT JOIN juegos p ON p.juego=j.juego AND p.correcta=j.jugada
+              GROUP BY u.jugador
+            ) x, (SELECT @curRank := 0, @prevVal := null) r
           ORDER BY 2 desc, 1
 SQL
     );
