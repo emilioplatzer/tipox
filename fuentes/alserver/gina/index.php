@@ -7,11 +7,11 @@ require_once "les_paroles.php";
 
 require_once "comunes.php";
 
-/*
+// /*
 file_put_contents('log.txt',json_encode($_REQUEST)."\n",FILE_APPEND);
 file_put_contents('log.txt',json_encode($_SESSION)."\n",FILE_APPEND);
 file_put_contents('log.txt',json_encode($_SERVER)."\n\n",FILE_APPEND);
-*/
+// */
 
 function recargar(){
     header('Location: ./');
@@ -185,7 +185,9 @@ function hacer_ingresar(){
         }
     }
 }
+
 function hacer_crear_db(){
+    echo "haciendo";
     $db=abrir_db();
     try{
         $sentencias=file_get_contents('creacion_db.sql');
@@ -200,7 +202,7 @@ function hacer_crear_db(){
                 $linea_pregunta=trim(array_shift($lineas));
                 $campos_pregunta=explode('|',$linea_pregunta);
                 echo "<BR>".$linea_pregunta[0]." <b>ok</b>";
-                insertar($db, 'juegos', array('juego','imagen','descripcion'), $campos_pregunta);
+                insertar($db, 'juegos', array('juego','imagen','correcta','imagenok','descripcion'), $campos_pregunta);
                 foreach($lineas as $linea_opcion){
                     if(trim($linea_opcion)){
                         $campos_opciones=explode('|',$linea_opcion);
@@ -214,7 +216,7 @@ function hacer_crear_db(){
     }catch(Exception $err){
         echo "<BR><B>".$err->getMessage();
         echo "<BR>interrumpido";
-        return;
+        die();
     }
     limpiar_sesion();
     mostrar_opciones(2,false);
