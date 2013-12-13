@@ -29,8 +29,19 @@ HTML;
 
 function hacer_quienes(){
     $db=abrir_db();
-    $cursor=$db->prepare("select * from jugadores order by terminal");
-    $cursor->execute();
-    echo json_encode($cursor->fetchAll(PDO::FETCH_OBJ));
+    $datos=datos_actuales();
+    if(!$datos->estado){
+        $cursor=$db->prepare("select * from jugadores order by terminal");
+        $cursor->execute();
+        echo json_encode(array('empezado'=>'no', 'jugadores'=>$cursor->fetchAll(PDO::FETCH_OBJ)));
+    }else{
+        $cursor=$db->prepare("select * from jugadas j inner join jugadores u on u.jugador=j.jugador where juego=:juego order by terminal");
+        $cursor->execute(array(':juego'=>$datos->juego));
+        $jugadores=$cursor->fetchAll(PDO::FETCH_OBJ);
+        $cursor=$db->prepare("select * from opciones where juego=:juego order by opcion");
+        $cursor->execute(array(':juego'=>$datos->juego));
+        $opciones=$cursor->fetchAll(PDO::FETCH_OBJ);
+        echo json_encode(array('empezado'=>'si', 'jugadores'=>$jugadores, 'opciones'=>$opciones, 'datos'=>$datos));
+    }
 }
 ?>

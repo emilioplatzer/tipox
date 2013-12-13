@@ -1,4 +1,4 @@
-// Por $Author: emilioplatzer@gmail.com $ RevisiÛn $Revision: 140 $ del $Date: 2013-11-24 23:34:24 -0300 (dom 24 de nov de 2013) $
+Ôªø// Por $Author: emilioplatzer@gmail.com $ Revisi√≥n $Revision: 140 $ del $Date: 2013-11-24 23:34:24 -0300 (dom 24 de nov de 2013) $
 "use strict";
 
 var controlar=app_global.controlador.controlar;
@@ -6,13 +6,13 @@ var controlar=app_global.controlador.controlar;
 function enviarPaquete(params){
     var enviarPaqueteThis=this;
     controlar(params,{
-        destino:{obligatorio:true, uso:'url o .php que recibe la peticiÛn'},
-        datos:{validar:is_object, uso:'los datos que se envÌan a travÈs de $_REQUEST'},
-        cuandoOk:{obligatorio:true, uso:'funciÛn que debe ejecutarse al recibir y decodificar los datos en forma correcta'},
-        cuandoFalla:{predeterminado:function(x,y){ alert(x+' ('+y+')'); }, uso:'funciÛn que debe ejecutarse al ocurrir un error de cualquier tipo'},
-        decodificador:{predeterminado:JSON.parse, uso:'funciÛn que debe aplicarse a los datos retornados asÌ como vienen del servidor en responseText'},
-        codificador:{predeterminado:JSON.stringify, uso:'funciÛn que debe aplicarse a los datos que ser·n enviados como par·metro'},
-        sincronico:{predeterminado:false, uso:'sincrÛnico o asincrÛnico'},
+        destino:{obligatorio:true, uso:'url o .php que recibe la petici√≥n'},
+        datos:{validar:is_object, uso:'los datos que se env√≠an a trav√©s de $_REQUEST'},
+        cuandoOk:{obligatorio:true, uso:'funci√≥n que debe ejecutarse al recibir y decodificar los datos en forma correcta'},
+        cuandoFalla:{predeterminado:function(x,y){ alert(x+' ('+y+')'); }, uso:'funci√≥n que debe ejecutarse al ocurrir un error de cualquier tipo'},
+        decodificador:{predeterminado:JSON.parse, uso:'funci√≥n que debe aplicarse a los datos retornados as√≠ como vienen del servidor en responseText'},
+        codificador:{predeterminado:JSON.stringify, uso:'funci√≥n que debe aplicarse a los datos que ser√°n enviados como par√°metro'},
+        sincronico:{predeterminado:false, uso:'sincr√≥nico o asincr√≥nico'},
     });
     var peticion=new XMLHttpRequest();
     var ifDebug=function(x){ return x; };
