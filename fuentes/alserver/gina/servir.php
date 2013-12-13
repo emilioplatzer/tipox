@@ -66,4 +66,20 @@ function hacer_avanzar_juego(){
     $cursor->execute();
     echo json_encode("ok");
 }
+
+function hacer_podio(){
+    $db=abrir_db();
+    $cursor=$db->prepare(<<<SQL
+        SELECT u.jugador, count(p.correcta) as aciertos, 1 as posicion
+          FROM jugadores u
+            LEFT JOIN jugadas j ON u.jugador=j.jugador
+            LEFT JOIN juegos p ON p.juego=j.juego AND p.correcta=j.jugada
+          GROUP BY u.jugador
+          ORDER BY 2 desc, 1
+SQL
+    );
+    $cursor->execute();
+    echo json_encode(array('jugadores'=>$cursor->fetchAll(PDO::FETCH_OBJ)));
+    
+}
 ?>
