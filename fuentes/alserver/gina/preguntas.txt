@@ -179,3 +179,4 @@ A|Jet privado
 B|Escoba
 C|Taxi
 D|Paraguas
+---99|fin|A|fin|Fin del juego
