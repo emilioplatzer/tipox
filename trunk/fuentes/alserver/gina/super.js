@@ -34,7 +34,19 @@ function mirar_estado_juego(en_cuanto){
             codificador:estoMismo,
             cuandoOk:function(mensaje){
                 var colocador=new Colocador();
-                jugadores.innerText=mensaje.jugadores.map(function(r){ return r.jugador;}).join(', ')||'nadie aún';
+                colocador.colocar({
+                    destino:jugadores,
+                    reemplazar:true,
+                    contenido:mensaje.jugadores.map(function(r){ 
+                        // return {tipox:'span', nodes:r.jugador, className:mensaje.datos.estado<>2 || r.jugada<>mensaje.datos.correcta?'':'acerto'};
+                        return {
+                            tipox:'span', 
+                            nodes:r.jugador, 
+                            className:'jugador'+(mensaje.datos.estado!=2 || r.jugada!=mensaje.datos.correcta?'':' acerto'),
+                            title:(mensaje.datos.estado==2?r.jugada:null)
+                        };
+                    })
+                });
                 if(mensaje.empezado=='si'){
                     label_jugadores.innerText='jugaron: ';
                     titulo.innerText='Jugando en el cumple de Gina';
@@ -56,7 +68,9 @@ function mirar_estado_juego(en_cuanto){
                             ]},
                             {tipox:'div', nodes:mensaje.opciones.map(function(r){
                                 return {tipox:'div', className:'opcion'+(!jugando && r.opcion==mensaje.datos.correcta?' correcta':''), nodes:[
-                                    {tipox:'span', className:'numero_opcion', nodes:r.opcion+': '}, r.texto, null
+                                    {tipox:'span', className:'numero_opcion', nodes:r.opcion+': '}, 
+                                    r.texto, 
+                                    {tipox:'span', className:'cuantos', nodes:(mensaje.datos.estado==2?r.cuantos:null)}
                                 ]}
                             })}
                         ],
@@ -81,10 +95,10 @@ function continuar_juego(evento){
         datos:{ hacer:'avanzar_juego'},
         codificador:estoMismo,
         cuandoOk:function(){
-            mirar_estado_juego(500);
+            // mirar_estado_juego(500);
         },
         cuandoFalla:function(){
-            mirar_estado_juego(500);
+            // mirar_estado_juego(500);
         }
     });
 }
