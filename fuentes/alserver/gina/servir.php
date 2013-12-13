@@ -38,7 +38,12 @@ function hacer_quienes(){
         $cursor=$db->prepare("select * from jugadas j inner join jugadores u on u.jugador=j.jugador where juego=:juego order by terminal");
         $cursor->execute(array(':juego'=>$datos->juego));
         $jugadores=$cursor->fetchAll(PDO::FETCH_OBJ);
-        $cursor=$db->prepare("select * from opciones where juego=:juego order by opcion");
+        $cursor=$db->prepare(<<<SQL
+            select o.*, (select count(*) from jugadas j where j.juego=o.juego and j.jugada=o.opcion) as cuantos
+              from opciones o 
+              where juego=:juego order by opcion
+SQL
+        );
         $cursor->execute(array(':juego'=>$datos->juego));
         $opciones=$cursor->fetchAll(PDO::FETCH_OBJ);
         echo json_encode(array('empezado'=>'si', 'jugadores'=>$jugadores, 'opciones'=>$opciones, 'datos'=>$datos));
