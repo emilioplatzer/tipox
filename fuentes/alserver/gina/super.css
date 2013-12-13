@@ -1,3 +1,20 @@
 h1{
     margin-top:0px;
 }
+
+.ilustracion_principal{
+    float:left;
+}
+
+.pregunta{
+    font-size:200%
+}
+
+.opcion{
+    font-size:160%;
+    border-radius:8px;
+    border:2px dashed green;
+    margin:10px;
+    padding:4px;
+    float:left;
+}
