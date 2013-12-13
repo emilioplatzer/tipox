@@ -1,17 +1,19 @@
 <?php
 session_start();
 
+$VERSIONAPP='A 1.06';
+
 date_default_timezone_set('America/Buenos_Aires');
 
 require_once "les_paroles.php";
 
 require_once "comunes.php";
 
-// /*
-file_put_contents('log.txt',json_encode($_REQUEST)."\n",FILE_APPEND);
-file_put_contents('log.txt',json_encode($_SESSION)."\n",FILE_APPEND);
-file_put_contents('log.txt',json_encode($_SERVER)."\n\n",FILE_APPEND);
-// */
+if(@$loguear_todo){
+    loguear(null,json_encode($_REQUEST));
+    loguear(null,json_encode($_SESSION));
+    loguear(null,json_encode($_SERVER));
+}
 
 function recargar(){
     header('Location: ./');
@@ -56,11 +58,14 @@ echo <<<HTML
 HTML;
 }
 
-if(!isset($_SESSION['terminal'])){
+if(!isset($_SESSION['terminal']) || !isset($_SESSION['versionapp']) || $_SESSION['versionapp']<$VERSIONAPP){
     iniciar_terminal();
 }
 
 function iniciar_terminal(){
+    global $VERSIONAPP;
+    limpiar_sesion();
+    $_SESSION['versionapp']=$VERSIONAPP;
     $db=abrir_db();
     if($db){
         try{
@@ -136,7 +141,7 @@ HTML;
             echo "</div>\n";
         }
     }
-    echo "<p class=error>{$_SESSION['error']}</p>";
+    echo "<p class=error>".(@$_SESSION['error']?:'')."</p>";
     if(!$jugando){
         mostrar_esperando();
     }
@@ -216,16 +221,10 @@ function hacer_crear_db(){
     }catch(Exception $err){
         echo "<BR><B>".$err->getMessage();
         echo "<BR>interrumpido";
-        die();
     }
     limpiar_sesion();
-    mostrar_opciones(2,false);
-}
-
-function limpiar_sesion(){
-    foreach($_SESSION as $k=>$v){
-        unset($_SESSION[$k]);
-    }
+    echo "<A href=./>seguir</a>";
+    die();
 }
 
 mostrar_pantalla();

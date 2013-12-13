@@ -47,4 +47,13 @@ SQL
 function sanitizar(){
 }
 
+function limpiar_sesion(){
+    foreach($_SESSION as $k=>$v){
+        unset($_SESSION[$k]);
+    }
+}
+
+function loguear($hasta_cuando,$que){
+    file_put_contents('log.txt',$que."\n",FILE_APPEND);
+}
 ?>
