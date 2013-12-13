@@ -10,7 +10,7 @@
                     {tipox:'h1', id:'titulo', nodes:'Bienvenidos al cumpleaños de Gina'},
                     {tipox:'button', eventos:{click:continuar_juego}, nodes:[ 
                         {tipox:'img', id:'imagen_boton', src:'imagenes/reloj.png'}, 
-                        {tipox:'b', id:'texto_boton', nodes:'EMPEZAR AHORA', dataset:{estado:'cargando'}}
+                        {tipox:'b', id:'texto_boton', nodes:'EMPEZAR AHORA'}
                     ]},
                 ]},
                 {tipox:'div', nodes:[
@@ -43,7 +43,7 @@ function mirar_estado_juego(en_cuanto){
                             tipox:'span', 
                             nodes:r.jugador, 
                             className:'jugador'+(mensaje.datos.estado!=2 || r.jugada!=mensaje.datos.correcta?'':' acerto'),
-                            title:(mensaje.datos.estado==2?r.jugada:null)
+                            title:(mensaje.datos.estado==2?r.jugada:'')
                         };
                     })
                 });
@@ -67,11 +67,16 @@ function mirar_estado_juego(en_cuanto){
                                 mensaje.datos.descripcion
                             ]},
                             {tipox:'div', nodes:mensaje.opciones.map(function(r){
-                                return {tipox:'div', className:'opcion'+(!jugando && r.opcion==mensaje.datos.correcta?' correcta':''), nodes:[
-                                    {tipox:'span', className:'numero_opcion', nodes:r.opcion+': '}, 
-                                    r.texto, 
-                                    {tipox:'span', className:'cuantos', nodes:(mensaje.datos.estado==2?r.cuantos:null)}
-                                ]}
+                                return {
+                                    tipox:'div', 
+                                    className:'opcion'+(!jugando && r.opcion==mensaje.datos.correcta?' correcta':''), 
+                                    nodes:[
+                                        {tipox:'span', className:'numero_opcion', nodes:r.opcion+': '}, 
+                                        r.texto, 
+                                        {tipox:'span', className:'cuantos', nodes:(mensaje.datos.estado==2?r.cuantos:'')}
+                                    ]
+                                    , title:(mensaje.datos.estado==2 && r.cuantos>=1 && r.cuantos<=2?(r.quien1+(r.cuantos==2?' '+r.quien2:'')):'')
+                                }
                             })}
                         ],
                         reemplazar:true

@@ -39,9 +39,11 @@ function hacer_quienes(){
         $cursor->execute(array(':juego'=>$datos->juego));
         $jugadores=$cursor->fetchAll(PDO::FETCH_OBJ);
         $cursor=$db->prepare(<<<SQL
-            select o.*, (select count(*) from jugadas j where j.juego=o.juego and j.jugada=o.opcion) as cuantos
-              from opciones o 
-              where juego=:juego order by opcion
+            select o.juego, o.opcion, o.texto, count(j.jugada) as cuantos, min(jugador) as quien1, max(jugador) as quien2
+              from opciones o left join jugadas j on j.juego=o.juego and j.jugada=o.opcion
+              where o.juego=:juego 
+              group by o.juego, o.opcion, o.texto
+              order by o.juego, o.opcion
 SQL
         );
         $cursor->execute(array(':juego'=>$datos->juego));
