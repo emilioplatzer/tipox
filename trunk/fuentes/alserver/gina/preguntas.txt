@@ -9,3 +9,173 @@ A|Ariana Grande
 B|Victoria Justice
 C|Ellizabeth Gillies
 D|Daniella Monet
+---3|hijo_adams|B|hijoadams2|¿Cómo se llamaba el hijo de los locos Adams?
+A|Periquito
+B|Pericles
+C|Lucas
+D|Homero
+---4|picapiedras|C|bambam|¿Cómo se llamaba el hijo de Pablo Marmol?
+A|Pedro
+B|Gazu
+C|BamBam
+D|Pica Pica
+---5|pregunta5|A|aliados|¿Cuál es la serie favorita de Gina?
+A|Aliados
+B|Violeta
+C|Victorius
+D|Mis amigos de siempre
+---6|pregunta6|A|maestro|¿Cuál es el maestro favorito de Gina?
+A|Gladys
+B|Porfiri
+C|Tavella
+D|Macri
+---7|libro|B|odisea|¿Cuál es el personaje principal de la Odisea?
+A|Penélope
+B|Odiseo
+C|Telémaco
+D|Homero
+---8|mafalda|D|felipe|¿Cómo se llama el mejor amigo de Mafalda?
+A|Manolo
+B|Susanita
+C|Miguelito
+D|Felipe
+---9|barney|D|dinosaurio|¿Qué tipo de animal es Barney?
+A|Un perro gigante
+B|Unterodáctilo
+C|Un dinosaurio bobo
+D|Un marciano
+---10|dosportres|B|llueve|¿Cuánto es dos por tres?
+A|Seis
+B|Llueve
+C|Cinco
+D|Veintitrés
+---11|egipto|D|rionilo|¿Cómo se llama el rio que está en Egipto?
+A|Milo
+B|Mino
+C|Nino
+D|Nilo
+---12|banda|B|onedirection|¿Cuál es la banda favorita de Gina?
+A|Marrum5
+B|OneDirection
+C|Los abuelos de la nada
+D|Las pastillas del abuelo
+---13|harryP|A|ron|¿Cómo se llama el amigo de Harry Poter?
+A|Ron
+B|Don
+C|Jon
+D|Lion
+---14|pintor|D|miro|¿Quién pinto este cuadro?
+A|Dali
+B|Renoir
+C|Picasso
+D|Miro
+---15|mafalda1|D|beatles|¿Cuál es la banda favorita de Mafalda?
+A|Kiss
+B|OneDirection
+C|Los redonditos de Ricota
+D|Los Beatles
+---16|latin|C|latin1|¿El latín es una lengua...
+A|Ciega?
+B|Sorda?
+C|Muerta?
+D|Muda?
+---17|papanoel|A|reno|¿Cómo se llama el reno principal de Papá Noel?
+A|Rudolf
+B|Gerardo
+C|Ernesto
+D|Mariano
+---18|pregunta18.png|C|amigo|¿Cómo se llama el mejor amigo de Gina?
+A|Gianluca
+B|Gabriel
+C|Filippo
+D|Los marcianos enemigos de la tierra
+---19|malba|D|árboles|¿Qué color utilizó la artista YayoiKusama para pintar los árboles del Malba?
+A|Violeta
+B|Rosa
+C|Verde
+D|Rojo
+---20|pregunta20|A|maestroarte|¿Quién es el maestro que le pone 10 a todo el mundo?
+A|Giani
+B|Mariana
+C|Michele
+D|Salvatori
+---21|pregunta21|B|bici|¿Qué medio de transporte usa el director Olmi para ir a la escuela?
+A|Colectivo
+B|Bicicleta
+C|Limusina
+D|Auto
+---22|patitofeo|D|nena|¿En qué se convierte el patito feo?
+A|Cisne
+B|No se convierte en nada. Sigue siendo feo
+C|Ganso
+D|Personaje de novela
+---23|sanmartin|A|burro|¿En qué cruzó San Martín la cordillera de los Andes?
+A|Burro
+B|Caballo
+C|Sulky
+D|En auto
+---24|gemelas|C|juegodegemelas|¿Cómo se llaman las protagonistas de la peli “Juego de Gemelas”?
+A|Sal y Pimienta
+B|Sali y Nali
+C|Anie y Hally
+D|Maly y Hally
+---25|pregunta25|B|reyesmagos|¿Cómo se llaman los reyes magos?
+A|Menchos, Gaspar y Bautista
+B|Melchor, Gaspar y Baltazar
+C|Michele, Salvatore y Mariano
+D|Joe, Larry y Moe
+---26|pregunta26|C|juegoshambre|La película se llama “Los juegos del...
+A|Matambre
+B|Alambre
+C|Hambre
+D|Sangre
+---27|pregunta27|B|Círculo|De estas figuras ¿Cuál es la única que no tiene lados rectos?
+A|Cuadrado
+B|Círculo
+C|Rombo
+D|Triángulo
+---28|pregunta28|A|rivadavia|¿Quién fue el primer presidente Argentino? 
+A|Rivadavia
+B|Mitre
+C|Belgrano
+D|San Martín
+---29|pregunta29|C|peterpan|¿Cómo se llama el personaje animado que siempre era niño?
+A|Donfulgencio
+B|El pato Donald
+C|Peter Pan
+D|Garfio
+---30|lengua|D|stones|¿Qué banda es conocida por esta imagen?
+A|Beatles
+B|JustinBeaber
+C|Caracachumba
+D|The Rolling Stones
+---31|reyleon|B|mamasimba|¿Cómo se llama la mamá de Simba?
+A|Chiara
+B|Sarabi
+C|Nala
+D|Laura
+---32|alicia|A|gato|¿Cómo se llamaba el gato que se encontró Alicia en el país de las maravillas?
+A|Gato sonriente
+B|Gatollorón
+C|Gatosonsón
+D|Gato triste
+---33|duda|B|division|¿Se puede dividir un número por cero?
+A|Sí
+B|No
+C|Ni idea
+D|¿Que número es cero?
+---34|pregunta34|A|sociologa|¿Cuál es la profesión de la mamá de Gina?
+A|Socióloga
+B|Antropóloga
+C|Psicóloga
+D|Meteoróloga
+---35|cabildo|B|cabildo1|¿En qué año se celebró el primer cabildo abierto?
+A|1806
+B|1810
+C|1816
+D|1492
+---36|marypoppins|D|paraguas|¿En que viajaba Mary Poppins?
+A|Jet privado
+B|Escoba
+C|Taxi
+D|Paraguas

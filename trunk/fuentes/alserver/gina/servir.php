@@ -29,7 +29,7 @@ HTML;
 
 function hacer_quienes(){
     $db=abrir_db();
-    $datos=datos_actuales();
+    $datos=datos_actuales(false);
     if(!$datos->estado){
         $cursor=$db->prepare("select * from jugadores order by terminal");
         $cursor->execute();
@@ -47,7 +47,7 @@ function hacer_quienes(){
 
 function hacer_avanzar_juego(){
     $db=abrir_db();
-    $datos=datos_actuales();
+    $datos=datos_actuales(false);
     loguear(null,'por hacer avanzar '.json_encode($datos));
     if(!$datos->estado){
         $cursor=$db->prepare("update control set juego=1, estado=1");

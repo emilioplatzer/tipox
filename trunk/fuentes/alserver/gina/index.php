@@ -81,6 +81,12 @@ function iniciar_terminal(){
     }
 }
 
+function es_imagen(&$nombre_imagen){
+    if(strpos($nombre_imagen,'.')===false){
+        $nombre_imagen=$nombre_imagen.'.jpg';
+    }
+}
+
 function mostrar_pantalla(){
     $datos=datos_actuales();
     if(!$datos || !$datos->jugador){
@@ -207,6 +213,8 @@ function hacer_crear_db(){
                 $linea_pregunta=trim(array_shift($lineas));
                 $campos_pregunta=explode('|',$linea_pregunta);
                 echo "<BR>".$linea_pregunta[0]." <b>ok</b>";
+                es_imagen($campos_pregunta[1]);
+                es_imagen($campos_pregunta[3]);
                 insertar($db, 'juegos', array('juego','imagen','correcta','imagenok','descripcion'), $campos_pregunta);
                 foreach($lineas as $linea_opcion){
                     if(trim($linea_opcion)){

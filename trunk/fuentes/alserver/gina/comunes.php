@@ -28,19 +28,25 @@ function insertar($db, $tabla, $campos, $valores){
 }
 
 
-function datos_actuales(){
+function datos_actuales($con_jugagdor_actual=true){
     $db=abrir_db();
-    $sql_datos=$db->prepare(<<<SQL
-        SELECT c.juego, c.estado, j.imagen, j.descripcion, imagenok, correcta,
-               s.terminal, u.jugador, u.numero, 
-               (select p.jugada from jugadas p where p.juego=c.juego and p.jugador=u.jugador) as jugada
-          FROM control c LEFT JOIN juegos j ON c.juego=j.juego,
-               sessionid s LEFT JOIN jugadores u ON s.terminal=u.terminal
-          WHERE s.terminal=:terminal
+    if($con_jugagdor_actual){
+        $where=", sessionid s LEFT JOIN jugadores u ON s.terminal=u.terminal WHERE s.terminal=:terminal";
+        $campos_adic=", s.terminal, u.jugador, u.numero, (select p.jugada from jugadas p where p.juego=c.juego and p.jugador=u.jugador) as jugada";
+        $parametros=array(':terminal'=>@$_SESSION['terminal']);
+    }else{
+        $where="";
+        $campos_adic="";
+        $parametros=array();
+    }
+    $cursor=$db->prepare(<<<SQL
+        SELECT c.juego, c.estado, j.imagen, j.descripcion, imagenok, correcta $campos_adic
+          FROM control c LEFT JOIN juegos j ON c.juego=j.juego
+               $where
 SQL
     );
-    $sql_datos->execute(array(':terminal'=>$_SESSION['terminal']));
-    $datos=$sql_datos->fetchObject();
+    $cursor->execute($parametros);
+    $datos=$cursor->fetchObject();
     return $datos;
 }
 
