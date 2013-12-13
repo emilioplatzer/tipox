@@ -1,10 +1,9 @@
 .tabla_podio td{
-    height:150px;
-    width:150px;
+    height:120px;
+    width:120px;
 }
 
 .podio_nombres{
-    font-size:120%;
     vertical-align:bottom;
     text-align:center;
 }
@@ -19,4 +18,19 @@
    -webkit-text-fill-color: white; /* Will override color (regardless of order) */
    -webkit-text-stroke-width: 3px;
    -webkit-text-stroke-color: black;
+}
+
+.ala_izquierda{
+    float:left;
+    margin-right:80px;
+}
+
+.ganadores th{
+    background-color:MediumSeaGreen;
+    padding:2px;
+    font-size:80%;
+}
+.ganadores td{
+    background-color:LightGreen;
+    padding:3px;
 }
