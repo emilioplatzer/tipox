@@ -18,3 +18,8 @@ h1{
     padding:4px;
     float:left;
 }
+
+.correcta{
+    border:3px solid green;
+    color:green;
+}

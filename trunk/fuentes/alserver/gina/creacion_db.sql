@@ -27,6 +27,8 @@ create table jugadores(
 create table juegos(
     juego integer primary key,
     imagen varchar(200),
+    correcta varchar(1),
+    imagenok varchar(200),
     descripcion varchar(1000)
 );
 /*OTRA*/

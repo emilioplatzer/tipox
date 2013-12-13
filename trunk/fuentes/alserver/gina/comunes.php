@@ -31,7 +31,7 @@ function insertar($db, $tabla, $campos, $valores){
 function datos_actuales(){
     $db=abrir_db();
     $sql_datos=$db->prepare(<<<SQL
-        SELECT c.juego, c.estado, j.imagen, j.descripcion, 
+        SELECT c.juego, c.estado, j.imagen, j.descripcion, imagenok, correcta,
                s.terminal, u.jugador, u.numero, 
                (select p.jugada from jugadas p where p.juego=c.juego and p.jugador=u.jugador) as jugada
           FROM control c LEFT JOIN juegos j ON c.juego=j.juego,

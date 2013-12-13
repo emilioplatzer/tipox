@@ -34,7 +34,8 @@
                     if(mensaje.empezado=='si'){
                         label_jugadores.innerText='jugaron: ';
                         titulo.innerText='Jugando en el cumple de Gina';
-                        if(mensaje.datos.estado==1){
+                        var jugando=mensaje.datos.estado==1;
+                        if(jugando){
                             texto_boton.innerText='PARAR';
                             imagen_boton.src='imagenes/reloj2.png';
                         }else{
@@ -44,14 +45,14 @@
                         colocador.colocar({
                             destino:juego,
                             contenido:[
-                                {tipox:'img', src:'imagenes/'+mensaje.datos.imagen, className:'ilustracion_principal'}, 
+                                {tipox:'img', src:'imagenes/'+(jugando?mensaje.datos.imagen:mensaje.datos.imagenok), className:'ilustracion_principal'}, 
                                 {tipox:'div', className:'pregunta', nodes:[
                                     {tipox:'span', className:'numero_pregunta', nodes:mensaje.datos.juego+': '},
                                     mensaje.datos.descripcion
                                 ]},
                                 {tipox:'div', nodes:mensaje.opciones.map(function(r){
-                                    return {tipox:'div', className:'opcion', nodes:[
-                                        {tipox:'span', className:'numero_opcion', nodes:r.opcion+': '}, r.texto
+                                    return {tipox:'div', className:'opcion'+(!jugando && r.opcion==mensaje.datos.correcta?' correcta':''), nodes:[
+                                        {tipox:'span', className:'numero_opcion', nodes:r.opcion+': '}, r.texto, null
                                     ]}
                                 })}
                             ],

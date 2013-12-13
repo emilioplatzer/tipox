@@ -1,10 +1,10 @@
 
----1|bob_esponja.jpg|en la popular serie de televisión "bob esponja" ¿qué tipo de animal es Patricio?
+---1|bob_esponja.jpg|D|patricio.jpg|en la popular serie de televisión "bob esponja" ¿qué tipo de animal es Patricio?
 A|ardilla
 B|calamar
 C|cangrejo
 D|estrella de mar
----2|victorius.jpg|en la no tan conocida serie de televisión "Victorius" ¿qué actriz interpreta a Tori Vega?
+---2|victorius.jpg|B|220px-Victoria_Justice_2013.jpg|en la no tan conocida serie de televisión "Victorius" ¿qué actriz interpreta a Tori Vega?
 A|Ariana Grande
 B|Victoria Justice
 C|Ellizabeth Gillies
