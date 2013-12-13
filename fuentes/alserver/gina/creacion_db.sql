@@ -44,6 +44,7 @@ create table opciones(
 create table control(
     juego integer,
     estado integer,
+    versionapp integer,
     foreign key (juego) references juegos (juego)
 );
 /*OTRA*/
@@ -55,4 +56,4 @@ create table jugadas(
     foreign key (juego) references juegos (juego)
 );
 /*OTRA*/
-insert into control(juego) values (null);
+insert into control(juego,versionapp) values (null,'1');

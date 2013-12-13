@@ -44,4 +44,19 @@ function hacer_quienes(){
         echo json_encode(array('empezado'=>'si', 'jugadores'=>$jugadores, 'opciones'=>$opciones, 'datos'=>$datos));
     }
 }
+
+function hacer_avanzar_juego(){
+    $db=abrir_db();
+    $datos=datos_actuales();
+    loguear(null,'por hacer avanzar '.json_encode($datos));
+    if(!$datos->estado){
+        $cursor=$db->prepare("update control set juego=1, estado=1");
+    }else if($datos->estado==1){
+        $cursor=$db->prepare("update control set estado=2");
+    }else{
+        $cursor=$db->prepare("update control c set estado=1, juego=(select min(j.juego) from juegos j where j.juego>c.juego)");
+    }
+    $cursor->execute();
+    echo json_encode("ok");
+}
 ?>
