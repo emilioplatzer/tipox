@@ -1,9 +1,18 @@
 <?php
 session_start();
 
+date_default_timezone_set('America/Buenos_Aires');
+
 require_once "les_paroles.php";
 
-if($_REQUEST['hacer']=='entrar'){
+require_once "comunes.php";
+
+$funcion_hacer="hacer_{$_REQUEST['hacer']}";
+
+$funcion_hacer();
+
+function hacer_entrar(){
+    global $clave_basica;
     if($_REQUEST['clave']==$clave_basica){
         $_SESSION['super']='super';
         header('Location: super.php');
@@ -18,4 +27,10 @@ HTML;
     }
 }
 
+function hacer_quienes(){
+    $db=abrir_db();
+    $cursor=$db->prepare("select * from jugadores order by terminal");
+    $cursor->execute();
+    echo json_encode($cursor->fetchAll(PDO::FETCH_OBJ));
+}
 ?>

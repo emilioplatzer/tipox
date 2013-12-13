@@ -16,6 +16,9 @@ function Aplicacion(){
                 if(def_param.obligatorio && !(nombre_param in params)){
                     este.lanzarExcepcion('falta el parámetro '+nombre_param);
                 }
+                if(def_param.validar && !(def_param.validar.call(this,params[nombre_param]))){
+                    este.lanzarExcepcion('valor inválido para el parámetro '+nombre_param);
+                }
                 if('predeterminado' in def_param && !(nombre_param in params)){
                     params[nombre_param]=def_param.predeterminado;
                 }
