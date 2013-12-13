@@ -75,7 +75,7 @@ function mirar_estado_juego(en_cuanto){
                                         r.texto, 
                                         {tipox:'span', className:'cuantos', nodes:(mensaje.datos.estado==2?r.cuantos:'')}
                                     ]
-                                    , title:(mensaje.datos.estado==2 && r.cuantos>=1 && r.cuantos<=2?(r.quien1+(r.cuantos==2?' '+r.quien2:'')):'')
+                                    , title:(mensaje.datos.estado==2?r.quienes:'')
                                 }
                             })}
                         ],
