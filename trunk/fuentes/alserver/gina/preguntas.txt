@@ -84,11 +84,11 @@ A|Rudolf
 B|Gerardo
 C|Ernesto
 D|Mariano
----18|pregunta18.png|C|amigo|¿Cómo se llama el mejor amigo de Gina?
-A|Gianluca
-B|Gabriel
-C|Filippo
-D|Los marcianos enemigos de la tierra
+---18|comidafavorita|C|pan|¿Cuál es la comida favorita de Gina?
+A|Nutella
+B|Maní Japonés
+C|Pan
+D|Chocolate
 ---19|malba|D|árboles|¿Qué color utilizó la artista YayoiKusama para pintar los árboles del Malba?
 A|Violeta
 B|Rosa
