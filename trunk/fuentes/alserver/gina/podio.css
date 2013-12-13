@@ -1,6 +1,12 @@
 .tabla_podio td{
-    height:100px;
-    min-width:100px;
+    height:150px;
+    width:150px;
+}
+
+.podio_nombres{
+    font-size:120%;
+    vertical-align:bottom;
+    text-align:center;
 }
 
 .podio_numeros{
