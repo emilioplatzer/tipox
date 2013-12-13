@@ -39,10 +39,10 @@ A|Manolo
 B|Susanita
 C|Miguelito
 D|Felipe
----9|barney|D|dinosaurio|¿Qué tipo de animal es Barney?
+---9|barney|C|dinosaurio|¿Qué tipo de animal es Barney?
 A|Un perro gigante
-B|Unterodáctilo
-C|Un dinosaurio bobo
+B|Un peluche
+C|Un dinosaurio muy grande
 D|Un marciano
 ---10|dosportres|B|llueve|¿Cuánto es dos por tres?
 A|Seis

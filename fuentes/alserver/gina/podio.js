@@ -2,30 +2,33 @@
     var colocador=new Colocador();
     colocador.colocar({
         destino:document.body,
-        contenido:{
-            tipox:'div', nodes:[
-                {tipox:'div', style:{textAlign:'center'}, nodes:[
-                    {tipox:'img', src:'gina.PNG', style:{'float':'left', marginRight:'10px'}},
-                    {tipox:'a', href:'podio.php', nodes:[
-                        {tipox:'img', src:'imagenes/torta.jpg', style:{'float':'right', marginRight:'10px'}}
+        contenido:{tipox:'div', nodes:[
+            {tipox:'div', className:'ala_izquierda', nodes:[
+                {tipox:'table', className:'tabla_podio', nodes:[
+                    {tipox:'tr', nodes:[
+                        {tipox:'td', className:'podio_nombres', nodes:'Gina', id:'quienes2', rowSpan:2},
+                        {tipox:'td', className:'podio_nombres', nodes:'Miranda', id:'quienes1'},
+                        {tipox:'td', className:'podio_nombres', nodes:'Martina Joaquina Babina', id:'quienes3', rowSpan:3}
                     ]},
-                    {tipox:'h1', id:'titulo', nodes:'Bienvenidos al cumpleaños de Gina'},
-                    {tipox:'button', eventos:{click:continuar_juego}, nodes:[ 
-                        {tipox:'img', id:'imagen_boton', src:'imagenes/reloj.png'}, 
-                        {tipox:'b', id:'texto_boton', nodes:'EMPEZAR AHORA'}
+                    {tipox:'tr', nodes:[
+                        {tipox:'td', className:'podio_numeros', nodes:"1"},
                     ]},
-                ]},
-                {tipox:'div', nodes:[
-                    {tipox:'br'},
-                    {tipox:'span', id:'label_jugadores', nodes:'presentes: '},
-                    {tipox:'span', id:'jugadores', nodes:'calculando...'}
-                ]},
-                {tipox:'div', id:'juego'}
-            ]
-        },
+                    {tipox:'tr', nodes:[
+                        {tipox:'td', className:'podio_numeros', nodes:"2"},
+                        {tipox:'td', className:'podio_numeros', nodes:"", rowSpan:2},
+                    ]},
+                    {tipox:'tr', nodes:[
+                        {tipox:'td', className:'podio_numeros', nodes:""},
+                        {tipox:'td', className:'podio_numeros', nodes:"3"},
+                    ]},
+                ]}
+            ]},
+            {tipox:'div', className:'ala_derecha', nodes:[
+            ]}
+        ]},
         reemplazar:true
     });
-    mirar_estado_juego(500);
+    // mirar_estado_juego(500);
 });
 
 function mirar_estado_juego(en_cuanto){

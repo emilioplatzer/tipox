@@ -1,0 +1,16 @@
+.tabla_podio td{
+    height:100px;
+    min-width:100px;
+}
+
+.podio_numeros{
+    background-image: url('imagenes/fondo_madera.jpg');
+    font-size:400%;
+    font-weight:bold;
+    text-align:center;
+    vertical-align:center;
+    color:white;
+   -webkit-text-fill-color: white; /* Will override color (regardless of order) */
+   -webkit-text-stroke-width: 3px;
+   -webkit-text-stroke-color: black;
+}
