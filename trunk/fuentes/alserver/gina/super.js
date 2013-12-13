@@ -18,5 +18,24 @@
         },
         reemplazar:true
     });
-    
+    var mirar=function(){
+        setTimeout(function(){
+            enviarPaquete({
+                destino:'servir.php',
+                datos:{hacer:'quienes'},
+                codificador:estoMismo,
+                cuandoOk:function(mensaje){
+                    presentes.innerText=mensaje.map(function(r){ return r.jugador;}).join(', ');
+                    presentes.className='ok';
+                    mirar();
+                },
+                cuandoFalla:function(mensaje,lugar){
+                    presentes.innerText=mensaje+' ('+lugar+')';
+                    presentes.className='falla';
+                    mirar();
+                }
+            });
+        },1000);
+    }
+    mirar();
 });

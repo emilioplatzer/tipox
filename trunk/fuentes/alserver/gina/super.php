@@ -10,6 +10,7 @@ $lanzador=new Lanzador(array(
         '../tipox/aplicacion.js',
         '../tipox/objeto_circular.js',
         '../tipox/colocador.js',
+        '../tipox/enviador.js',
         (@$_SESSION['super']?'super.js':'login_basico.js')
     ),
     'css'=>array(
