@@ -65,6 +65,9 @@ function limpiar_sesion(){
 }
 
 function loguear($hasta_cuando,$que){
-    file_put_contents('log.txt',$que."\n",FILE_APPEND);
+    global $loguar_todo;
+    if($loguar_todo===1){
+        file_put_contents('log.txt',$que."\n",FILE_APPEND);
+    }
 }
 ?>

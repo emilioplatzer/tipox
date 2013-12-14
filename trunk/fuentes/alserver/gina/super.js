@@ -48,7 +48,12 @@ function mirar_estado_juego(en_cuanto){
                                 tipox:'span', 
                                 nodes:[
                                     r.jugador, 
-                                    {tipox:'span', className:'que_jugo', nodes:mensaje.datos.estado==2?r.jugada||'X':''}
+                                    { tipox:'span', 
+                                        className:'que_jugo', 
+                                        nodes:mensaje.datos.estado==2?r.jugada||'X':'',
+                                        dataset:{jugador:r.jugador},
+                                        eventos:{click:inactivar_jugador}
+                                    }
                                 ],
                                 className:'jugador'+
                                     (mensaje.datos.estado==2?(r.jugada==mensaje.datos.correcta?' acerto':(r.jugada?' erro':'')):
@@ -91,7 +96,7 @@ function mirar_estado_juego(en_cuanto){
                                     , title:(mensaje.datos.estado==2?r.quienes:'')
                                 }
                             })},
-                            {tipox:'div', nodes:mensaje.datos.descripcionrta, className:'aclaracion'}
+                            {tipox:'div', nodes:(mensaje.datos.estado==2?mensaje.datos.descripcionrta:''), className:'aclaracion'}
                         ],
                         reemplazar:true
                     });
@@ -116,8 +121,23 @@ function continuar_juego(evento){
         cuandoOk:function(){
             // mirar_estado_juego(500);
         },
-        cuandoFalla:function(){
-            // mirar_estado_juego(500);
+        cuandoFalla:function(mensaje){
+            this.title=mensaje;
         }
     });
+}
+
+function inactivar_jugador(){
+    enviarPaquete({
+        destino:'servir.php',
+        datos:{ hacer:'inactivar_jugador', jugador:this.dataset.jugador},
+        codificador:estoMismo,
+        cuandoOk:function(){
+        },
+        cuandoFalla:function(mensaje){
+            this.title=mensaje;
+        }
+    });
+    sacar=this.parentNode;
+    sacar.parentNode.removeChild(sacar);
 }
