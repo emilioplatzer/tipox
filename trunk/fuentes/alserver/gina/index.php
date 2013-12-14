@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$VERSIONAPP='A 1.09';
+$VERSIONAPP='A 1.10';
 
 date_default_timezone_set('America/Buenos_Aires');
 
@@ -98,6 +98,9 @@ function mostrar_pantalla(){
 
 function mostrar_iniciar(){
     poner_logo();
+    if(isset($_SESSION['error']) && $_SESSION['error']){
+        echo "<p class=error>".$_SESSION['error']."</p>";
+    }
 	echo <<<HTML
 		<form method=post>
 		<p>Para jugar necesitás ingresar</p>
@@ -183,6 +186,10 @@ function hacer_ingresar(){
         $_SESSION['error']="sesión limpiada";
         recargar();
     }
+    if(strlen($nombre)>20){
+        $_SESSION['error']='El nombre es demasiado largo';
+        recargar();
+    }
     $_SESSION['error']="";
     $db=abrir_db();
     try{
@@ -216,7 +223,7 @@ function hacer_crear_db(){
                 echo "<BR>".$linea_pregunta[0]." <b>ok</b>";
                 es_imagen($campos_pregunta[1]);
                 es_imagen($campos_pregunta[3]);
-                insertar($db, 'juegos', array('juego','imagen','correcta','imagenok','descripcion'), $campos_pregunta);
+                insertar($db, 'juegos', array('juego','imagen','correcta','imagenok','descripcion','descripcionrta'), $campos_pregunta, true);
                 foreach($lineas as $linea_opcion){
                     if(trim($linea_opcion)){
                         $campos_opciones=explode('|',$linea_opcion);
@@ -238,6 +245,6 @@ function hacer_crear_db(){
 
 mostrar_pantalla();
 
-echo "<p><small><pre>terminal={$_SESSION['terminal']}</pre></small></p>";
+// echo "<p><small><pre>terminal={$_SESSION['terminal']}</pre></small></p>";
 
 ?>

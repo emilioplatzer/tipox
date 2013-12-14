@@ -29,7 +29,7 @@ A|Gladys
 B|Porfiri
 C|Tavella
 D|Macri
----7|libro|B|odisea|¿Cuál es el personaje principal de la Odisea?
+---7|libro|B|odisea|¿Cuál es el personaje principal de la Odisea?|Ulises es el nombre en latín
 A|Penélope
 B|Odiseo
 C|Telémaco
@@ -39,17 +39,17 @@ A|Manolo
 B|Susanita
 C|Miguelito
 D|Felipe
----9|barney|C|dinosaurio|¿Qué tipo de animal es Barney?
+---9|barney|C|dino_museo|¿Qué tipo de animal es Barney?|Adivinen quién sacó la foto
 A|Un perro gigante
 B|Un peluche
 C|Un dinosaurio muy grande
 D|Un marciano
----10|dosportres|B|llueve|¿Cuánto es dos por tres?
+---10|dosportres|B|llueve|¿Cuánto es dos por tres?|Es más sabido que dos por tres llueve que 2x3=6
 A|Seis
 B|Llueve
 C|Cinco
 D|Veintitrés
----11|egipto|D|rionilo|¿Cómo se llama el rio que está en Egipto?
+---11|egipto|D|rionilo|¿Cómo se llama el principal río que de Egipto?
 A|Milo
 B|Mino
 C|Nino
@@ -68,37 +68,37 @@ D|Lion
 A|Dali
 B|Renoir
 C|Picasso
-D|Miro
----15|mafalda1|D|beatles|¿Cuál es la banda favorita de Mafalda?
+D|Miró
+---15|artattack|D|miranda4|¿Quién hizo esa obra de arte?|Lo hizo cuando tenía 4 años
+A|Miró
+B|Miranda
+C|Art Attack
+D|Los imaginadores
+---16|mafalda1|D|beatles|¿Cuál es la banda favorita de Mafalda?
 A|Kiss
 B|OneDirection
 C|Los redonditos de Ricota
 D|Los Beatles
----16|latin|C|latin1|¿El latín es una lengua...
+---17|latin|C|latin1|¿El latín es una lengua...
 A|Ciega?
 B|Sorda?
 C|Muerta?
 D|Muda?
----17|papanoel|A|reno|¿Cómo se llama el reno principal de Papá Noel?
+---18|papanoel|A|reno|¿Cómo se llama el reno principal de Papá Noel?
 A|Rudolf
 B|Gerardo
 C|Ernesto
 D|Mariano
----18|comidafavorita|C|pan|¿Cuál es la comida favorita de Gina?
+---19|comidafavorita|C|pan|¿Cuál es la comida favorita de Gina?
 A|Nutella
 B|Maní Japonés
 C|Pan
 D|Chocolate
----19|malba|D|árboles|¿Qué color utilizó la artista YayoiKusama para pintar los árboles del Malba?
+---20|malba|D|árboles|¿Qué color utilizó la artista YayoiKusama para pintar los árboles del Malba?
 A|Violeta
 B|Rosa
 C|Verde
 D|Rojo
----20|pregunta20|A|maestroarte|¿Quién es el maestro que le pone 10 a todo el mundo?
-A|Giani
-B|Mariana
-C|Michele
-D|Salvatori
 ---21|pregunta21|B|bici|¿Qué medio de transporte usa el director Olmi para ir a la escuela?
 A|Colectivo
 B|Bicicleta
@@ -164,7 +164,7 @@ A|Sí
 B|No
 C|Ni idea
 D|¿Que número es cero?
----34|pregunta34|A|sociologa|¿Cuál es la profesión de la mamá de Gina?
+---34|andrea|A|clubdelvino|¿Cuál es la profesión de la mamá de Gina?
 A|Socióloga
 B|Antropóloga
 C|Psicóloga

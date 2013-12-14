@@ -18,7 +18,12 @@ function abrir_db(){
     return $db;
 }
 
-function insertar($db, $tabla, $campos, $valores){
+function insertar($db, $tabla, $campos, $valores, $completar_con_null=false){
+    if($completar_con_null && count($valores)<count($campos)){
+        while(count($valores)<count($campos)){
+            $valores[]=null;
+        }
+    }
     $dos_puntos=array_map(function($nombre){ return ":$nombre"; },$campos);
     $ins=$db->prepare("insert into $tabla (".
         implode(', ',$campos).") values (".

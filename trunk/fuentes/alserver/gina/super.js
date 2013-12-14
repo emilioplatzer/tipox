@@ -39,15 +39,17 @@ function mirar_estado_juego(en_cuanto){
                 colocador.colocar({
                     destino:jugadores,
                     reemplazar:true,
-                    contenido:mensaje.jugadores.map(function(r){ 
-                        // return {tipox:'span', nodes:r.jugador, className:mensaje.datos.estado<>2 || r.jugada<>mensaje.datos.correcta?'':'acerto'};
-                        return {
-                            tipox:'span', 
-                            nodes:r.jugador, 
-                            className:'jugador'+(mensaje.datos.estado!=2 || r.jugada!=mensaje.datos.correcta?'':' acerto'),
-                            title:(mensaje.datos.estado==2?r.jugada:'')
-                        };
-                    })
+                    contenido:[{tipox:'span', className:'cantidad_jugadores', nodes:mensaje.jugadores.length}].concat(
+                        mensaje.jugadores.map(function(r){ 
+                            // return {tipox:'span', nodes:r.jugador, className:mensaje.datos.estado<>2 || r.jugada<>mensaje.datos.correcta?'':'acerto'};
+                            return {
+                                tipox:'span', 
+                                nodes:r.jugador, 
+                                className:'jugador'+(mensaje.datos.estado!=2 || r.jugada!=mensaje.datos.correcta?'':' acerto'),
+                                title:(mensaje.datos.estado==2?r.jugada:'')
+                            };
+                        })
+                    )
                 });
                 if(mensaje.empezado=='si'){
                     label_jugadores.innerText='jugaron: ';
