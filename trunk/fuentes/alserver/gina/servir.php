@@ -31,12 +31,16 @@ function hacer_quienes(){
     $db=abrir_db();
     $datos=datos_actuales(false);
     if(!$datos->estado){
-        $cursor=$db->prepare("select * from jugadores order by terminal");
+        $cursor=$db->prepare("select * from jugadores, (select max(terminal) as max_terminal from jugadores) x order by jugador");
         $cursor->execute();
-        echo json_encode(array('empezado'=>'no', 'jugadores'=>$cursor->fetchAll(PDO::FETCH_OBJ), 'datos'=>array()));
+        $jugadores=$cursor->fetchAll(PDO::FETCH_OBJ);
+        echo json_encode(array('empezado'=>'no', 'jugadores'=>$jugadores, 'datos'=>array(), 'nuevos_desde'=>@$_SESSION['nuevos_desde']?:0));
+        if(count($jugadores)){
+            $_SESSION['nuevos_desde']=$jugadores[0]->max_terminal;
+        }
     }else{
         $cursor=$db->prepare(<<<SQL
-            select u.jugador, u.activo, j.jugada, j.juego
+            select u.jugador, u.activo, j.jugada, j.juego, u.terminal
               from jugadores u left join jugadas j on u.jugador=j.jugador and juego=:juego 
               where u.activo=1 or j.jugada is not null
               order by u.jugador

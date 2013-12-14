@@ -45,7 +45,7 @@ function datos_actuales($con_jugagdor_actual=true){
         $parametros=array();
     }
     $cursor=$db->prepare(<<<SQL
-        SELECT c.juego, c.estado, j.imagen, j.descripcion, imagenok, correcta $campos_adic
+        SELECT c.juego, c.estado, j.imagen, j.descripcion, imagenok, correcta, descripcionrta $campos_adic
           FROM control c LEFT JOIN juegos j ON c.juego=j.juego
                $where
 SQL
