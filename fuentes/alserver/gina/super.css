@@ -13,7 +13,7 @@ h1{
 .opcion{
     font-size:160%;
     border-radius:8px;
-    border:2px dashed green;
+    border:3px solid blue;
     margin:10px;
     padding:4px;
     float:left;
@@ -24,11 +24,28 @@ h1{
     color:green;
 }
 
+.incorrecta{
+    border:3px solid red;
+    color:red;
+}
+
 .acerto{
-    border:2px solid blue;
-    border-radius:4px;
-    color:green;
-    font-weight:bold;
+    background-color:LightGreen;
+    border:3px solid blue;
+}
+
+.erro{
+    background-color:#FAA;
+    border:3px solid blue;
+}
+
+.falta{
+    background-color:#FCA;
+    border:3px solid blue;
+}
+
+.inactivo{
+    background-color:#DDD;
 }
 
 .cantidad_jugadores{
@@ -39,6 +56,9 @@ h1{
     display:inline-block;
     font-size:80%;
     font-family:arial;
+    width:25px;
+    height:25px;
+    text-align:center;
 }
 
 .jugador{
@@ -53,4 +73,31 @@ h1{
     font-size:75%;
     position:relative;
     top:-25px;
+}
+
+.nuevo{
+    background-color:LightGreen;
+}
+
+.que_jugo{
+    position:relative;
+    top:-8px;
+    display:inline-block;
+    height:15px;
+    width:15px;
+    font-size:70%;
+    font-weight:bold;
+    font-family:arial;
+    border:2px solid gray;
+    background-color:gray;
+    text-align:middle;
+    vertical-align:top;
+    left:5px;
+}
+
+.aclaracion{
+    font-size:120%;
+    color:blue;
+    /* display:block-inline; */
+    clear:both;
 }

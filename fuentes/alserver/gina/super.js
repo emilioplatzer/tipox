@@ -39,13 +39,22 @@ function mirar_estado_juego(en_cuanto){
                 colocador.colocar({
                     destino:jugadores,
                     reemplazar:true,
-                    contenido:[{tipox:'span', className:'cantidad_jugadores', nodes:mensaje.jugadores.length}].concat(
+                    contenido:[/*{tipox:'span', className:'cantidad_jugadores', 
+                        nodes:mensaje.jugadores.length
+                    }*/].concat(
                         mensaje.jugadores.map(function(r){ 
                             // return {tipox:'span', nodes:r.jugador, className:mensaje.datos.estado<>2 || r.jugada<>mensaje.datos.correcta?'':'acerto'};
                             return {
                                 tipox:'span', 
-                                nodes:r.jugador, 
-                                className:'jugador'+(mensaje.datos.estado!=2 || r.jugada!=mensaje.datos.correcta?'':' acerto'),
+                                nodes:[
+                                    r.jugador, 
+                                    {tipox:'span', className:'que_jugo', nodes:mensaje.datos.estado==2?r.jugada||'X':''}
+                                ],
+                                className:'jugador'+
+                                    (mensaje.datos.estado==2?(r.jugada==mensaje.datos.correcta?' acerto':(r.jugada?' erro':'')):
+                                        (mensaje.datos.estado==1?(r.activo==1?(r.jugada?'':' falta'):' inactivo'):'')
+                                    )+
+                                    (mensaje.empezado=='no' && r.terminal>mensaje.nuevos_desde?' nuevo':''),
                                 title:(mensaje.datos.estado==2?r.jugada:'')
                             };
                         })
@@ -73,7 +82,7 @@ function mirar_estado_juego(en_cuanto){
                             {tipox:'div', nodes:mensaje.opciones.map(function(r){
                                 return {
                                     tipox:'div', 
-                                    className:'opcion'+(!jugando && r.opcion==mensaje.datos.correcta?' correcta':''), 
+                                    className:'opcion'+(!jugando && r.opcion==mensaje.datos.correcta?' correcta':(mensaje.datos.estado==2?' incorrecta':'')), 
                                     nodes:[
                                         {tipox:'span', className:'numero_opcion', nodes:r.opcion+': '}, 
                                         r.texto, 
@@ -81,7 +90,8 @@ function mirar_estado_juego(en_cuanto){
                                     ]
                                     , title:(mensaje.datos.estado==2?r.quienes:'')
                                 }
-                            })}
+                            })},
+                            {tipox:'div', nodes:mensaje.datos.descripcionrta, className:'aclaracion'}
                         ],
                         reemplazar:true
                     });
