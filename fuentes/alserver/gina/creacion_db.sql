@@ -21,6 +21,7 @@ create table jugadores(
     jugador varchar(20) primary key,
     terminal mediumint,
     numero mediumint auto_increment unique key,
+    activo integer default 1,
     foreign key (terminal) references sessionid(terminal)
 ) engine=innodb;
 /*OTRA*/
@@ -29,8 +30,9 @@ create table juegos(
     imagen varchar(200),
     correcta varchar(1),
     imagenok varchar(200),
-    descripcion varchar(1000)
-);
+    descripcion varchar(1000),
+    descripcionrta varchar(1000)
+) engine=innodb;
 /*OTRA*/
 create table opciones(
     juego integer,
@@ -39,14 +41,14 @@ create table opciones(
     correcta integer,
     primary key (juego, opcion),
     foreign key (juego) references juegos (juego)
-);
+) engine=innodb;
 /*OTRA*/
 create table control(
     juego integer,
     estado integer,
     versionapp integer,
     foreign key (juego) references juegos (juego)
-);
+) engine=innodb;
 /*OTRA*/
 create table jugadas(
     juego integer,
@@ -54,6 +56,6 @@ create table jugadas(
     jugada varchar(1),
     primary key (juego,jugador),
     foreign key (juego) references juegos (juego)
-);
+) engine=innodb;
 /*OTRA*/
 insert into control(juego,versionapp) values (null,'1');

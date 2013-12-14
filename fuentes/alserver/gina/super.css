@@ -31,9 +31,22 @@ h1{
     font-weight:bold;
 }
 
-.jugador{
-    margin:2px;
+.cantidad_jugadores{
+    margin:4px;
     padding:2px;
+    border:2px solid gray;
+    border-radius:15px;
+    display:inline-block;
+    font-size:80%;
+    font-family:arial;
+}
+
+.jugador{
+    margin:4px;
+    padding:2px;
+    border:3px solid gray;
+    border-radius:10px;
+    display:inline-block;
 }
 
 .cuantos{
