@@ -98,4 +98,11 @@ SQL
     echo json_encode(array('jugadores'=>$cursor->fetchAll(PDO::FETCH_OBJ)));
     
 }
+
+function hacer_inactivar_jugador(){
+    $db=abrir_db();
+    $cursor=$db->prepare("update jugadores set activo=0 where jugador=:jugador");
+    $cursor->execute(array(':jugador'=>$_REQUEST['jugador']));
+    echo json_encode("ok");
+}
 ?>

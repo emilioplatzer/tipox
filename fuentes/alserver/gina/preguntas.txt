@@ -47,8 +47,8 @@ D|Un marciano
 ---10|dosportres|B|llueve|¿Cuánto es dos por tres?|Es más sabido que dos por tres llueve que 2x3=6
 A|Seis
 B|Llueve
-C|Cinco
-D|Veintitrés
+C|Depende del sistema de numeración
+D|La hermenéutica del sujeto
 ---11|egipto|D|rionilo|¿Cómo se llama el principal río que de Egipto?
 A|Milo
 B|Mino

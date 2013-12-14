@@ -171,6 +171,8 @@ function hacer_jugar(){
     try{
         if($datos->estado==1 && $datos->juego==$_REQUEST['juego']){
             insertar($db, 'jugadas', array('juego', 'jugador', 'jugada'), array($datos->juego, $datos->jugador, $_REQUEST['jugada']));
+            $cursor=$db->prepare("update jugadores set activo=1 where jugador=:jugador");
+            $cursor->execute(array(':jugador'=>$datos->jugador));
         }else{
             $_SESSION['error']="fuera de tiempo";
         }
