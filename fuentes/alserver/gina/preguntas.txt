@@ -49,7 +49,7 @@ A|Seis
 B|Llueve
 C|Depende del sistema de numeración
 D|La hermenéutica del sujeto
----11|egipto|D|rionilo|¿Cómo se llama el principal río que de Egipto?
+---11|egipto|D|rionilo|¿Cómo se llama el principal río de Egipto?
 A|Milo
 B|Mino
 C|Nino
@@ -69,7 +69,7 @@ A|Dali
 B|Renoir
 C|Picasso
 D|Miró
----15|artattack|D|miranda4|¿Quién hizo esa obra de arte?|Lo hizo cuando tenía 4 años
+---15|artattack|B|miranda4|¿Quién hizo esa obra de arte?|Lo hizo cuando tenía 4 años
 A|Miró
 B|Miranda
 C|Art Attack
@@ -79,7 +79,7 @@ A|Kiss
 B|OneDirection
 C|Los redonditos de Ricota
 D|Los Beatles
----17|latin|C|latin1|¿El latín es una lengua...
+---17|latin|C|latin2|¿El latín es una lengua...
 A|Ciega?
 B|Sorda?
 C|Muerta?
@@ -109,7 +109,7 @@ A|Cisne
 B|No se convierte en nada. Sigue siendo feo
 C|Ganso
 D|Personaje de novela
----23|sanmartin|A|burro|¿En qué cruzó San Martín la cordillera de los Andes?
+---23|sanmartin|A|burro|¿En qué cruzó San Martín la cordillera de los Andes?|San Martín padecía de úlceras, y durante muchos tramos del cruce, aquejado por sus dolencias, debió ser trasladado en camilla.
 A|Burro
 B|Caballo
 C|Sulky
@@ -129,18 +129,18 @@ A|Matambre
 B|Alambre
 C|Hambre
 D|Sangre
----27|pregunta27|B|Círculo|De estas figuras ¿Cuál es la única que no tiene lados rectos?
-A|Cuadrado
+---27|pregunta27|D|Círculo|De estos cuerpos ¿Cuál es el único que no tiene caras planas?|El círculo es una figura no un cuerpo.
+A|Cilindro
 B|Círculo
-C|Rombo
-D|Triángulo
+C|Cono
+D|Esfera
 ---28|pregunta28|A|rivadavia|¿Quién fue el primer presidente Argentino? 
 A|Rivadavia
 B|Mitre
 C|Belgrano
 D|San Martín
 ---29|pregunta29|C|peterpan|¿Cómo se llama el personaje animado que siempre era niño?
-A|Donfulgencio
+A|Don Fulgencio
 B|El pato Donald
 C|Peter Pan
 D|Garfio
