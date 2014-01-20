@@ -8,7 +8,7 @@ Object.defineProperty(window,'controlDependencias',{
     get: function(){ return true; }, 
     set: function(value){ 
         for(var sector in {deseables:true, necesarios:true}){
-            value[sector].forEach(function(n_propiedad){
+            (value[sector]||[]).forEach(function(n_propiedad){
                 if(!(n_propiedad in window)){
                     throw new Error("Falta la dependencia "+n_propiedad);
                 }

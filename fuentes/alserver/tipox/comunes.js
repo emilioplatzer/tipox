@@ -162,6 +162,14 @@ function is_object (mixed_var) {
   return mixed_var !== null && typeof mixed_var === 'object';
 }
 
+function is_string(x){
+    return typeof x=='string';
+}
+
+function is_function(x){
+    return x instanceof Function;
+}
+
 function is_dom_element(x){
     return x instanceof HTMLElement;
 }
