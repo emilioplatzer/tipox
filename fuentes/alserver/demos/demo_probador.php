@@ -5,6 +5,7 @@ include "../tipox/launch.php";
 $lanzador=new Lanzador(array(
     'title'=>'info sobre tipox',
     'js'=>array(
+        '../tipox/controlador.js',
         '../tipox/comunes.js',
         '../tipox/chromatizador.js',
         '../tipox/aplicacion.js',

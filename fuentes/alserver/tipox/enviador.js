@@ -1,19 +1,34 @@
 ﻿// Por $Author: emilioplatzer@gmail.com $ Revisión $Revision: 140 $ del $Date: 2013-11-24 23:34:24 -0300 (dom 24 de nov de 2013) $
 "use strict";
 
-var controlar=app_global.controlador.controlar;
+// Object.defineProperty(window,'controlDependencias',{ get: function(){ return {};}, set: function(value){ alert('sí, anda '+JSON.stringify(value)); }}); 
+
+window.controlDependencias={
+    deseables:[
+        'controlParametros'
+    ],
+    necesarios:[
+        'is_object'
+    ]
+}
 
 function enviarPaquete(params){
     var enviarPaqueteThis=this;
-    controlar(params,{
-        destino:{obligatorio:true, uso:'url o .php que recibe la petición'},
-        datos:{validar:is_object, uso:'los datos que se envían a través de $_REQUEST'},
-        cuandoOk:{obligatorio:true, uso:'función que debe ejecutarse al recibir y decodificar los datos en forma correcta'},
-        cuandoFalla:{predeterminado:function(x,y){ alert(x+' ('+y+')'); }, uso:'función que debe ejecutarse al ocurrir un error de cualquier tipo'},
-        decodificador:{predeterminado:JSON.parse, uso:'función que debe aplicarse a los datos retornados así como vienen del servidor en responseText'},
-        codificador:{predeterminado:JSON.stringify, uso:'función que debe aplicarse a los datos que serán enviados como parámetro'},
-        sincronico:{predeterminado:false, uso:'sincrónico o asincrónico'},
-    });
+    window.controlParametros={parametros:params,
+        definicion:{
+            destino:{obligatorio:true, uso:'url o .php que recibe la petición'},
+            datos:{validar:is_object, uso:'los datos que se envían a través de $_REQUEST'},
+            cuandoOk:{obligatorio:true, uso:'función que debe ejecutarse al recibir y decodificar los datos en forma correcta'},
+            cuandoFalla:{uso:'función que debe ejecutarse al ocurrir un error de cualquier tipo'},
+            decodificador:{uso:'función que debe aplicarse a los datos retornados así como vienen del servidor en responseText'},
+            codificador:{uso:'función que debe aplicarse a los datos que serán enviados como parámetro'},
+            sincronico:{uso:'sincrónico o asincrónico'}
+        }
+    };
+    if(!('cuandoFalla' in params)) params.cuandoFalla=function(x,y){ alert(x+' ('+y+')'); };
+    if(!('decodificador' in params)) params.decodificador=function(x){ return x; };
+    if(!('codificador' in params)) params.codificador=function(x){ return x; };
+    if(!('sincronico' in params)) params.sincronico=false;
     var peticion=new XMLHttpRequest();
     var ifDebug=function(x){ return x; };
     peticion.onreadystatechange=function(){

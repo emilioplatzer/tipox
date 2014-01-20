@@ -157,7 +157,7 @@ Probador.prototype.correrPruebas=function(params){
 }
 
 Probador.prototype.registrarCaso=function(caso,params){
-    this.app.controlador.controlar(caso,{
+    window.controlParametros={parametros:caso, def_params:{
         funcion:   {obligatorio:true, uso:'función que se va a probar'},
         modulo:    {obligatorio:true, uso:'nombre del módulo'},
         caso:      {uso:'nombre del caso (si no se especifica se usa el nombre de la función con sus parámetros)'},
@@ -171,7 +171,7 @@ Probador.prototype.registrarCaso=function(caso,params){
         mostrarAunqueNoFalleHasta:{uso:'Muestra el resultado de la prueba aunque no falle hasta la fecha especificada'},
         aclaracionSiFalla:{uso:'Texto qué debe mostrar si falla la prueba'}
         // elementos:{uso:''}
-    });
+    }};
     if(!(caso.modulo in this.pendientesPorModulos)){
         this.pendientesPorModulos[caso.modulo]=0;
     }

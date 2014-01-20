@@ -161,3 +161,11 @@ function is_object (mixed_var) {
   }
   return mixed_var !== null && typeof mixed_var === 'object';
 }
+
+function is_dom_element(x){
+    return x instanceof HTMLElement;
+}
+
+function is_dom_element_or_id(x){
+    return x instanceof HTMLElement?x:(typeof x=='string'?document.getElementById(x):null);
+}
