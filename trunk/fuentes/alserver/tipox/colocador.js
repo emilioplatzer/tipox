@@ -1,6 +1,15 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
 
+window.controlDependencias={
+    deseables:[
+        'controlParametros'
+    ],
+    necesarios:[
+        'cambiandole', 'app_global', 'is_dom_element'
+    ]
+}
+
 function Colocador(){
     this.app=app_global;
 }
@@ -140,15 +149,16 @@ Colocador.prototype.colocacionesDirectas={
 }
 
 Colocador.prototype.colocar=function(params){
-    this.app.controlador.controlar(params,{
+    window.controlParametros={parametros:params,def_params:{
         contenido: {obligatorio:true, uso:'el contenido en formato tipox con el que se creará un Elemento que debe colocarse en el destino'},
-        destino:   {predeterminado:document.body, uso:'el id o elemento destino donde se colocará el elemento nuevo'},
+        destino:   {validar:is_dom_element_or_id, uso:'el id o elemento destino donde se colocará el elemento nuevo'},
         ubicacion: {uso:'lugar donde debe ubicarse el elemento (si no se especifica va al final, si se especifica va delante del elemento especificado)'},
         reemplazar:{uso:'de existir el elemento destino indica si debe ser reemplazado su contenido'},
         reciclar:  {uso:'de existir el elemento se deja el que está'},
         devolver:  {uso:'especifica el ID de cuál de los elementos debe devolver (si no devuelve el más externo o sea el principal)'},
         futuro:    {uso:'OBSOLTETO no usar'}
-    });
+    }};
+    if(!params.destino) params.destino=document.body;
     var elementoDestino;
     if(typeof(params.destino)=='string'){
         elementoDestino=document.getElementById(params.destino);

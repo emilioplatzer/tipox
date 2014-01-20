@@ -4,27 +4,6 @@
 function Aplicacion(){
     this.esAplicacion=true;
     var este=this;
-    this.controlador={
-        controlar:function(params,def_params){
-            for(var nombre_param in params) if(params.hasOwnProperty(nombre_param)){
-                if(!(nombre_param in def_params)){
-                    este.lanzarExcepcion('sobra el parámetro '+nombre_param);
-                }
-            }
-            for(var nombre_param in def_params) if(def_params.hasOwnProperty(nombre_param)){
-                var def_param=def_params[nombre_param];
-                if(def_param.obligatorio && !(nombre_param in params)){
-                    este.lanzarExcepcion('falta el parámetro '+nombre_param);
-                }
-                if(def_param.validar && !(def_param.validar.call(this,params[nombre_param]))){
-                    este.lanzarExcepcion('valor inválido para el parámetro '+nombre_param);
-                }
-                if('predeterminado' in def_param && !(nombre_param in params)){
-                    params[nombre_param]=def_param.predeterminado;
-                }
-            }
-        }
-    };
     var d=new Date();
     var d2=d.toISOString();
     var d3=d2.substr(0,'2099-12-31'.length)
