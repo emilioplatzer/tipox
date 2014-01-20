@@ -1,6 +1,9 @@
 ﻿// Por $Author$ Revisión $Revision$ del $Date$
 "use strict";
 
+window.controlDependencias={
+    necesario:[ 'is_string', 'is_function' ]
+}
 
 // Aplicacion.prototype.eventos.toggleDisplayAbajo=function(evento,elemento){
     // var hermano=elemento.nextSibling;
@@ -158,20 +161,22 @@ Probador.prototype.correrPruebas=function(params){
 
 Probador.prototype.registrarCaso=function(caso,params){
     window.controlParametros={parametros:caso, def_params:{
-        funcion:   {obligatorio:true, uso:'función que se va a probar'},
-        modulo:    {obligatorio:true, uso:'nombre del módulo'},
-        caso:      {uso:'nombre del caso (si no se especifica se usa el nombre de la función con sus parámetros)'},
+        funcion:   {obligatorio:true, validar:is_string, uso:'función que se va a probar'},
+        modulo:    {obligatorio:true, validar:is_string, uso:'nombre del módulo'},
+        caso:      {validar:is_string, uso:'nombre del caso (si no se especifica se usa el nombre de la función con sus parámetros)'},
         entrada:   {uso:'Parámetros de entrada de la función que se va a probar'},
         esperado:  {uso:'Valores esperados', controlar:{
             resultado: {uso:'lo devuelto por la función'}
         }},
         objetoThis:{uso:'Objeto al que se le aplicará la función'},
+        constructorThis:{validar:is_function, uso:'función que se llamará para construir el objeto this'},
         elementos: {uso:'Elementos que deben exisitir en el DOM para que se pueda correr la prueba'},
         ignorado:  {uso:'Indica si el caso debe ignorarse, se puede especificar un número de ticket'},
         mostrarAunqueNoFalleHasta:{uso:'Muestra el resultado de la prueba aunque no falle hasta la fecha especificada'},
         aclaracionSiFalla:{uso:'Texto qué debe mostrar si falla la prueba'}
         // elementos:{uso:''}
     }};
+    if('objetoThis' in caso && 'constructorThis' in caso) throw new Error('no se puede especificar simultaneamente objetoThis y constructorThis');
     if(!(caso.modulo in this.pendientesPorModulos)){
         this.pendientesPorModulos[caso.modulo]=0;
     }
@@ -314,10 +319,12 @@ Probador.prototype.probarElCaso=function(caso){
         }
     }
     var esto;
-    if(caso.constructorThis){
+    if('constructorThis' in caso){
         esto=new caso.constructorThis();
-    }else if(caso.objetoThis){
+        if(!esto) throw new Error('el constructorThis no construye un objeto');
+    }else if('objetoThis' in caso){
         esto=caso.objetoThis;
+        if(!esto) throw new Error('el objetoThis no es un objeto');
     }else{
         esto=window;
     }
@@ -340,7 +347,9 @@ Probador.prototype.probarElCaso=function(caso){
                 }
             }
         }
-        esperado.This=this.textoDeCampos(esto);
+        if(!('objetoThis' in esperado)){
+            esperado.This=this.textoDeCampos(esto);
+        }
     }
     var parametros=[];
     if(caso.entrada){
@@ -377,6 +386,8 @@ Probador.prototype.probarElCaso=function(caso){
         if(esperado.documento){
             obtenido.documento=document;
         }
+        if(!(caso.funcion in esto)) throw new Error('no existe la funcion "'+caso.funcion+'" en el objeto');
+        if(!is_function(esto[caso.funcion])) throw new Error('"'+caso.funcion+'" no es una funcion en el objeto');
         obtenido.respuesta=esto[caso.funcion].apply(esto,parametros);
     }
     if(caso.relanzarExcepcionSiHay){
@@ -433,6 +444,9 @@ Probador.prototype.compararObtenido=function(caso,esperado,obtenido){
     this.cantidadPruebasPorModulos[caso.modulo]++;
     obtenido.entrada=this.textoDeCampos(caso.entrada);
     if(obtenido.This===window){
+        delete obtenido.This;
+    }else if('objetoThis' in esperado){
+        obtenido.objetoThis=obtenido.This;
         delete obtenido.This;
     }else{
         obtenido.This=this.textoDeCampos(obtenido.This);
