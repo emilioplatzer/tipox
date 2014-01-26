@@ -52,8 +52,8 @@ HTML;
 
 function poner_logo(){
 echo <<<HTML
-	<img id=logo src=imagenes/gina.jpg class=ilustracion_principal>
-	<h2 id=titulo>Festejando el cumple de <span id=quien_cumple>Gina</span></h2>
+	<img id=logo src=imagenes/m_arbol.gif class=ilustracion_principal>
+	<h2 id=titulo>Juegos de navidad</h2>
 	<div class=limpiar></div>
 HTML;
 }
@@ -130,7 +130,7 @@ HTML;
     }else{
         $datos->imagen=str_replace('.png','.jpg',$datos->imagen);
         echo <<<HTML
-            <img src='imagenes/m_{$datos->imagen}' class=ilustracion_principal>
+            <img src='imobil/{$datos->imagen}' class=ilustracion_principal>
             <div class=pregunta><span class=numero_pregunta>{$datos->juego}:</span> {$datos->descripcion}</div>
             <div class=limpiar></div>
 HTML;
