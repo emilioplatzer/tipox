@@ -162,6 +162,10 @@ function is_object (mixed_var) {
   return mixed_var !== null && typeof mixed_var === 'object';
 }
 
+function is_array(x){
+    return x instanceof Array;
+}
+
 function is_string(x){
     return typeof x=='string';
 }

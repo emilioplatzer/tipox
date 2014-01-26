@@ -42,6 +42,36 @@ function mostrar(){
   });
 }
 
+function ProveedorDondeTeDeje(){
+    this.traerDatos=function(params){
+        try{
+            var datos={
+                filas:JSON.parse(localStorage['posiciones']).map(function(x){
+                    var rta=x.posicion.coords;
+                    rta.timestamp=x.posicion.timestamp;
+                    rta.momento=x.momento;
+                    return rta;
+                }),
+                campos:{
+                    timestamp       :{},
+                    accuracy        :{},
+                    altitude        :{},
+                    altitudeAccuracy:{},
+                    heading         :{},
+                    latitude        :{},
+                    longitude       :{},
+                    speed           :{},
+                    momento         :{}
+                },
+                titulo:"Puntos registrados"
+            }
+            params.cuandoOk(datos);
+        }catch(err){
+            params.cuandoFalla(err);
+        }
+    }
+}
+
 function fin_carga(){
     if(document.getElementById('incidentes')){
         return;
@@ -53,6 +83,10 @@ function fin_carga(){
     var resultado=document.createElement('div');
     resultado.id='resultado';
     document.body.appendChild(resultado);
+    var grilla=new Grilla2();
+    grilla.proveedor=new ProveedorDondeTeDeje();
+    grilla.colocarRepositorio();
+    grilla.obtenerDatos();
 }
 
 function incidente(msg,normal){

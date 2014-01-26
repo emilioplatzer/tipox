@@ -6,14 +6,18 @@ $lanzador=new Lanzador(array(
     'title'=>'dónde te dejé',
     'js'=>array(
         '../tipox/comunes.js',
+        '../tipox/controlador.js',
+        '../terceros/decimal.js',
+        '../tipox/sumadores.js',
         '../tipox/chromatizador.js',
         '../tipox/aplicacion.js',
         // '../tipox/objeto_circular.js',
-        '../tipox/colocador.js',
+        '../tipox/grilla2.js',
         'dondetedeje.js'
     ),
     'css'=>array(
         '../tipox/tipox.css',
+        '../tipox/grilla2.css',
     ),
     'empezar'=>'cargando'
 ));
