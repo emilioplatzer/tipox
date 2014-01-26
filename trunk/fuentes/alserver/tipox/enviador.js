@@ -15,7 +15,7 @@ window.controlDependencias={
 function enviarPaquete(params){
     var enviarPaqueteThis=this;
     window.controlParametros={parametros:params,
-        definicion:{
+        def_params:{
             destino:{obligatorio:true, uso:'url o .php que recibe la petición'},
             datos:{validar:is_object, uso:'los datos que se envían a través de $_REQUEST'},
             cuandoOk:{obligatorio:true, uso:'función que debe ejecutarse al recibir y decodificar los datos en forma correcta'},

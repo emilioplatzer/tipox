@@ -1,0 +1,65 @@
+﻿@-webkit-keyframes rotate {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to { 
+    -webkit-transform: rotate(-360deg);
+  }
+}
+
+@-webkit-keyframes temblate {
+0%{-webkit-transform:translate(0px,0px);}
+3%{-webkit-transform:translate(4px,1px);}
+6%{-webkit-transform:translate(-2px,-1px);}
+9%{-webkit-transform:translate(4px,0px);}
+12%{-webkit-transform:translate(-2px,1px);}
+15%{-webkit-transform:translate(4px,1px);}
+18%{-webkit-transform:translate(-2px,-2px);}
+21%{-webkit-transform:translate(4px,-2px);}
+24%{-webkit-transform:translate(-2px,0px);}
+27%{-webkit-transform:translate(4px,0px);}
+30%{-webkit-transform:translate(0px,0px);}
+100%{-webkit-transform:translate(0px,0px);}
+}
+
+.girando{
+    width:20px;
+    height:20px;
+    -webkit-animation-name: rotate; 
+    -webkit-animation-duration: 1s; 
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+}
+
+.movedizo{
+    width:20px;
+    height:20px;
+    -webkit-animation-name: temblate; 
+    -webkit-animation-duration: 2s; 
+    -webkit-animation-iteration-count: 3;
+    -webkit-animation-timing-function: linear;
+}
+
+.g2_tabla{
+    table-layout:fixed;
+    white-space:nowrap;
+}
+
+.g2_tabla tbody{
+    overflow:auto;
+}
+
+.dds_hoy::before{content:'hoy '; color:Blue ;font-family:courier new; font-size:75%}
+.dds_0::before{ content:'dom '; color:Red  ; font-family:courier new; font-size:75%}
+.dds_1::before{ content:'lun '; color:Green; font-family:courier new; font-size:75%}
+.dds_2::before{ content:'mar '; color:Green; font-family:courier new; font-size:75%}
+.dds_3::before{ content:'mié '; color:Green; font-family:courier new; font-size:75%}
+.dds_4::before{ content:'jue '; color:Green; font-family:courier new; font-size:75%}
+.dds_5::before{ content:'vie '; color:Green; font-family:courier new; font-size:75%}
+.dds_6::before{ content:'sáb '; color:Red  ; font-family:courier new; font-size:75%}
+.anno_actual{ color:transparent}
+.transparente{ color:transparent}
+
+.grupo_mil{ margin-left:4px}
+
+.negativo{ color:red }
