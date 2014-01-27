@@ -18,6 +18,7 @@ $lanzador=new Lanzador(array(
     'css'=>array(
         '../tipox/tipox.css',
         '../tipox/grilla2.css',
+        'dondetedeje.css',
     ),
     'empezar'=>'cargando'
 ));

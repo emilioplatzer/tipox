@@ -139,7 +139,7 @@ Grilla2.prototype.ejecutarSecuencia=function(secuencia,continua,cuandoFalla){
     var esto=this;
     for(var leyenda in secuencia){
         // this.statusBarText.textContent=leyenda;
-        this.statusBarText.textContent+=(ahora.getTime()-this.statusBarText.empezo)/1000+'\n'+leyenda;
+        this.statusBarText.textContent+=' ~ '+(ahora.getTime()-this.statusBarText.empezo)/1000+'\n'+leyenda;
         var accion=secuencia[leyenda];
         break;
     }
@@ -147,7 +147,10 @@ Grilla2.prototype.ejecutarSecuencia=function(secuencia,continua,cuandoFalla){
     if(accion){
         setTimeout(function(){
             try{
+                ahora=new Date();
+                esto.statusBarText.textContent+=' '+(ahora.getTime()-esto.statusBarText.empezo)/1000;
                 accion.call(esto);
+                ahora=new Date();
                 esto.ejecutarSecuencia(secuencia,true,cuandoFalla);
             }catch(err){
                 cuandoFalla(err);
@@ -340,6 +343,17 @@ Grilla2.prototype.obtenerDatos=function(){
                 },
                 'colocando el resto de las filas...':function(){
                     this.colocarFilas(-1);
+                },
+                'completando el título de las columnas...':function(){
+                    for(var i_fila=0; i_fila<this.tabla.tHead.rows.length; i_fila++){
+                        var row=this.tabla.tHead.rows[i_fila];
+                        for(var i_celda=0; i_celda<row.cells.length; i_celda++){
+                            var celda=row.cells[i_celda];
+                            if(celda.offsetWidth<celda.scrollWidth && !celda.title){
+                                celda.title=celda.textContent;
+                            }
+                        }
+                    }
                 },
                 'listo':function(){
                 }
