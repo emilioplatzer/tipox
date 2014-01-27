@@ -49,6 +49,16 @@
     overflow:auto;
 }
 
+.g2_tabla th{
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.g2_tabla td{
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
 .dds_hoy::before{content:'hoy '; color:Blue ;font-family:courier new; font-size:75%}
 .dds_0::before{ content:'dom '; color:Red  ; font-family:courier new; font-size:75%}
 .dds_1::before{ content:'lun '; color:Green; font-family:courier new; font-size:75%}
