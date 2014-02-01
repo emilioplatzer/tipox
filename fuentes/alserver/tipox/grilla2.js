@@ -9,10 +9,14 @@ window.controlDependencias={
     necesarios:[
         'is_string',
         'is_array',
+        'is_function',
         'is_dom_element',
-        'Sumadores'
+        'Sumadores',
+        'rutaImagenes'
     ]
 }
+
+if(window.rutaImagenes===undefined) window.rutaImagenes='./'; // !QApred
 
 function Grilla2(){
     this.secuenciaInterna++;
@@ -62,7 +66,7 @@ Grilla2.prototype.formatos={
         }
     },
     entero:function(texto){
-        return Grilla2.prototype.formatos.numerico(texto,0);
+        return Grilla2.prototype.formatos.numerico(texto,{decimales:0});
     },
     numerico:function(texto,opciones){
         if(texto){
@@ -92,19 +96,21 @@ Grilla2.prototype.secuenciaInterna=1;
 Object.defineProperty(Grilla2.prototype, "proveedor", {
     set: function(proveedor){
         window.controlParametros={
-            parametro:proveedor,
-            def_params:{},
-            functiones:{
-            }
+            parametros:proveedor,
+            def_params:{
+                traerDatos:{validar:is_function, uso:'trae todos los datos de la grilla'},
+                estiloFila:{validar:is_function, uso:'determina el estilo de la fila en función de los datos'}
+            },
         }
         this.prov=proveedor;
+        if(!this.prov.estiloFila) this.prov.estiloFila=function(fila){ return ''; } // !QApred
     }
 });
 
 Grilla2.prototype.agregarElemento=function(params,recursivo){
     window.controlParametros={
-        parametro:params,
-        definicion:{
+        parametros:params,
+        def_params:{
             tagName:{validar:is_string, obligatorio:true, uso:'tipo de elemento'},
             destino:{validar:is_dom_element, uso:'donde agregarlo'},
             clase:{validar:is_string, uso:'nombre que se usará para el id, para la clase y para el miembro this'},
@@ -113,16 +119,16 @@ Grilla2.prototype.agregarElemento=function(params,recursivo){
     };
     if(recursivo){
         window.controlParametros={
-            parametro:recursivo,
-            definicion:{
+            parametros:recursivo,
+            def_params:{
                 destino:{validar:is_dom_element, uso:'donde agregarlo'},
             }
         };
-        if('destino' in recursivo) params.destino=recursivo.destino;
+        if('destino' in recursivo) params.destino=recursivo.destino; // !AQpred
     }
-    if(!('destino' in params)) params.destino=document.body;
-    if(!('dentro' in params)) params.dentro=[];
-    if(params.clase in this) throw new Error('no puede haber '+params.clase+' en el this[Grilla2]');
+    if(!('destino' in params)) params.destino=document.body; // !AQpred
+    if(!('dentro' in params)) params.dentro=[]; // !AQpred
+    if(params.clase in this) throw new Error('no puede haber '+params.clase+' en el this[Grilla2]'); // !AQparam
     var nuevo_elemento=document.createElement(params.tagName);
     nuevo_elemento.className='g2_'+params.clase;
     nuevo_elemento.id='g2_'+params.clase+'_'+this.secuencia;
@@ -142,7 +148,7 @@ Grilla2.prototype.colocarRepositorio=function(){
         {tagName:'div', clase:'destino'},
     ]});
     this.statusBarText.textContent='iniciando...';
-    this.statusBarImg.src='imagenes/cargando.png';
+    this.statusBarImg.src=rutaImagenes+'cargando.png';
     this.statusBarImg.classList.add('girando');
 }
 
@@ -205,16 +211,16 @@ Grilla2.prototype.colocarFilas=function(maximo){
     var ultima_llamada=maximo<0;
     if(!('cantidadFilasColocadas' in this)){
         this.cantidadFilasColocadas=0;
-        this.grupoActual=null; // GEN
+        this.grupoActual=null;
     }
     this.datos.filas.every(function(fila, i){
         if(i>=this.cantidadFilasColocadas){
-            if('grupo' in fila){ // GEN
-                if(this.grupoActual!==fila.grupo){
+            if(this.datos.campoAgrupador && this.datos.campoAgrupador in fila){
+                if(this.grupoActual!==fila[this.datos.campoAgrupador]){
                     if(this.grupoActual){
                         this.colocarSumas({iterarEn:fila});
                     }
-                    this.grupoActual=fila.grupo;
+                    this.grupoActual=fila[this.datos.campoAgrupador];
                     var tr=this.cuerpo.insertRow(-1);
                     tr.className='grupo';
                     var td=tr.insertCell(-1);
@@ -223,10 +229,7 @@ Grilla2.prototype.colocarFilas=function(maximo){
                 }
             }
             var tr=this.cuerpo.insertRow(-1);
-            tr.className='paridad0'; // LUC
-            if(fila.mov_visto=='N' || fila.asi_visto=='N'){
-                tr.className='paridadNR';
-            }
+            tr.className=this.prov.estiloFila(fila);
             for(var n_campo in fila){
                 var def_campo=this.datos.campos[n_campo];
                 if(!def_campo.invisible){
@@ -267,13 +270,13 @@ Grilla2.prototype.colocarFilas=function(maximo){
 Grilla2.prototype.obtenerDatos=function(){
     this.statusBarText.textContent='leyendo...';
     var grilla=this;
-    grilla.statusBarImg.src='imagenes/cargando.png';
+    grilla.statusBarImg.src=rutaImagenes+'cargando.png';
     grilla.statusBarImg.className='girando';
     var ahora=new Date();
     this.statusBarText.empezo=ahora.getTime();
     var cuandoFalla=function(el_error){ // si dio error
         grilla.statusBarText.textContent+='\nERROR. '+el_error;
-        grilla.statusBarImg.src='imagenes/error_carga.png';
+        grilla.statusBarImg.src=rutaImagenes+'error_carga.png';
         grilla.statusBarImg.className='movedizo';
     };
     this.prov.traerDatos({
@@ -337,7 +340,7 @@ Grilla2.prototype.obtenerDatos=function(){
                         ]},
                         {tagName:'tbody', clase:'cuerpo'}
                     ]});
-                    this.tabla.caption.innerHTML='<span class="botonera_tabla" al_copiar=""><img src="imagenes/empezar_a_ocultar_columna.png" title="Empezar a ocultar columnas con un click" onclick="Toggle_EliminarColumnas(this)"><img src="imagenes/tabla_ordenable.png" title="Forzar la tabla para que sea ordenable" onclick="HacerOrdenables(this)"></span> ';
+                    this.tabla.caption.innerHTML='<span class="botonera_tabla" al_copiar=""><img src="'+rutaImagenes+'empezar_a_ocultar_columna.png" title="Empezar a ocultar columnas con un click" onclick="Toggle_EliminarColumnas(this)"><img src="'+rutaImagenes+'tabla_ordenable.png" title="Forzar la tabla para que sea ordenable" onclick="HacerOrdenables(this)"></span> ';
                     this.tabla.caption.appendChild(document.createTextNode(this.datos.titulo));
                     this.tabla.classList.add('tabla_resultados'); // LUC
                     this.tabla.width=(this.anchoTotal+this.cantidadColumnas)+'em';

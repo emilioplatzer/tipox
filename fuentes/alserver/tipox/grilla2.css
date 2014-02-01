@@ -43,6 +43,9 @@
 .g2_tabla{
     table-layout:fixed;
     white-space:nowrap;
+    border-collapse:collapse;
+    border:2px solid gray;
+    font-family:arial;
 }
 
 .g2_tabla tbody{
@@ -52,11 +55,19 @@
 .g2_tabla th{
     overflow:hidden;
     text-overflow:ellipsis;
+    border:2px solid gray;
+    text-align:center;
 }
 
 .g2_tabla td{
     overflow:hidden;
     text-overflow:ellipsis;
+    border:2px solid gray;
+}
+
+.g2_caption{
+    border:2px solid gray;
+    text-align:left;
 }
 
 .dds_hoy::before{content:'hoy '; color:Blue ;font-family:courier new; font-size:75%}
