@@ -1,23 +1,12 @@
 .g2_tabla{
-    border-collapse:collapse;
-    border:2px solid gray;
-    font-family:arial;
 }
 
 .g2_tabla th{
-    border:2px solid gray;
-    text-align:center;
-    overflow:hidden;
-    text-overflow:ellipsis;
+    font-size:80%
 }
 
 .g2_tabla td{
-    border:2px solid gray;
-    overflow:hidden;
-    text-overflow:ellipsis;
 }
 
 .g2_caption{
-    border:2px solid gray;
-    text-align:left;
 }

@@ -19,6 +19,10 @@ Object.defineProperty(window,'controlDependencias',{
 
 Object.defineProperty(window,'controlParametros',{ 
     set:function(params){
+        var keys=Object.keys(params);
+        if(keys.length!=2) throw new Error('controlParametros solo puede recibir un parametro {parametros:... def_params:...}');
+        if(keys[0]!='parametros') throw new Error('controlParametros tiene que recibir primero parametros');
+        if(keys[1]!='def_params') throw new Error('controlParametros tiene que recibir segundo def_params');
         for(var nombre_param in params.parametros){
             if(!(nombre_param in params.def_params)){
                 throw new Error('sobra el parametro '+nombre_param);
@@ -41,3 +45,13 @@ Object.defineProperty(window,'controlParametros',{
         }
     }
 });
+
+window.addEventListener('error',function(evento){
+    alert(evento.error.stack);
+});
+
+/*
+window.onerror=function(evento){
+    alert(descripcionError(evento));
+}
+*/

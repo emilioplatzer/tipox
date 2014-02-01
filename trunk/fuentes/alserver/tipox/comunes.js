@@ -181,3 +181,5 @@ function is_dom_element(x){
 function is_dom_element_or_id(x){
     return x instanceof HTMLElement?x:(typeof x=='string'?document.getElementById(x):null);
 }
+
+if(window.rutaImagenes===undefined) window.rutaImagenes='../imagenes/'; // !QApred
