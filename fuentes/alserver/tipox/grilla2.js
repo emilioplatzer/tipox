@@ -20,16 +20,28 @@ function Grilla2(){
 }
 
 Grilla2.prototype.formatos={
-    fecha:function(texto){
+    fecha:function(texto,opciones){
         if(texto){
-            var fecha=new Date(texto);
+            if(!opciones) opciones={}; // !QApred
+            if(opciones.hora===undefined) opciones.hora=true; // !QApred
             var hoy=new Date();
+            var fecha;
+            if(/Z|(GMT)/.test(texto)){
+                fecha=new Date(texto);
+            }else{
+                fecha=new Date(Date.parse(texto)+hoy.getTimezoneOffset()*60000);
+            }
             var rta=(fecha.getUTCDate()<10?"<span class=transparente>0</span>":"")+fecha.getUTCDate()+'/'+(fecha.getUTCMonth()+1);
             rta+="<small ";
+            var la_hora=fecha.toTimeString();
+            var hora_cero=la_hora.substr(0,8)=='00:00:00';
+            if(!opciones.hora){
+                rta+=hora_cero?'':'title="'+la_hora+'"';
+            }
             if(fecha.getUTCFullYear()==hoy.getUTCFullYear()){
                 rta+="class=anno_actual";
             }
-            rta+=">/"+fecha.getUTCFullYear()+"</small></span></span>";
+            rta+=">/"+fecha.getUTCFullYear()+"</small></span>";
             if(fecha.getUTCFullYear()==hoy.getUTCFullYear() && fecha.getUTCMonth()==hoy.getUTCMonth()){
                 if(fecha.getUTCDate()==hoy.getUTCDate()){
                     rta="dds_hoy'>"+rta;
@@ -40,6 +52,10 @@ Grilla2.prototype.formatos={
                 rta="'>"+rta;
             }
             rta="<span><span class='fecha "+rta;
+            if(opciones.hora && !hora_cero){
+                rta+=" <span title='"+la_hora+"' class='hora"+(hora_cero?' transparente':'')+"'> "+la_hora.substr(0,5)+"</span>";
+            }
+            rta+="</span>";
             return rta;
         }else{
             return '';
@@ -48,16 +64,15 @@ Grilla2.prototype.formatos={
     entero:function(texto){
         return Grilla2.prototype.formatos.numerico(texto,0);
     },
-    numerico:function(texto,decimales){
+    numerico:function(texto,opciones){
         if(texto){
-            if(decimales===undefined){
-                decimales=2;
-            }
+            if(!opciones) opciones={}; // !QApred
+            if(!opciones.decimales && opciones.decimales!==0) opciones.decimales=2; // !QApred
             var rta=texto.split('.');
             var parte_entera=rta[0];
             var parte_decimal=rta[1]||'';
-            if(parte_decimal.length<decimales){
-                parte_decimal+=new Array(decimales+1-parte_decimal.length).join('0');
+            if(parte_decimal.length<opciones.decimales){
+                parte_decimal+=new Array(opciones.decimales+1-parte_decimal.length).join('0');
             }
             var proximo_separador=parte_entera.length-3;
             parte_entera=parte_entera.split("");
@@ -176,8 +191,8 @@ Grilla2.prototype.colocarSumas=function(params){
             var td=tr.insertCell(-1);
             if(def_campo.sumar){
                 var valor=valores[n_campo];
-                if(def_campo.formato){
-                    td.innerHTML=def_campo.formato(valor);
+                if(def_campo.funcionFormato){
+                    td.innerHTML=def_campo.funcionFormato(valor);
                 }else{
                     td.textContent=valor;
                 }
@@ -223,8 +238,8 @@ Grilla2.prototype.colocarFilas=function(maximo){
                             valor=this.sumadores.valorString(n_campo);
                         }
                     }
-                    if(def_campo.formato){
-                        td.innerHTML=def_campo.formato(valor);
+                    if(def_campo.funcionFormato){
+                        td.innerHTML=def_campo.funcionFormato(valor);
                     }else{
                         td.textContent=valor;
                     }
@@ -273,22 +288,25 @@ Grilla2.prototype.obtenerDatos=function(){
                     this.cantidadColumnasVisibles=0;
                     this.sumadores=new Sumadores();
                     for(var n_campo in primera_fila){
-                        var def_campo=this.datos.campos[n_campo];
-                        this.datos.campos[n_campo]=def_campo||{};
+                        var def_campo=this.datos.campos[n_campo]||{};
+                        this.datos.campos[n_campo]=def_campo;
+                        if(def_campo.formato){
+                            def_campo.funcionFormato=this.formatos[def_campo.formato];
+                        }
                         if(n_campo.substr(0,3)=='pk_'){ // GEN
                             this.datos.campos[n_campo].invisible=true;
                         }
                         if(def_campo.es_fecha){
-                            def_campo.formato=this.formatos.fecha;
+                            def_campo.funcionFormato=this.formatos.fecha;
                         }
                         if(def_campo.es_numerico){
-                            def_campo.formato=this.formatos.numerico;
+                            def_campo.funcionFormato=this.formatos.numerico;
                         }
                         if(def_campo.es_entero){
-                            def_campo.formato=this.formatos.entero;
+                            def_campo.funcionFormato=this.formatos.entero;
                         }
                         if(def_campo.es_html_inyectado){
-                            def_campo.formato=estoMismo;
+                            def_campo.funcionFormato=estoMismo;
                         }
                         this.anchos[n_campo]=0;
                         if(def_campo.sumar){
@@ -302,6 +320,7 @@ Grilla2.prototype.obtenerDatos=function(){
                         }
                     },this);
                     for(var n_campo in primera_fila){
+                        this.anchos[n_campo]=(this.anchos[n_campo]+4)/2;
                         this.anchoTotal+=this.anchos[n_campo];
                         this.cantidadColumnas++;
                         if(!this.datos.campos[n_campo].invisible){

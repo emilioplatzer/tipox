@@ -61,7 +61,7 @@ function ProveedorDondeTeDeje(){
                     latitude        :{},
                     longitude       :{},
                     speed           :{},
-                    momento         :{}
+                    momento         :{formato:'fecha'}
                 },
                 titulo:"Puntos registrados"
             }
