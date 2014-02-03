@@ -34,8 +34,8 @@ Acumuladores.prototype.iniciar=function(campo, operacion){
 Acumuladores.prototype.acumular=function(campo, valor){
     if(!this.iniciados) throw new Error('no hay campos iniciados en el acumulador');
     if(!(campo in this.iniciados)) throw new Error('no esta iniciado el campo '+campo+' en el acumulador');
+    this.acumuladores[0][campo].acumular(valor);
     if(valor!==null && valor!==undefined){
-        this.acumuladores[0][campo].acumular(valor);
         this.cantidadAcumuladas++;
     }
 }
@@ -85,7 +85,10 @@ Acumuladores.prototype.acumuladoresRegistrados.sumar=function(){
 Acumuladores.prototype.acumuladoresRegistrados.sumar.prototype=Object.create(Acumulador.prototype);
 
 Acumuladores.prototype.acumuladoresRegistrados.sumar.prototype.acumular=function(valor){
-    this.valor=this.valor.add(valor);
+    if(valor===null || valor===undefined){
+    }else{
+        this.valor=this.valor.add(valor);
+    }
 }
 
 Acumuladores.prototype.acumuladoresRegistrados.sumar.prototype.acumularAcumulador=function(otro){
@@ -98,23 +101,29 @@ Acumuladores.prototype.acumuladoresRegistrados.sumar.prototype.valorString=funct
 
 /////////////// contar
 Acumuladores.prototype.acumuladoresRegistrados.contar=function(){
-    this.valor={no_nulos:0, cuales:{}};
+    this.valor={no_nulos:0, nulos:0, cuales:{}};
 }
 
 Acumuladores.prototype.acumuladoresRegistrados.contar.prototype=Object.create(Acumulador.prototype);
 
 Acumuladores.prototype.acumuladoresRegistrados.contar.prototype.acumular=function(valor){
-    this.valor.no_nulos++;
-    this.valor.cuales[valor]=(this.valor.cuales[valor]||0)+1
+    if(valor===null || valor===undefined){
+        this.valor.nulos++;
+    }else{
+        this.valor.no_nulos++;
+        this.valor.cuales[valor]=(this.valor.cuales[valor]||0)+1;
+    }
 }
 
 Acumuladores.prototype.acumuladoresRegistrados.contar.prototype.acumularAcumulador=function(otro){
     this.valor.no_nulos+=otro.valor.no_nulos;
+    this.valor.nulos+=otro.valor.nulos;
     for(var valor in otro.valor.cuales) if(otro.valor.cuales.hasOwnProperty(valor)){
-        this.valor.cuales[valor]+=(this.valor.cuales[valor]||0)+otro.valor.cuales[valor];
+        this.valor.cuales[valor]=(this.valor.cuales[valor]||0)+otro.valor.cuales[valor];
     }
 }
 
 Acumuladores.prototype.acumuladoresRegistrados.contar.prototype.valorString=function(valor){
-    return Object.keys(this.valor.cuales).length+'/'+this.valor.no_nulos; 
+    var distintos=Object.keys(this.valor.cuales).length; 
+    return distintos+(distintos!=this.valor.no_nulos && this.valor.nulos>0?'/'+this.valor.no_nulos:''); 
 }

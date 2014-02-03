@@ -17,6 +17,10 @@ Object.defineProperty(window,'controlDependencias',{
     }
 }); 
 
+if(window.controlParametros){
+    throw new Error("controlParametros debe instalarse antes que los demas .js");
+}
+
 Object.defineProperty(window,'controlParametros',{ 
     set:function(params){
         var keys=Object.keys(params);
@@ -33,6 +37,14 @@ Object.defineProperty(window,'controlParametros',{
             if(nombre_param in params.parametros){
                 if(def_param.validar && !(def_param.validar.call(this,params.parametros[nombre_param]))){
                     throw new Error('valor inválido para el parámetro '+nombre_param);
+                }
+                if(def_param.estructuraElementos){
+                    for(var clave in params.parametros[nombre_param]) if(params.parametros[nombre_param].hasOwnProperty(clave)){
+                        window.controlParametros={
+                            parametros:params.parametros[nombre_param][clave],
+                            def_params:def_param.estructuraElementos
+                        };
+                    }
                 }
             }else{
                 if(def_param.obligatorio){
