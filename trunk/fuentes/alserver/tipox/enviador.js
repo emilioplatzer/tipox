@@ -1,8 +1,6 @@
 ﻿// Por $Author: emilioplatzer@gmail.com $ Revisión $Revision: 140 $ del $Date: 2013-11-24 23:34:24 -0300 (dom 24 de nov de 2013) $
 "use strict";
 
-// Object.defineProperty(window,'controlDependencias',{ get: function(){ return {};}, set: function(value){ alert('sí, anda '+JSON.stringify(value)); }}); 
-
 window.controlDependencias={
     deseables:[
         'controlParametros'

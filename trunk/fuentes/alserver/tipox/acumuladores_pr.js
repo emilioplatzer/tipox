@@ -63,6 +63,7 @@ Probador.prototype.registradorCasosPrueba.push(function(){
             s.acumular('texto','D'); 
             s.acumular('texto','C'); 
             s.acumular('texto','D'); 
+            s.acumular('texto',null); 
             s.subtotalizar(); 
             return s; 
         },

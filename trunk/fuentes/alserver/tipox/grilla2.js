@@ -11,7 +11,7 @@ window.controlDependencias={
         'is_array',
         'is_function',
         'is_dom_element',
-        'Sumadores',
+        'Acumuladores',
         'rutaImagenes'
     ]
 }
@@ -68,6 +68,15 @@ Grilla2.prototype.formatos={
     entero:function(texto){
         return Grilla2.prototype.formatos.numerico(texto,{decimales:0});
     },
+    bool:function(texto){
+        if(texto===null || texto===undefined){
+            return '';
+        }else if(texto===false || texto===0 || texto==='0' || texto=='n' || texto=='N'){
+            return '<span class=falso>no</span>';
+        }else{
+            return '<span class=verdadero>Sí</span>';
+        }
+    },
     numerico:function(texto,opciones){
         if(texto){
             if(!opciones) opciones={}; // !QApred
@@ -88,7 +97,8 @@ Grilla2.prototype.formatos={
         }else{
             return '';
         }
-    }
+    },
+    HTML:estoMismo
 }
 
 Grilla2.prototype.secuenciaInterna=1;
@@ -187,15 +197,15 @@ Grilla2.prototype.colocarSumas=function(params){
     var tr=this.cuerpo.insertRow(-1);
     tr.className='grupo_pie'+(params.momento||'');
     if(params.momento){
-        var valores=this.sumadores.totalizar();
+        var valores=this.acumuladores.totalizar();
     }else{
-        var valores=this.sumadores.subtotalizar();
+        var valores=this.acumuladores.subtotalizar();
     }
     for(var n_campo in params.iterarEn){
         var def_campo=this.datos.campos[n_campo];
         if(!def_campo.invisible){
             var td=tr.insertCell(-1);
-            if(def_campo.sumar){
+            if(def_campo.acumular){
                 var valor=valores[n_campo];
                 if(def_campo.funcionFormato){
                     td.innerHTML=def_campo.funcionFormato(valor);
@@ -235,10 +245,11 @@ Grilla2.prototype.colocarFilas=function(maximo){
                 if(!def_campo.invisible){
                     var td=tr.insertCell(-1);
                     var valor=fila[n_campo];
-                    if(def_campo.sumar && valor){
-                        this.sumadores.sumar(n_campo,valor);
-                        if(def_campo.acumulado=='SUM' && valor){
-                            valor=this.sumadores.valorString(n_campo);
+                    td.valor=valor;
+                    if(def_campo.acumular && valor){
+                        this.acumuladores.acumular(n_campo,valor);
+                        if(def_campo.mostrar=='acumulado' && valor){
+                            valor=this.acumuladores.valorString(n_campo);
                         }
                     }
                     if(def_campo.funcionFormato){
@@ -282,6 +293,29 @@ Grilla2.prototype.obtenerDatos=function(){
     this.prov.traerDatos({
         cuandoOk:function(obtenido){
             grilla.datos=obtenido;
+            window.controlParametros={
+                parametros:obtenido,
+                def_params:{
+                    campos:{
+                        validar:is_object, 
+                        estructuraElementos:{
+                            tipo:{validar:function(tipo){ return tipo in grilla.formatos; }, uso:'el tipo de datos'},
+                            invisible:{validar:function(b){ return typeof b=='boolean'; }},
+                            decimales:{validar:function(decimales){ return !isNaN(decimales); }},
+                            tituloHTML:{uso:'titulo en HTML'},
+                            ancho:{uso:'ancho en EM de la columna'},
+                            style:{validar:is_string, uso:'el texto CSS que tiene que tener cada celda'},
+                            mostrar:{validar:is_string, uso:'indica qué mostrar en casos alternativos, ej:acumulado'},
+                            acumular:{validar:function(acumulador){ return acumulador in Acumuladores.prototype.acumuladoresRegistrados; }},
+                        },
+                        uso:'definición de los campos (o columnas) de la grilla'
+                    },
+                    filas:{validar:is_array, uso:'las filas con los datos de la grilla'},
+                    titulo:{validar:is_string, uso:'título de la grilla'},
+                    campoAgrupador:{validar:function(campo){ return campo in obtenido.campos; }, uso:'nombre del campo que se usa como agrupador, si hay'},
+                    demora:{uso:'calcula la demora neta de proceso en el servidor'}
+                }
+            }
             grilla.ejecutarSecuencia({
                 'calculando el ancho de las columnas...':function(){
                     var primera_fila=this.datos.filas[0];
@@ -289,7 +323,7 @@ Grilla2.prototype.obtenerDatos=function(){
                     this.anchoTotal=0;
                     this.cantidadColumnas=0;
                     this.cantidadColumnasVisibles=0;
-                    this.sumadores=new Sumadores();
+                    this.acumuladores=new Acumuladores();
                     for(var n_campo in primera_fila){
                         var def_campo=this.datos.campos[n_campo]||{};
                         this.datos.campos[n_campo]=def_campo;
@@ -299,21 +333,12 @@ Grilla2.prototype.obtenerDatos=function(){
                         if(n_campo.substr(0,3)=='pk_'){ // GEN
                             this.datos.campos[n_campo].invisible=true;
                         }
-                        if(def_campo.es_fecha){
-                            def_campo.funcionFormato=this.formatos.fecha;
-                        }
-                        if(def_campo.es_numerico){
-                            def_campo.funcionFormato=this.formatos.numerico;
-                        }
-                        if(def_campo.es_entero){
-                            def_campo.funcionFormato=this.formatos.entero;
-                        }
-                        if(def_campo.es_html_inyectado){
-                            def_campo.funcionFormato=estoMismo;
+                        if(def_campo.tipo){
+                            def_campo.funcionFormato=this.formatos[def_campo.tipo];
                         }
                         this.anchos[n_campo]=0;
-                        if(def_campo.sumar){
-                            this.sumadores.iniciar(n_campo);
+                        if(def_campo.acumular){
+                            this.acumuladores.iniciar(n_campo,def_campo.acumular);
                         }
                     }
                     this.datos.filas.forEach(function(fila){
