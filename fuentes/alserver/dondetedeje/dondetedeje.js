@@ -46,14 +46,14 @@ function ProveedorDondeTeDeje(){
     this.traerDatos=function(params){
         try{
             var datos={
-                filas:JSON.parse(localStorage['posiciones']).map(function(x){
+                filas:JSON.parse(localStorage['posiciones']||'[]').map(function(x){
                     var rta=x.posicion.coords;
                     rta.timestamp=x.posicion.timestamp;
                     rta.momento=x.momento;
                     return rta;
                 }),
                 campos:{
-                    timestamp       :{},
+                    timestamp       :{tipo:'timestamp'},
                     accuracy        :{},
                     altitude        :{},
                     altitudeAccuracy:{},
@@ -61,7 +61,7 @@ function ProveedorDondeTeDeje(){
                     latitude        :{},
                     longitude       :{},
                     speed           :{},
-                    momento         :{formato:'fecha'}
+                    momento         :{tipo:'fecha'}
                 },
                 titulo:"Puntos registrados"
             }
