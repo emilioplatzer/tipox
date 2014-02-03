@@ -30,7 +30,14 @@ Grilla2.prototype.formatos={
             if(opciones.hora===undefined) opciones.hora=true; // !QApred
             var hoy=new Date();
             var fecha;
-            if(/Z|(GMT)/.test(texto)){
+            if(opciones.construirDesde=='timestamp'){
+                window.controlarParametros={parametros:{timestsamp:texto},def_params:{timestamp:function(x){ return !isNaN(x); }}};
+                fecha=new Date(texto);
+                /*
+                fecha=new Date();
+                fecha.setTime(texto);
+                */
+            }else if(/Z|(GMT)/.test(texto)){
                 fecha=new Date(texto);
             }else{
                 fecha=new Date(Date.parse(texto)+hoy.getTimezoneOffset()*60000);
@@ -64,6 +71,9 @@ Grilla2.prototype.formatos={
         }else{
             return '';
         }
+    },
+    timestamp:function(texto){
+        return Grilla2.prototype.formatos.fecha(texto,{construirDesde:'timestamp'});
     },
     entero:function(texto){
         return Grilla2.prototype.formatos.numerico(texto,{decimales:0});
