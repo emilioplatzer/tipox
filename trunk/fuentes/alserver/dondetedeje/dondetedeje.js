@@ -11,12 +11,37 @@ function doscifras(x){
     return x;
 }
 
+var dondetedeje_campos={
+    timestamp       :{tipo:'timestamp'},
+    accuracy        :{                },
+    altitude        :{                },
+    altitudeAccuracy:{                },
+    heading         :{                },
+    latitude        :{tipo:'numerico' },
+    longitude       :{tipo:'numerico' },
+    speed           :{                },
+    momento         :{tipo:'fecha'    ,editable:true},
+    numero          :{tipo:'entero'   ,editable:true},
+    activo          :{tipo:'bool'     ,editable:true},
+    texto           :{tipo:'texto'    ,editable:true}
+}
+
 function success(position) {
     fin_carga();
-    var posiciones=JSON.parse(localStorage['posiciones']||'[]');
+    var posiciones=JSON.parse(localStorage['lasposiciones']||'[]');
     var ahora=new Date();
-    posiciones.push({posicion:position, momento:ahora.toISOString()});
-    localStorage.setItem('posiciones',JSON.stringify(posiciones));
+    var nuevo_registro={};
+    for(var n_campo in dondetedeje_campos){
+        if(n_campo=='timestamp'){
+            nuevo_registro.timestamp=position.timestamp;
+        }else if(n_campo in position.coords){
+            nuevo_registro[n_campo]=position.coords[n_campo];
+        }else{
+            nuevo_registro[n_campo]=null;
+        }
+    }
+    posiciones.push(nuevo_registro);
+    localStorage.setItem('lasposiciones',JSON.stringify(posiciones));
     incidente('registrada la posición actual '+ahora.getHours()+':'+doscifras(ahora.getMinutes()),true);
 }
 
@@ -46,24 +71,9 @@ function ProveedorDondeTeDeje(){
     this.traerDatos=function(params){
         try{
             var datos={
-                filas:JSON.parse(localStorage['posiciones']||'[]').map(function(x){
-                    var rta=x.posicion.coords;
-                    rta.timestamp=x.posicion.timestamp;
-                    rta.momento=x.momento;
-                    return rta;
-                }),
-                campos:{
-                    timestamp       :{tipo:'timestamp'},
-                    accuracy        :{},
-                    altitude        :{},
-                    altitudeAccuracy:{},
-                    heading         :{},
-                    latitude        :{},
-                    longitude       :{},
-                    speed           :{},
-                    momento         :{tipo:'fecha'}
-                },
-                titulo:"Puntos registrados"
+                campos:dondetedeje_campos,
+                titulo:"Puntos registrados",
+                filas:JSON.parse(localStorage['lasposiciones']||'[]')
             }
             params.cuandoOk(datos);
         }catch(err){

@@ -36,7 +36,7 @@ Object.defineProperty(window,'controlParametros',{
             var def_param=params.def_params[nombre_param];
             if(nombre_param in params.parametros){
                 if(def_param.validar && !(def_param.validar.call(this,params.parametros[nombre_param]))){
-                    throw new Error('valor inválido para el parámetro '+nombre_param);
+                    throw new Error('valor inválido para el parámetro '+nombre_param+': '+params.parametros[nombre_param]);
                 }
                 if(def_param.estructuraElementos){
                     for(var clave in params.parametros[nombre_param]) if(params.parametros[nombre_param].hasOwnProperty(clave)){
