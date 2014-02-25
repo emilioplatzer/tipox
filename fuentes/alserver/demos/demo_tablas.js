@@ -28,7 +28,40 @@ Probador.prototype.registradorCasosPrueba.push(function(){
     this.agregarCaso({entrada:['Eso ya lo sabía'], esperado:{respuesta:'epesopo yapa lopo sapabiapa'}});
 });
 
-window.addEventListener('load',function(){
+function poner_tabla_fechas(){
+    var colocador=new Colocador();
+    var filas=[];
+    var funciones=['string','toString','toISOString','getTimezoneOffset','toDateString','toTimeString','getTime','getHours','getUTCHours','getDate','getUTCDate','toGMTString','toDateString'];
+    filas.push(funciones);
+    filas.push(['texto' ,'texto'   ,'texto'      ,'texto'            ,'texto'       ,'texto'       ,'(le)'   ,'(e)'     ,'(e)'        ,'(e)'    ,'(e)'          ,'texto'      ,'texto',]);
+    var valores=['1/12/2012','2012-12-01','2012-12-01T00:00:00','2012-12-01T00:00:00Z','2012-12-01T00:00:00-0300',null,new Date().getTime(),
+        new Date(2012,12-1,1).getTime()
+    ];
+    for(var i=0; i<valores.length; i++){
+        var valor=valores[i];
+        var fila=[valor];
+        var ok;
+        try{
+            var fecha=new Date(valor);
+            ok=true;
+        }catch(err){
+            fila=[valor];
+            ok=false;
+        }
+        for(var j=1; j<funciones.length; j++){
+            try{
+                fila.push(ok?fecha[funciones[j]]():'error');
+            }catch(err){
+                fila.push(err.message);
+            }
+        }
+        filas.push(fila);
+    }
+    var tabla=colocador.colocar({contenido:{tipox:'div', nodes:{tipox:'tabla', id:'esta_tabla', className:'tabla_fija', filas:filas}}, devolver:'esta_tabla'});
+    tituladorSuperior(tabla);
+}
+
+function poner_tabla_numeros(){
     var colocador=new Colocador();
     var filas=[];
     filas.push(['núm','número en letras','binario','largo NeL','NeL^2','largo NeL^2','punto fijo', 'geringoso','md5'  ,'filtered md5']);
@@ -42,8 +75,13 @@ window.addEventListener('load',function(){
             hex_md5(i+"").split('').filter(function(value,index){ return bin[index % bin.length]=='1';}).join('') 
         ]);
     }
-    var tabla=colocador.colocar({contenido:{tipox:'div', nodes:{tipox:'tabla', id:'esta_tabla', className:'tabla_fija', filas:filas}}, devolver:'esta_tabla'});
+    var tabla=colocador.colocar({contenido:{tipox:'div', nodes:{tipox:'tabla', id:'esta_tabla2', className:'tabla_fija', filas:filas}}, devolver:'esta_tabla2'});
     tituladorSuperior(tabla);
+}
+
+window.addEventListener('load',function(){
+    poner_tabla_fechas();
+    poner_tabla_numeros();
 });
 
 function tituladorSuperior(elementoTabla){

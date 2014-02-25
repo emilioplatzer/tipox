@@ -23,92 +23,177 @@ function Grilla2(){
     this.secuencia=this.secuenciaInterna;
 }
 
-Grilla2.prototype.formatos={
-    fecha:function(texto,opciones){
-        if(texto){
-            if(!opciones) opciones={}; // !QApred
-            if(opciones.hora===undefined) opciones.hora=true; // !QApred
-            var hoy=new Date();
-            var fecha;
-            if(opciones.construirDesde=='timestamp'){
-                window.controlarParametros={parametros:{timestsamp:texto},def_params:{timestamp:function(x){ return !isNaN(x); }}};
-                fecha=new Date(texto);
-                /*
-                fecha=new Date();
-                fecha.setTime(texto);
-                */
-            }else if(/Z|(GMT)/.test(texto)){
-                fecha=new Date(texto);
+Grilla2.prototype.tiposCampos={};
+Grilla2.prototype.tiposCampos.Generico=function(){};
+Grilla2.prototype.tiposCampos.Generico.prototype.iniciarElemento=function(elemento,valorDeLaBase){ elemento.innerHTML=''; elemento.valor=valorDeLaBase; };
+Grilla2.prototype.tiposCampos.Generico.prototype.desplegarElemento=function(elemento){ if(elemento.valor===null){elemento.innerHTML='';}else{elemento.textContent=elemento.valor; }};
+Grilla2.prototype.tiposCampos.Generico.prototype.focoElemento=function(elemento){};
+Grilla2.prototype.tiposCampos.Generico.prototype.finEdicionElemento=function(elemento){ this.iniciarElemento(elemento, elemento.textContent); };
+Grilla2.prototype.tiposCampos.Generico.prototype.valorBase=function(elemento){ return elemento.valor; };
+Grilla2.prototype.tiposCampos.texto=function(){};
+Grilla2.prototype.tiposCampos.texto.prototype=Object.create(Grilla2.prototype.tiposCampos.Generico.prototype);
+Grilla2.prototype.tiposCampos.fecha=function(){};
+Grilla2.prototype.tiposCampos.fecha.prototype=Object.create(Grilla2.prototype.tiposCampos.Generico.prototype);
+Grilla2.prototype.tiposCampos.fecha.prototype.iniciarElemento=function(elemento,valorDeLaBase,opciones){ 
+    if(valorDeLaBase){
+        if(!opciones) opciones={}; // !QApred
+        if(opciones.hora===undefined) opciones.hora=true; // !QApred
+        var hoy=new Date();
+        var fecha;
+        if(opciones.construirDesde=='timestamp'){
+            window.controlarParametros={parametros:{timestsamp:valorDeLaBase},def_params:{timestamp:function(x){ return !isNaN(x); }}};
+            fecha=new Date(valorDeLaBase);
+        }else{
+            fecha=new Date(Date.parse(valorDeLaBase)+(hoy.getTimezoneOffset())*60000);
+        }
+        elemento.valor=fecha;
+    }else{
+        elemento.valor=null;
+    }
+};
+Grilla2.prototype.tiposCampos.fecha.prototype.finEdicionElemento=function(elemento,opciones){ 
+    if(elemento.textContent){
+        if(!opciones) opciones={}; // !QApred
+        if(opciones.hora===undefined) opciones.hora=true; // !QApred
+        var hoy=new Date();
+        var partes=elemento.textContent.split(/[-/]/g);
+        var fecha=new Date(partes[2]||hoy.getFullYear(),(partes[1]-1),partes[0]);
+        elemento.valor=fecha;
+    }else{
+        elemento.valor=null;
+    }
+};
+Grilla2.prototype.tiposCampos.fecha.prototype.desplegarElemento=function(elemento,opciones){ 
+    if(elemento.valor){
+        if(!opciones) opciones={}; // !QApred
+        if(opciones.hora===undefined) opciones.hora=true; // !QApred
+        var hoy=new Date();
+        var fecha=elemento.valor;
+        var rta=(fecha.getUTCDate()<10?"<span class=transparente>0</span>":"")+fecha.getUTCDate()+'/'+(fecha.getUTCMonth()+1);
+        rta+="<small ";
+        var la_hora=fecha.toTimeString();
+        var hora_cero=la_hora.substr(0,8)=='00:00:00';
+        if(!opciones.hora){
+            rta+=hora_cero?'':'title="'+la_hora+'"';
+        }
+        if(fecha.getUTCFullYear()==hoy.getUTCFullYear()){
+            rta+="class=anno_actual";
+        }
+        rta+=">/"+fecha.getUTCFullYear()+"</small></span>";
+        if(fecha.getUTCFullYear()==hoy.getUTCFullYear() && fecha.getUTCMonth()==hoy.getUTCMonth()){
+            if(fecha.getUTCDate()==hoy.getUTCDate()){
+                rta="dds_hoy'>"+rta;
             }else{
-                fecha=new Date(Date.parse(texto)+hoy.getTimezoneOffset()*60000);
+                rta="dds_"+fecha.getUTCDay()+"'>"+rta;
             }
-            var rta=(fecha.getUTCDate()<10?"<span class=transparente>0</span>":"")+fecha.getUTCDate()+'/'+(fecha.getUTCMonth()+1);
-            rta+="<small ";
-            var la_hora=fecha.toTimeString();
-            var hora_cero=la_hora.substr(0,8)=='00:00:00';
-            if(!opciones.hora){
-                rta+=hora_cero?'':'title="'+la_hora+'"';
-            }
-            if(fecha.getUTCFullYear()==hoy.getUTCFullYear()){
-                rta+="class=anno_actual";
-            }
-            rta+=">/"+fecha.getUTCFullYear()+"</small></span>";
-            if(fecha.getUTCFullYear()==hoy.getUTCFullYear() && fecha.getUTCMonth()==hoy.getUTCMonth()){
-                if(fecha.getUTCDate()==hoy.getUTCDate()){
-                    rta="dds_hoy'>"+rta;
-                }else{
-                    rta="dds_"+fecha.getUTCDay()+"'>"+rta;
-                }
-            }else{
-                rta="'>"+rta;
-            }
-            rta="<span><span class='fecha "+rta;
-            if(opciones.hora && !hora_cero){
-                rta+=" <span title='"+la_hora+"' class='hora"+(hora_cero?' transparente':'')+"'> "+la_hora.substr(0,5)+"</span>";
-            }
-            rta+="</span>";
-            return rta;
         }else{
-            return '';
+            rta="'>"+rta;
         }
-    },
-    timestamp:function(texto){
-        return Grilla2.prototype.formatos.fecha(texto,{construirDesde:'timestamp'});
-    },
-    entero:function(texto){
-        return Grilla2.prototype.formatos.numerico(texto,{decimales:0});
-    },
-    bool:function(texto){
-        if(texto===null || texto===undefined){
-            return '';
-        }else if(texto===false || texto===0 || texto==='0' || texto=='n' || texto=='N'){
-            return '<span class=falso>no</span>';
+        rta="<span><span class='fecha "+rta;
+        if(opciones.hora && !hora_cero){
+            rta+=" <span title='"+la_hora+"' class='hora"+(hora_cero?' transparente':'')+"'> "+la_hora.substr(0,5)+"</span>";
+        }
+        rta+="</span>";
+        elemento.innerHTML=rta;
+    }else{
+        elemento.innerHTML='';
+    }
+};
+Grilla2.prototype.tiposCampos.fecha.prototype.focoElemento=function(elemento){ 
+    elemento.textContent=elemento.textContent;
+    elemento.focus();
+}
+Grilla2.prototype.tiposCampos.fecha.prototype.valorBase=function(elemento){ return elemento.valor?new Date(elemento.valor.getTime()-elemento.valor.getTimezoneOffset()*60000).toISOString().substr(0,10):null; };
+Grilla2.prototype.tiposCampos.timestamp=function(){};
+Grilla2.prototype.tiposCampos.timestamp.prototype=Object.create(Grilla2.prototype.tiposCampos.fecha.prototype);
+Grilla2.prototype.tiposCampos.timestamp.prototype.iniciarElemento=function(elemento,valorDeLaBase){ 
+    Grilla2.prototype.tiposCampos.fecha.prototype.iniciarElemento.call(this,elemento,valorDeLaBase,{construirDesde:'timestamp'});
+}
+Grilla2.prototype.tiposCampos.bool=function(){};
+Grilla2.prototype.tiposCampos.bool.prototype=Object.create(Grilla2.prototype.tiposCampos.Generico.prototype);
+Grilla2.prototype.tiposCampos.bool.prototype.formasConocidas={
+    n:false, N:false, f:false, F:false, '0':false,
+    s:true, S:true, y:true, Y:true, t:true, T:true, '1':true,
+    '':null
+}
+Grilla2.prototype.tiposCampos.bool.prototype.iniciarElemento=function(elemento,valorDeLaBase){ 
+    if(typeof valorDeLaBase=='string'){
+        elemento.valor=this.formasConocidas[trim(valorDeLaBase).substr(0,1)];
+    }else if(valorDeLaBase===null || valorDeLaBase===undefined){
+        elemento.valor=null;
+    }else{
+        elemento.valor=!!valorDeLaBase;
+    }
+};
+Grilla2.prototype.tiposCampos.bool.prototype.desplegarElemento=function(elemento){ 
+    if(elemento.valor===null){
+        elemento.innerHTML='';
+    }else if(elemento.valor===false){
+        elemento.innerHTML='<span class=falso>no</span>';
+    }else{
+        elemento.innerHTML='<span class=verdadero>S&iacute;</span>';
+    }
+};
+Grilla2.prototype.tiposCampos.bool.prototype.focoElemento=function(elemento){ 
+    if(elemento.valor===null){
+        elemento.innerHTML='';
+    }else if(elemento.valor===false){
+        elemento.innerHTML='<span class=falso>N</span>';
+    }else{
+        elemento.innerHTML='<span class=verdadero>S</span>';
+    }
+};
+Grilla2.prototype.tiposCampos.numerico=function(){};
+Grilla2.prototype.tiposCampos.numerico.prototype=Object.create(Grilla2.prototype.tiposCampos.Generico.prototype);
+Grilla2.prototype.tiposCampos.numerico.prototype.iniciarElemento=function(elemento,valorDeLaBase){ 
+    if(valorDeLaBase===null || valorDeLaBase===undefined){
+        elemento.valor=null;
+    }else if(typeof valorDeLaBase=='string'){
+        if(trim(valorDeLaBase)===''){
+            elemento.valor=null;
         }else{
-            return '<span class=verdadero>Sí</span>';
-        }
-    },
-    numerico:function(texto,opciones){
-        if(texto){
-            if(!opciones) opciones={}; // !QApred
-            if(!opciones.decimales && opciones.decimales!==0) opciones.decimales=2; // !QApred
-            var rta=texto.split('.');
-            var parte_entera=rta[0];
-            var parte_decimal=rta[1]||'';
-            if(parte_decimal.length<opciones.decimales){
-                parte_decimal+=new Array(opciones.decimales+1-parte_decimal.length).join('0');
+            elemento.valor=Number(valorDeLaBase);
+            if(elemento.valor===NaN){
+                elemento.valor=null;
             }
-            var proximo_separador=parte_entera.length-3;
-            parte_entera=parte_entera.split("");
-            while(proximo_separador>0){
-                parte_entera.splice(proximo_separador,0,"</span><span class=grupo_mil>");
-                proximo_separador-=3;
-            }
-            return "<span "+(parte_entera[0]=='-'?'class=negativo':'')+"><span>"+parte_entera.join('')+"</span>"+(parte_decimal?'<small>.'+parte_decimal+"<small>":'')+'</span>';
-        }else{
-            return '';
         }
-    },
-    HTML:estoMismo
+    }else{
+        elemento.valor=valorDeLaBase;
+    }
+};
+Grilla2.prototype.tiposCampos.numerico.prototype.desplegarElemento=function(elemento,opciones){ 
+    if(elemento.valor===null){
+        elemento.innerHTML='';
+    }else{
+        if(!opciones) opciones={}; // !QApred
+        if(!opciones.decimales && opciones.decimales!==0) opciones.decimales=2; // !QApred
+        var rta=elemento.valor.toString().split('.');
+        var parte_entera=rta[0];
+        var parte_decimal=rta[1]||'';
+        if(parte_decimal.length<opciones.decimales){
+            parte_decimal+=new Array(opciones.decimales+1-parte_decimal.length).join('0');
+        }
+        var proximo_separador=parte_entera.length-3;
+        parte_entera=parte_entera.split("");
+        while(proximo_separador>0){
+            parte_entera.splice(proximo_separador,0,"</span><span class=grupo_mil>");
+            proximo_separador-=3;
+        }
+        elemento.innerHTML="<span "+(parte_entera[0]=='-'?'class=negativo':'')+"><span>"+parte_entera.join('')+"</span>"+(parte_decimal?'<small>.'+parte_decimal+"<small>":'')+'</span>';
+    }
+};
+Grilla2.prototype.tiposCampos.entero=function(){};
+Grilla2.prototype.tiposCampos.entero.prototype=Object.create(Grilla2.prototype.tiposCampos.numerico.prototype);
+Grilla2.prototype.tiposCampos.entero.prototype.desplegarElemento=function(elemento,valorDeLaBase){ 
+    Grilla2.prototype.tiposCampos.numerico.prototype.desplegarElemento.call(this,elemento,{decimales:0});
+}
+Grilla2.prototype.tiposCampos.HTML=function(){};
+Grilla2.prototype.tiposCampos.HTML.prototype=Object.create(Grilla2.prototype.tiposCampos.Generico.prototype);
+Grilla2.prototype.tiposCampos.HTML.prototype.iniciarElemento=function(elemento,valorDeLaBase){ 
+    elemento.valor=valorDeLaBase;
+}
+Grilla2.prototype.tiposCampos.HTML.prototype.desplegarElemento=function(elemento){ 
+    elemento.innerHTML=elemento.valor;
 }
 
 Grilla2.prototype.secuenciaInterna=1;
@@ -119,7 +204,8 @@ Object.defineProperty(Grilla2.prototype, "proveedor", {
             parametros:proveedor,
             def_params:{
                 traerDatos:{validar:is_function, uso:'trae todos los datos de la grilla'},
-                estiloFila:{validar:is_function, uso:'determina el estilo de la fila en función de los datos'}
+                estiloFila:{validar:is_function, uso:'determina el estilo de la fila en función de los datos'},
+                grabar:{validar:is_function, uso:'graba el valor en la base de datos'}
             },
         }
         this.prov=proveedor;
@@ -217,17 +303,15 @@ Grilla2.prototype.colocarSumas=function(params){
             var td=tr.insertCell(-1);
             if(def_campo.acumular){
                 var valor=valores[n_campo];
-                if(def_campo.funcionFormato){
-                    td.innerHTML=def_campo.funcionFormato(valor);
-                }else{
-                    td.textContent=valor;
-                }
+                def_campo.campeador.iniciarElemento(td,valor);
+                def_campo.campeador.desplegarElemento(td);
             }
         }
     }
 }
 
 Grilla2.prototype.colocarFilas=function(maximo){
+    var grilla=this;
     var ultima_llamada=maximo<0;
     if(!('cantidadFilasColocadas' in this)){
         this.cantidadFilasColocadas=0;
@@ -250,25 +334,38 @@ Grilla2.prototype.colocarFilas=function(maximo){
             }
             var tr=this.cuerpo.insertRow(-1);
             tr.className=this.prov.estiloFila(fila);
+            tr.filaDatos=fila;
             for(var n_campo in fila){
                 var def_campo=this.datos.campos[n_campo];
                 if(!def_campo.invisible){
                     var td=tr.insertCell(-1);
                     var valor=fila[n_campo];
-                    td.valor=valor;
+                    td.valorOriginal=valor;
+                    td.nombre_campo=n_campo;
                     if(def_campo.acumular && valor){
                         this.acumuladores.acumular(n_campo,valor);
                         if(def_campo.mostrar=='acumulado' && valor){
                             valor=this.acumuladores.valorString(n_campo);
                         }
                     }
-                    if(def_campo.funcionFormato){
-                        td.innerHTML=def_campo.funcionFormato(valor);
-                    }else{
-                        td.textContent=valor;
-                    }
+                    def_campo.campeador.iniciarElemento(td,valor);
+                    def_campo.campeador.desplegarElemento(td);
                     if(def_campo.style){
                         td.style.cssText=def_campo.style;
+                    }
+                    if(def_campo.editable){
+                        td.defCampo=def_campo;
+                        // alert('aca');
+                        td.contentEditable=true;
+                        td.onfocus=function(){
+                            this.style.textOverflow='clip';
+                            this.defCampo.campeador.focoElemento(this);
+                        }
+                        td.onblur=function(){
+                            this.defCampo.campeador.finEdicionElemento(this,this.textContent);
+                            this.defCampo.campeador.desplegarElemento(this);
+                            grilla.prov.grabar(this.defCampo.campeador.valorBase(this),this.nombre_campo,fila,this,grilla);
+                        }
                     }
                 }
             }
@@ -309,7 +406,8 @@ Grilla2.prototype.obtenerDatos=function(){
                     campos:{
                         validar:is_object, 
                         estructuraElementos:{
-                            tipo:{validar:function(tipo){ return tipo in grilla.formatos; }, uso:'el tipo de datos'},
+                            tipo:{validar:function(tipo){ return tipo in grilla.tiposCampos; }, uso:'el tipo de datos'},
+                            editable:{validar:function(b){ return typeof b=='boolean'; }},
                             invisible:{validar:function(b){ return typeof b=='boolean'; }},
                             decimales:{validar:function(decimales){ return !isNaN(decimales); }},
                             tituloHTML:{uso:'titulo en HTML'},
@@ -337,14 +435,9 @@ Grilla2.prototype.obtenerDatos=function(){
                     for(var n_campo in primera_fila){
                         var def_campo=this.datos.campos[n_campo]||{};
                         this.datos.campos[n_campo]=def_campo;
-                        if(def_campo.formato){
-                            def_campo.funcionFormato=this.formatos[def_campo.formato];
-                        }
+                        def_campo.campeador=new (this.tiposCampos[def_campo.tipo]||this.tiposCampos.Generico);
                         if(n_campo.substr(0,3)=='pk_'){ // GEN
                             this.datos.campos[n_campo].invisible=true;
-                        }
-                        if(def_campo.tipo){
-                            def_campo.funcionFormato=this.formatos[def_campo.tipo];
                         }
                         this.anchos[n_campo]=0;
                         if(def_campo.acumular){

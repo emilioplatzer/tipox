@@ -7,6 +7,11 @@
   }
 }
 
+@-webkit-keyframes transparentate {
+  from { opacity:1; }
+  to {    opacity:0; }
+}
+
 @-webkit-keyframes temblate {
 0%{-webkit-transform:translate(0px,0px);}
 3%{-webkit-transform:translate(4px,1px);}
@@ -28,6 +33,15 @@
     -webkit-animation-name: rotate; 
     -webkit-animation-duration: 1s; 
     -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+}
+
+.desapareciendo{
+    width:20px;
+    height:20px;
+    -webkit-animation-name: transparentate; 
+    -webkit-animation-duration: 4s; 
+    -webkit-animation-iteration-count: 1;
     -webkit-animation-timing-function: linear;
 }
 
@@ -84,3 +98,14 @@
 .grupo_mil{ margin-left:4px}
 
 .negativo{ color:red }
+
+.verdadero{
+    color:DarkGreen; 
+    font-weight:bold
+}
+
+.falso{
+    color:DarkRed; 
+    /* font-weight:bold; */
+    font-style:italic;
+}

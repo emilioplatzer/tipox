@@ -18,13 +18,12 @@ function enviarPaquete(params){
             datos:{validar:is_object, uso:'los datos que se envían a través de $_REQUEST'},
             cuandoOk:{obligatorio:true, uso:'función que debe ejecutarse al recibir y decodificar los datos en forma correcta'},
             cuandoFalla:{uso:'función que debe ejecutarse al ocurrir un error de cualquier tipo'},
-            decodificador:{uso:'función que debe aplicarse a los datos retornados así como vienen del servidor en responseText'},
+            decodificador:{uso:'"XML" ó función que debe aplicarse a los datos retornados así como vienen del servidor en responseText'},
             codificador:{uso:'función que debe aplicarse a los datos que serán enviados como parámetro'},
             sincronico:{uso:'sincrónico o asincrónico'}
         }
     };
     if(!('cuandoFalla' in params)) params.cuandoFalla=function(x,y){ alert(x+' ('+y+')'); };
-    if(!('decodificador' in params)) params.decodificador=function(x){ return x; };
     if(!('codificador' in params)) params.codificador=function(x){ return x; };
     if(!('sincronico' in params)) params.sincronico=false;
     var peticion=new XMLHttpRequest();
@@ -39,14 +38,29 @@ function enviarPaquete(params){
                 }else if(rta){
                     try{
                         var obtenido;
-                        obtenido=params.decodificador.call(enviarPaqueteThis,rta);
+                        if(params.decodificador){
+                            if(params.decodificador=='XML'){
+                                obtenido=peticion.responseXML;
+                                if(!obtenido){
+                                    throw new Error('No hay respuesta XML valida: '+rta);
+                                }
+                            }else{
+                                try{
+                                    obtenido=params.decodificador.call(enviarPaqueteThis,rta);
+                                }catch(err){
+                                    throw new Error('Error decodificando la respuesta: '+descripcionError(err)+' / '+rta.substr(0,100));
+                                }
+                            }
+                        }else{
+                            obtenido=rta;
+                        }
                         try{
                             params.cuandoOk(obtenido);
                         }catch(err_llamador){
                             params.cuandoFalla(descripcionError(err_llamador)+' al procesar la recepcion de la peticion AJAX',2);
                         }
-                    }catch(err_json){
-                        params.cuandoFalla('ERROR PARSEANDO EL JSON '+':'+descripcionError(err_json)+' => '+ifDebug(rta),3);
+                    }catch(err){
+                        params.cuandoFalla(descripcionError(err)+' => '+ifDebug(rta),3);
                     }
                 }else{
                     params.cuandoFalla('ERROR sin respuesta en la peticion AJAX',4);
