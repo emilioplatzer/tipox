@@ -207,6 +207,7 @@ Object.defineProperty(Grilla2.prototype, "proveedor", {
                 estiloFila:{validar:is_function, uso:'determina el estilo de la fila en función de los datos'},
                 grabar:{validar:is_function, uso:'graba el valor en la base de datos'}
             },
+            ignorar_prototype:true
         }
         this.prov=proveedor;
         if(!this.prov.estiloFila) this.prov.estiloFila=function(fila){ return ''; } // !QApred
@@ -364,7 +365,13 @@ Grilla2.prototype.colocarFilas=function(maximo){
                         td.onblur=function(){
                             this.defCampo.campeador.finEdicionElemento(this,this.textContent);
                             this.defCampo.campeador.desplegarElemento(this);
-                            grilla.prov.grabar(this.defCampo.campeador.valorBase(this),this.nombre_campo,fila,this,grilla);
+                            grilla.prov.grabar({
+                                valor:this.defCampo.campeador.valorBase(this),
+                                campo:this.nombre_campo,
+                                fila:fila,
+                                celda:this,
+                                grilla:grilla
+                            });
                         }
                     }
                 }
@@ -512,3 +519,18 @@ Grilla2.prototype.obtenerDatos=function(){
         cuandoFalla:cuandoFalla
     });
 }
+
+function ProveedorGrilla2(){
+}
+
+ProveedorGrilla2.prototype.def_params_traerDatos={
+    cuandoOk   :{validar:is_function},
+    cuandoFalla:{validar:is_function}
+};
+ProveedorGrilla2.prototype.def_params_grabar={
+    valor  :{uso:'el valor modificado'}, 
+    n_campo:{uso:'nombre del campo modificado'}, 
+    fila   :{uso:'fila que contiene todos los datos donde estaba ese valor'}, 
+    celda  :{uso:'celda física donde poner el reloj'}, 
+    grilla :{uso:'grilla'}
+};

@@ -67,20 +67,35 @@ function mostrar(){
   });
 }
 
-function ProveedorDondeTeDeje(){
-    this.traerDatos=function(params){
-        try{
-            var datos={
-                campos:dondetedeje_campos,
-                titulo:"Puntos registrados",
-                filas:JSON.parse(localStorage['lasposiciones']||'[]')
-            }
-            params.cuandoOk(datos);
-        }catch(err){
-            params.cuandoFalla(err);
-        }
+function ProveedorArrayLS(params){
+    window.controlarParametros={parametros:params, def_params:{
+        nombre_ls:{uso:'nombre en el localStorage'},
+        titulo   :{uso:'título de la grilla'},
+        campos   :{uso:'definición de los campos'}
+    }};
+    Object.defineProperty(this,'defs',{value:params});
+}
+ProveedorArrayLS.prototype=Object.create(ProveedorGrilla2.prototype);
+ProveedorArrayLS.prototype.traerDatos=function(params){
+    window.controlarParametros={parametros:params,def_params:this.def_params_traerDatos};
+    this.filas=JSON.parse(localStorage[this.defs.nombre_ls]||'[]');
+    try{
+        var datos={
+            campos:this.defs.campos,
+            titulo:this.defs.titulo,
+            filas:this.filas
+        };
+        params.cuandoOk(datos);
+    }catch(err){
+        params.cuandoFalla(err);
     }
 }
+ProveedorArrayLS.prototype.grabar=function(params){
+    window.controlarParametros={parametros:params,def_params:this.def_params_grabar};
+    params.fila[params.campo]=params.valor;
+    localStorage.setItem(this.defs.nombre_ls,JSON.stringify(this.filas));
+}
+
 
 function fin_carga(){
     if(document.getElementById('incidentes')){
@@ -94,7 +109,11 @@ function fin_carga(){
     resultado.id='resultado';
     document.body.appendChild(resultado);
     var grilla=new Grilla2();
-    grilla.proveedor=new ProveedorDondeTeDeje();
+    grilla.proveedor=new ProveedorArrayLS({
+        nombre_ls:'lasposiciones',
+        titulo:"Puntos registrados",
+        campos:dondetedeje_campos
+    });
     grilla.colocarRepositorio();
     grilla.obtenerDatos();
 }
