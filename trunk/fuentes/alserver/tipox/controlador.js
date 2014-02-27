@@ -24,11 +24,12 @@ if(window.controlParametros){
 Object.defineProperty(window,'controlParametros',{ 
     set:function(params){
         var keys=Object.keys(params);
-        if(keys.length!=2) throw new Error('controlParametros solo puede recibir un parametro {parametros:... def_params:...}');
+        if(keys.length>3) throw new Error('controlParametros solo puede recibir un parametro {parametros:... def_params:... ignorar_prototype}');
         if(keys[0]!='parametros') throw new Error('controlParametros tiene que recibir primero parametros');
         if(keys[1]!='def_params') throw new Error('controlParametros tiene que recibir segundo def_params');
+        if(keys.length>2 && keys[2]!='ignorar_prototype') throw new Error('controlParametros tiene que recibir tercero ignorar_prototype');
         for(var nombre_param in params.parametros){
-            if(!(nombre_param in params.def_params)){
+            if(!(nombre_param in params.def_params) && (!params.ignorar_prototype || params.parametros.hasOwnProperty(nombre_param))){
                 throw new Error('sobra el parametro '+nombre_param);
             }
         }
