@@ -10,6 +10,7 @@ window.controlDependencias={
         'is_string',
         'is_array',
         'is_function',
+        'is_bool',
         'is_dom_element',
         'Acumuladores',
         'rutaImagenes'
@@ -311,6 +312,130 @@ Grilla2.prototype.colocarSumas=function(params){
     }
 }
 
+Grilla2.prototype.crearBotonInsertar=function(params){
+    var boton=document.createElement('button');
+    boton.className='boton_fila';
+    boton.title='agregar nuevo registro abajo de esta fila';
+    var esto=this;
+    boton.onclick=function(){
+        var nuevaFila={};
+        var tr=buscarPadre(this,'TR');
+        // for(var n_campo in tr.filaDatos){
+        for(var n_campo in esto.datos.campos){
+            var def_campo=esto.datos.campos[n_campo];
+            if(!def_campo.invisible){
+                nuevaFila[n_campo]=null;
+            }
+        }
+        esto.colocarFila({fila:nuevaFila, paraInsertar:true, posicionBajo:params.arribaDeTodo?null:tr});
+    }
+    var img=document.createElement('img');
+    img.src=window.rutaImagenes+'fila_insertar.png';
+    boton.appendChild(img);
+    return boton;
+}
+
+Grilla2.prototype.colocarFila=function(params){
+    window.controlParametros={parametros:params, def_params:{
+        fila:{uso:'la fila que contiene los datos'},
+        paraInsertar:{validar:is_bool, uso:'si la fila es una fila nueva que se está por insertar en la tabla'},
+        posicionBajo:{uso:'TR bajo la cual hay que insertar la filla o NULL si es arriba de todo'}
+    }};
+    var grilla=this;
+    var fila=params.fila;
+    params.posicion=params.posicionBajo?params.posicionBajo.sectionRowIndex+1:0;
+    if(!params.paraInsertar && this.datos.campoAgrupador && this.datos.campoAgrupador in fila){
+        if(this.grupoActual!==fila[this.datos.campoAgrupador]){
+            if(this.grupoActual){
+                this.colocarSumas({iterarEn:fila});
+            }
+            this.grupoActual=fila[this.datos.campoAgrupador];
+            var tr=this.cuerpo.insertRow(-1);
+            tr.className='grupo';
+            var td=tr.insertCell(-1);
+            td.textContent=this.grupoActual;
+            td.colSpan=999;
+        }
+    }
+    var tr=this.cuerpo.insertRow(params.posicion);
+    tr.className=this.prov.estiloFila(fila);
+    tr.filaDatos=fila;
+    if("con columna izquierda"){
+        var td=tr.insertCell(-1);
+        td.className='selector_fila';
+        if(!params.paraInsertar && this.datos.con_selector_filas){
+            var checkbox=document.createElement('input');
+            checkbox.type='checkbox';
+            td.appendChild(checkbox);
+        }
+        if(this.datos.puede_eliminar){
+            var boton=document.createElement('button');
+            boton.className='boton_fila';
+            boton.title='eliminar registro';
+            td.appendChild(boton);
+            var img=document.createElement('img');
+            img.src=window.rutaImagenes+'fila_eliminar.png';
+            boton.appendChild(img);
+        }
+        if(params.paraInsertar){
+            var boton=document.createElement('button');
+            boton.className='boton_fila';
+            boton.title='grabar';
+            td.appendChild(boton);
+            var img=document.createElement('img');
+            img.src=window.rutaImagenes+'fila_grabar.png';
+            boton.appendChild(img);
+        }else if(this.datos.puede_insertar){
+            td.appendChild(this.crearBotonInsertar({}));
+        }
+    }
+    for(var n_campo in fila){
+        var def_campo=this.datos.campos[n_campo];
+        if(!def_campo.invisible){
+            var td=tr.insertCell(-1);
+            var valor=fila[n_campo];
+            td.valorOriginal=valor;
+            td.nombre_campo=n_campo;
+            if(def_campo.acumular && valor){
+                this.acumuladores.acumular(n_campo,valor);
+                if(def_campo.mostrar=='acumulado' && valor){
+                    valor=this.acumuladores.valorString(n_campo);
+                }
+            }
+            def_campo.campeador.iniciarElemento(td,valor);
+            def_campo.campeador.desplegarElemento(td);
+            if(def_campo.style){
+                td.style.cssText=def_campo.style;
+            }
+            if(def_campo.editable){
+                td.defCampo=def_campo;
+                // alert('aca');
+                td.contentEditable=true;
+                td.onfocus=function(){
+                    this.style.textOverflow='clip';
+                    this.defCampo.campeador.focoElemento(this);
+                }
+                td.onblur=function(){
+                    this.defCampo.campeador.finEdicionElemento(this,this.textContent);
+                    this.defCampo.campeador.desplegarElemento(this);
+                    if(!params.paraInsertar){
+                        grilla.prov.grabar({
+                            valor:this.defCampo.campeador.valorBase(this),
+                            campo:this.nombre_campo,
+                            fila:fila,
+                            celda:this,
+                            grilla:grilla
+                        });
+                    }
+                }
+            }
+        }
+    }
+    if(params.paraInsertar){
+        tr.classList.add('fila_para_insertar');
+    }
+}
+
 Grilla2.prototype.colocarFilas=function(maximo){
     var grilla=this;
     var ultima_llamada=maximo<0;
@@ -320,62 +445,7 @@ Grilla2.prototype.colocarFilas=function(maximo){
     }
     this.datos.filas.every(function(fila, i){
         if(i>=this.cantidadFilasColocadas){
-            if(this.datos.campoAgrupador && this.datos.campoAgrupador in fila){
-                if(this.grupoActual!==fila[this.datos.campoAgrupador]){
-                    if(this.grupoActual){
-                        this.colocarSumas({iterarEn:fila});
-                    }
-                    this.grupoActual=fila[this.datos.campoAgrupador];
-                    var tr=this.cuerpo.insertRow(-1);
-                    tr.className='grupo';
-                    var td=tr.insertCell(-1);
-                    td.textContent=this.grupoActual;
-                    td.colSpan=999;
-                }
-            }
-            var tr=this.cuerpo.insertRow(-1);
-            tr.className=this.prov.estiloFila(fila);
-            tr.filaDatos=fila;
-            for(var n_campo in fila){
-                var def_campo=this.datos.campos[n_campo];
-                if(!def_campo.invisible){
-                    var td=tr.insertCell(-1);
-                    var valor=fila[n_campo];
-                    td.valorOriginal=valor;
-                    td.nombre_campo=n_campo;
-                    if(def_campo.acumular && valor){
-                        this.acumuladores.acumular(n_campo,valor);
-                        if(def_campo.mostrar=='acumulado' && valor){
-                            valor=this.acumuladores.valorString(n_campo);
-                        }
-                    }
-                    def_campo.campeador.iniciarElemento(td,valor);
-                    def_campo.campeador.desplegarElemento(td);
-                    if(def_campo.style){
-                        td.style.cssText=def_campo.style;
-                    }
-                    if(def_campo.editable){
-                        td.defCampo=def_campo;
-                        // alert('aca');
-                        td.contentEditable=true;
-                        td.onfocus=function(){
-                            this.style.textOverflow='clip';
-                            this.defCampo.campeador.focoElemento(this);
-                        }
-                        td.onblur=function(){
-                            this.defCampo.campeador.finEdicionElemento(this,this.textContent);
-                            this.defCampo.campeador.desplegarElemento(this);
-                            grilla.prov.grabar({
-                                valor:this.defCampo.campeador.valorBase(this),
-                                campo:this.nombre_campo,
-                                fila:fila,
-                                celda:this,
-                                grilla:grilla
-                            });
-                        }
-                    }
-                }
-            }
+            this.colocarFila({fila:fila});
             maximo--;
             this.cantidadFilasColocadas=i+1;
         }
@@ -390,6 +460,9 @@ Grilla2.prototype.colocarFilas=function(maximo){
         this.colocarSumas({iterarEn:this.datos.filas[0]});
         this.colocarSumas({iterarEn:this.datos.filas[0], momento:'final'});
     }
+}
+
+Grilla2.prototype.prepararFilaInsertar=function(){
 }
 
 Grilla2.prototype.obtenerDatos=function(){
@@ -414,8 +487,8 @@ Grilla2.prototype.obtenerDatos=function(){
                         validar:is_object, 
                         estructuraElementos:{
                             tipo:{validar:function(tipo){ return tipo in grilla.tiposCampos; }, uso:'el tipo de datos'},
-                            editable:{validar:function(b){ return typeof b=='boolean'; }},
-                            invisible:{validar:function(b){ return typeof b=='boolean'; }},
+                            editable:{validar:is_bool},
+                            invisible:{validar:is_bool},
                             decimales:{validar:function(decimales){ return !isNaN(decimales); }},
                             tituloHTML:{uso:'titulo en HTML'},
                             ancho:{uso:'ancho en EM de la columna'},
@@ -428,9 +501,12 @@ Grilla2.prototype.obtenerDatos=function(){
                     filas:{validar:is_array, uso:'las filas con los datos de la grilla'},
                     titulo:{validar:is_string, uso:'título de la grilla'},
                     campoAgrupador:{validar:function(campo){ return campo in obtenido.campos; }, uso:'nombre del campo que se usa como agrupador, si hay'},
+                    puede_eliminar:{validar:is_bool, uso:'si debe mostrar y soportar eliminación'},
+                    puede_insertar:{validar:is_bool, uso:'si debe mostrar y soportar inserción'},
                     demora:{uso:'calcula la demora neta de proceso en el servidor'}
                 }
             }
+            grilla.datos.con_selector_filas=true;
             grilla.ejecutarSecuencia({
                 'calculando el ancho de las columnas...':function(){
                     var primera_fila=this.datos.filas[0];
@@ -479,6 +555,35 @@ Grilla2.prototype.obtenerDatos=function(){
                     this.tabla.caption.appendChild(document.createTextNode(this.datos.titulo));
                     this.tabla.classList.add('tabla_resultados'); // LUC
                     this.tabla.width=(this.anchoTotal+this.cantidadColumnas)+'em';
+                    if("con columna izquierda"){
+                        var col=document.createElement('col');
+                        this.columnas.appendChild(col);
+                        var ancho=10;
+                        if(this.datos.con_selector_filas) ancho+=15;
+                        if(this.datos.puede_eliminar) ancho+=24;
+                        if(this.datos.puede_insertar) ancho+=24;
+                        col.style.width=ancho+'px';
+                        var celda=document.createElement('th');
+                        celda.className='selector_fila';
+                        this.filaTitulos.appendChild(celda);
+                        if(this.datos.con_selector_filas){
+                            var checkbox=document.createElement('input');
+                            checkbox.type='checkbox';
+                            celda.appendChild(checkbox);
+                        }
+                        if(this.datos.puede_eliminar){
+                            var boton=document.createElement('button');
+                            boton.className='boton_fila';
+                            boton.style.visibility='hidden';
+                            celda.appendChild(boton);
+                            var img=document.createElement('img');
+                            img.src=window.rutaImagenes+'fila_eliminar.png';
+                            boton.appendChild(img);
+                        }
+                        if(this.datos.puede_insertar){
+                            celda.appendChild(this.crearBotonInsertar({arribaDeTodo:true}));
+                        }
+                    }
                     for(var n_campo in this.anchos){
                         var def_campo=this.datos.campos[n_campo];
                         if(!def_campo.invisible){
@@ -529,7 +634,7 @@ ProveedorGrilla2.prototype.def_params_traerDatos={
 };
 ProveedorGrilla2.prototype.def_params_grabar={
     valor  :{uso:'el valor modificado'}, 
-    n_campo:{uso:'nombre del campo modificado'}, 
+    campo  :{uso:'nombre del campo modificado'}, 
     fila   :{uso:'fila que contiene todos los datos donde estaba ese valor'}, 
     celda  :{uso:'celda física donde poner el reloj'}, 
     grilla :{uso:'grilla'}

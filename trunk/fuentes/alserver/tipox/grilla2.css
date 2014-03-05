@@ -109,3 +109,23 @@
     /* font-weight:bold; */
     font-style:italic;
 }
+
+.selector_fila_insertar {}
+.selector_fila_xx{
+    background-image:url(imagenes/fila_insertar.png);
+    background-position:right bottom;
+    background-size:10 10;
+    background-repeat: no-repeat;
+}
+
+button.boton_fila{
+    border:none; 
+    height:20px; 
+    background:transparent;
+    padding:2px;
+    border-radius:inherited
+}
+
+.fila_para_insertar td{
+    background-color:#DA8;
+}

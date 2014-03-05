@@ -120,7 +120,7 @@ function obtener_left_global(elemento){
 }
 
 function buscarPadre(elemento,caracterizador){
-    var funcionDetencion=caracterizador;
+    var funcionDetencion=is_function(caracterizador)?caracterizador:function(elemento){ return elemento.tagName==caracterizador};
     while(elemento.parentNode && !funcionDetencion(elemento.parentNode)){ 
         elemento=elemento.parentNode;
     }
@@ -168,6 +168,10 @@ function is_array(x){
 
 function is_string(x){
     return typeof x=='string';
+}
+
+function is_bool(x){
+    return typeof x=='boolean';
 }
 
 function is_function(x){
