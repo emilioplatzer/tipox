@@ -83,7 +83,9 @@ ProveedorArrayLS.prototype.traerDatos=function(params){
         var datos={
             campos:this.defs.campos,
             titulo:this.defs.titulo,
-            filas:this.filas
+            filas:this.filas,
+            puede_insertar:true,
+            puede_eliminar:true
         };
         params.cuandoOk(datos);
     }catch(err){
