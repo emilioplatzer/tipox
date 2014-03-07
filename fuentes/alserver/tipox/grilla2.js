@@ -206,7 +206,8 @@ Object.defineProperty(Grilla2.prototype, "proveedor", {
             def_params:{
                 traerDatos:{validar:is_function, uso:'trae todos los datos de la grilla'},
                 estiloFila:{validar:is_function, uso:'determina el estilo de la fila en función de los datos'},
-                grabar:{validar:is_function, uso:'graba el valor en la base de datos'}
+                grabar:{validar:is_function, uso:'graba el valor en la base de datos'},
+                grabarFilaInsertando:{validar:is_function, uso:'determina la forma de grabar un registro nuevo'},
             },
             ignorar_prototype:true
         }
@@ -343,7 +344,7 @@ Grilla2.prototype.colocarFila=function(params){
     }};
     var grilla=this;
     var fila=params.fila;
-    params.posicion=params.posicionBajo?params.posicionBajo.sectionRowIndex+1:0;
+    params.posicion=params.posicionBajo?params.posicionBajo.sectionRowIndex+1:(params.paraInsertar?0:-1);
     if(!params.paraInsertar && this.datos.campoAgrupador && this.datos.campoAgrupador in fila){
         if(this.grupoActual!==fila[this.datos.campoAgrupador]){
             if(this.grupoActual){
@@ -381,6 +382,9 @@ Grilla2.prototype.colocarFila=function(params){
             var boton=document.createElement('button');
             boton.className='boton_fila';
             boton.title='grabar';
+            boton.onclick=function(){
+                grilla.grabarFilaInsertando({tr:tr, fila:fila});
+            }
             td.appendChild(boton);
             var img=document.createElement('img');
             img.src=window.rutaImagenes+'fila_grabar.png';
@@ -418,13 +422,21 @@ Grilla2.prototype.colocarFila=function(params){
                 td.onblur=function(){
                     this.defCampo.campeador.finEdicionElemento(this,this.textContent);
                     this.defCampo.campeador.desplegarElemento(this);
+                    var esto=this;
                     if(!params.paraInsertar){
                         grilla.prov.grabar({
                             valor:this.defCampo.campeador.valorBase(this),
                             campo:this.nombre_campo,
                             fila:fila,
                             celda:this,
-                            grilla:grilla
+                            grilla:grilla,
+                            cuandoOk:function(params_ok){
+                                window.controlParametros={parametros:params_ok, def_params:{
+                                    nuevo_valor:{uso:'el nuevo valor que devolvió la base para ese campo (puede haber cambiado, ej: pasado a mayúsculas o trimeado espacios'},
+                                }};
+                                esto.defCampo.campeador.iniciarElemento(esto,params_ok.nuevo_valor);
+                                esto.defCampo.campeador.desplegarElemento(esto);
+                            }
                         });
                     }
                 }
@@ -625,6 +637,21 @@ Grilla2.prototype.obtenerDatos=function(){
     });
 }
 
+Grilla2.prototype.grabarFilaInsertando=function(params){
+    window.controlParametros={parametros:params, def_params:{
+        fila:{uso:'la fila de datos que debe insertarse (y que todavía no se ha hecho'},
+        tr:{validar:is_dom_element, uso:'el elemento tr donde está la fila'}
+    }};
+    var grilla=this;
+    this.prov.grabarFilaInsertando({
+        fila:params.fila,
+        cuandoOk:function(datos){
+            params.fila=cambiandole(params.fila,datos.fila);
+            grilla.colocarFila({fila:params.fila, posicionBajo:params.tr});
+        }
+    });
+}
+
 function ProveedorGrilla2(){
 }
 
@@ -637,5 +664,14 @@ ProveedorGrilla2.prototype.def_params_grabar={
     campo  :{uso:'nombre del campo modificado'}, 
     fila   :{uso:'fila que contiene todos los datos donde estaba ese valor'}, 
     celda  :{uso:'celda física donde poner el reloj'}, 
-    grilla :{uso:'grilla'}
+    grilla :{uso:'grilla'},
+    cuandoOk   :{validar:is_function, uso:'función a la que llamará después de grabar'},
+    cuandoFalla:{validar:is_function, uso:'función a la que llamará después de grabar'},
+};
+ProveedorGrilla2.prototype.def_params_grabarFilaInsertando={
+    fila   :{uso:'fila que contiene todos los datos donde estaba ese valor'}, 
+    // tr     :{uso:'fila física donde están los datos'}, 
+    // grilla :{uso:'grilla'}
+    cuandoOk   :{validar:is_function, uso:'función a la que llamará después de grabar'},
+    cuandoFalla:{validar:is_function, uso:'función a la que llamará después de grabar'},
 };
