@@ -81,3 +81,62 @@ function enviarPaquete(params){
         params.cuandoFalla(descripcionError(err),6);
     }
 }
+
+
+;(function() {
+    var viejo_enviarPaquete=enviarPaquete;
+    window.enviarPaquete=function(params){
+        if('relojEn' in params){
+            if(!params.relojEn){
+                throw new Error('falta el parámetro especial relojEn');
+            }
+            if(params.relojEn.reloj){
+                params.relojEn.parentNode.removeChild(params.relojEn.reloj);
+            }
+            var reloj=document.createElement('img');
+            reloj.style.position='absolute';
+            reloj.style.left=obtener_left_global(params.relojEn)+'px';
+            reloj.style.top=obtener_top_global(params.relojEn)+'px';
+            reloj.src=window.rutaImagenes+'cargando.png';
+            reloj.className='girando';
+            params.relojEn.parentNode.appendChild(reloj);
+            params.relojEn.reloj=reloj;
+            return viejo_enviarPaquete(cambiandole(params,{
+                relojEn:null,
+                cuandoOk:function(respuesta){
+                    var rta=params.cuandoOk(respuesta);
+                    if(params.relojEn.reloj===reloj){
+                        reloj.src=window.rutaImagenes+'tilde.png';
+                        reloj.className='desapareciendo';
+                        setTimeout(function(){
+                            if(params.relojEn.reloj===reloj){
+                                params.relojEn.parentNode.removeChild(reloj);
+                                params.relojEn.reloj=null;
+                            }
+                        },3000);
+                    }
+                    return rta;
+                },
+                cuandoFalla:function(mensaje){
+                    if(params.relojEn.reloj===reloj){
+                        reloj.src=window.rutaImagenes+'mini_error.png';
+                        reloj.className='';
+                        reloj.title=mensaje;
+                        reloj.className='desapareciendo20';
+                        setTimeout(function(){
+                            if(params.relojEn.reloj===reloj){
+                                params.relojEn.parentNode.removeChild(reloj);
+                                params.relojEn.reloj=null;
+                            }
+                        },20000);
+                    }
+                    if(params.cuandoFalla){
+                        return params.cuandoFalla(mensaje);
+                    }
+                }
+            },true,null));
+        }else{
+            return viejo_enviarPaquete.apply(this,arguments);
+        }
+    };
+})();

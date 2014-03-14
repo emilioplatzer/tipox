@@ -45,6 +45,15 @@
     -webkit-animation-timing-function: linear;
 }
 
+.desapareciendo20{
+    width:20px;
+    height:20px;
+    -webkit-animation-name: transparentate; 
+    -webkit-animation-duration: 21s; 
+    -webkit-animation-iteration-count: 1;
+    -webkit-animation-timing-function: linear;
+}
+
 .movedizo{
     width:20px;
     height:20px;

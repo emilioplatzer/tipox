@@ -25,7 +25,7 @@ function descripcionError(err){
 
 function cambiandole(destino,cambios,borrando,borrar_si_es_este_valor){
 "use strict";
-    if(destino instanceof Object && !(destino instanceof Date) && !(destino instanceof Function)){
+    if(destino instanceof Object && !(destino instanceof Date) && !(destino instanceof Function) && (!(cambios instanceof Array) || cambios.length>0)){
         var respuesta={};
         for(var campo in destino) if(destino.hasOwnProperty(campo)){
             var cambio=cambios[campo];
