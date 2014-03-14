@@ -42,7 +42,7 @@ Grilla2.prototype.tiposCampos.fecha.prototype.iniciarElemento=function(elemento,
         var hoy=new Date();
         var fecha;
         if(opciones.construirDesde=='timestamp'){
-            window.controlarParametros={parametros:{timestsamp:valorDeLaBase},def_params:{timestamp:function(x){ return !isNaN(x); }}};
+            window.controlParametros={parametros:{timestsamp:valorDeLaBase},def_params:{timestamp:function(x){ return !isNaN(x); }}};
             fecha=new Date(valorDeLaBase);
         }else{
             fecha=new Date(Date.parse(valorDeLaBase)+(hoy.getTimezoneOffset())*60000);
@@ -207,6 +207,7 @@ Object.defineProperty(Grilla2.prototype, "proveedor", {
                 traerDatos:{validar:is_function, uso:'trae todos los datos de la grilla'},
                 estiloFila:{validar:is_function, uso:'determina el estilo de la fila en función de los datos'},
                 grabar:{validar:is_function, uso:'graba el valor en la base de datos'},
+                grabarFila:{validar:is_function, uso:'determina la forma de grabar un registro completo'},
                 grabarFilaInsertando:{validar:is_function, uso:'determina la forma de grabar un registro nuevo'},
             },
             ignorar_prototype:true
@@ -383,6 +384,12 @@ Grilla2.prototype.colocarFila=function(params){
             boton.className='boton_fila';
             boton.title='grabar';
             boton.onclick=function(){
+                for(var i_celda=0; i_celda<tr.cells.length; i_celda++){
+                    var celda=tr.cells[i_celda];
+                    if(celda.nombre_campo){
+                        fila[celda.nombre_campo]=celda.valor;
+                    }
+                }
                 grilla.grabarFilaInsertando({tr:tr, fila:fila});
             }
             td.appendChild(boton);
@@ -392,9 +399,34 @@ Grilla2.prototype.colocarFila=function(params){
         }else if(this.datos.puede_insertar){
             td.appendChild(this.crearBotonInsertar({}));
         }
+        if(this.datos.modo_grabar=='fila' && !params.paraInsertar){
+            var boton=document.createElement('button');
+            boton.className='boton_fila';
+            boton.title='grabar';
+            boton.onclick=function(){
+                for(var i_celda=0; i_celda<tr.cells.length; i_celda++){
+                    var celda=tr.cells[i_celda];
+                    if(celda.nombre_campo){
+                        fila[celda.nombre_campo]=celda.valor;
+                    }
+                }
+                grilla.grabarFila({tr:tr, fila:fila});
+            }
+            td.appendChild(boton);
+            var img=document.createElement('img');
+            img.src=window.rutaImagenes+'fila_grabar.png';
+            boton.appendChild(img);
+            boton.style.visibility='hidden';
+            tr.addEventListener('focusout',function(){
+                boton.style.visibility='visible';
+            });
+        }
     }
     for(var n_campo in fila){
         var def_campo=this.datos.campos[n_campo];
+        if(!def_campo){
+            throw new Error('falta la definición del campo '+n_campo);
+        }
         if(!def_campo.invisible){
             var td=tr.insertCell(-1);
             var valor=fila[n_campo];
@@ -503,10 +535,10 @@ Grilla2.prototype.obtenerDatos=function(){
                             invisible:{validar:is_bool},
                             decimales:{validar:function(decimales){ return !isNaN(decimales); }},
                             tituloHTML:{uso:'titulo en HTML'},
-                            ancho:{uso:'ancho en EM de la columna'},
+                            ancho:{validar:function(x){ return /(em|px)$/.test(x); }, uso:'ancho de la columna (no olvidar poner em ó px)'},
                             style:{validar:is_string, uso:'el texto CSS que tiene que tener cada celda'},
                             mostrar:{validar:is_string, uso:'indica qué mostrar en casos alternativos, ej:acumulado'},
-                            acumular:{validar:function(acumulador){ return acumulador in Acumuladores.prototype.acumuladoresRegistrados; }},
+                            acumular:{validar:function(acumulador){ return acumulador in Acumuladores.prototype.acumuladoresRegistrados; }}
                         },
                         uso:'definición de los campos (o columnas) de la grilla'
                     },
@@ -515,6 +547,7 @@ Grilla2.prototype.obtenerDatos=function(){
                     campoAgrupador:{validar:function(campo){ return campo in obtenido.campos; }, uso:'nombre del campo que se usa como agrupador, si hay'},
                     puede_eliminar:{validar:is_bool, uso:'si debe mostrar y soportar eliminación'},
                     puede_insertar:{validar:is_bool, uso:'si debe mostrar y soportar inserción'},
+                    modo_grabar:{validar:function(x){ return is_string(x) && {fila:true, celda:true}[x];}, uso:'si graba por fila o por celda'},
                     demora:{uso:'calcula la demora neta de proceso en el servidor'}
                 }
             }
@@ -563,7 +596,7 @@ Grilla2.prototype.obtenerDatos=function(){
                         ]},
                         {tagName:'tbody', clase:'cuerpo'}
                     ]});
-                    this.tabla.caption.innerHTML='<span class="botonera_tabla" al_copiar=""><img src="'+rutaImagenes+'empezar_a_ocultar_columna.png" title="Empezar a ocultar columnas con un click" onclick="Toggle_EliminarColumnas(this)"><img src="'+rutaImagenes+'tabla_ordenable.png" title="Forzar la tabla para que sea ordenable" onclick="HacerOrdenables(this)"></span> ';
+                    this.tabla.caption.innerHTML='<span class="botonera_tabla" al_copiar=""></span> ';
                     this.tabla.caption.appendChild(document.createTextNode(this.datos.titulo));
                     this.tabla.classList.add('tabla_resultados'); // LUC
                     this.tabla.width=(this.anchoTotal+this.cantidadColumnas)+'em';
@@ -574,6 +607,7 @@ Grilla2.prototype.obtenerDatos=function(){
                         if(this.datos.con_selector_filas) ancho+=15;
                         if(this.datos.puede_eliminar) ancho+=24;
                         if(this.datos.puede_insertar) ancho+=24;
+                        if(this.datos.modo_grabar=='fila') ancho+=24;
                         col.style.width=ancho+'px';
                         var celda=document.createElement('th');
                         celda.className='selector_fila';
@@ -594,6 +628,8 @@ Grilla2.prototype.obtenerDatos=function(){
                         }
                         if(this.datos.puede_insertar){
                             celda.appendChild(this.crearBotonInsertar({arribaDeTodo:true}));
+                        }
+                        if(this.datos.modo_grabar=='fila'){
                         }
                     }
                     for(var n_campo in this.anchos){
@@ -645,9 +681,11 @@ Grilla2.prototype.grabarFilaInsertando=function(params){
     var grilla=this;
     this.prov.grabarFilaInsertando({
         fila:params.fila,
+        relojEn:params.tr.cells[0],  
         cuandoOk:function(datos){
             params.fila=cambiandole(params.fila,datos.fila);
             grilla.colocarFila({fila:params.fila, posicionBajo:params.tr});
+            params.tr.parentNode.removeChild(params.tr);
         }
     });
 }
@@ -674,4 +712,5 @@ ProveedorGrilla2.prototype.def_params_grabarFilaInsertando={
     // grilla :{uso:'grilla'}
     cuandoOk   :{validar:is_function, uso:'función a la que llamará después de grabar'},
     cuandoFalla:{validar:is_function, uso:'función a la que llamará después de grabar'},
+    relojEn:{validar:is_dom_element}
 };
