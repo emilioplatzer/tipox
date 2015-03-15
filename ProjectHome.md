@@ -1,0 +1,1 @@
+Mini framwork para hacer aplicaciones que estén casi 100% en Javascript. Con mínimo soporte php.
